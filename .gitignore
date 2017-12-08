@@ -1,0 +1,4 @@
+MDK-ARM/TC30MApplication/*
+!MDK-ARM/TC30MApplication/*.sct
+.vscode/*
+*vssver.scc
