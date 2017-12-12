@@ -167,6 +167,35 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
   }
 } 
 
+#define ADC1_CONVERSION_TIMEOUT (50)
+uint16_t ADC_ConversionStop(void)
+{
+  HAL_ADC_PollForConversion(&hadc, ADC1_CONVERSION_TIMEOUT);
+  return (uint16_t)HAL_ADC_Stop_DMA(&hadc);
+}
+
+void ADCDMAConversion(uint16_t *uhADCxConvertedVal, uint16_t *ADC1ConvertedVolt)
+{
+	uint16_t ADCxValue1, ADCxValue2;
+	uint16_t ADCxVolt1, ADCxVolt2;
+  double tempvol = 0;
+
+	// Start Conversion
+  HAL_ADC_Start_DMA(&hadc, (uint32_t *)uhADCxConvertedVal, 2);
+  ADC_ConversionStop();
+
+	ADCxValue1 = uhADCxConvertedVal[0];
+	ADCxValue2 = uhADCxConvertedVal[1];
+	// To calculate
+	tempvol = ((ADCxValue1 * 3300.0) / 4096.0 * 2.0);
+  ADCxVolt1 = tempvol;
+	tempvol = (((ADCxValue2 * 3300.0) / 4096.0) * 30.0962);
+	ADCxVolt2 = (uint16_t)tempvol;
+
+	ADC1ConvertedVolt[0] = ADCxVolt1;
+	ADC1ConvertedVolt[1] = ADCxVolt2;
+}
+
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */

@@ -1508,43 +1508,17 @@ static void MmiSQNSS(ATRspParmT* MsgDataP)
 
 	if((0x01 << (MsgDataP[0].Num - 1)) & UdpSocketListenIndicateFlag)
 	{
-		uint16_t sendvalue = 0xffff;
-
 		if(MsgDataP[1].Num == 0)
 		{
-			uint16_t socketdisconnected[UDPIP_SOCKET_MAX_NUM] = 
-            {
-				[0] = OEMMSG_QUEUE_UDPSOCKET1_DISCONNECTED,
-				[1] = OEMMSG_QUEUE_UDPSOCKET2_DISCONNECTED,
-				[2] = OEMMSG_QUEUE_UDPSOCKET3_DISCONNECTED,
-				[3] = OEMMSG_QUEUE_UDPSOCKET4_DISCONNECTED,
-				[4] = OEMMSG_QUEUE_UDPSOCKET5_DISCONNECTED,
-            };
-			sendvalue = socketdisconnected[MsgDataP[0].Num - 1];
-
 			UDPIPSocket[MsgDataP[0].Num - 1].status = 0;
 		}
 		else
 		{
-			uint16_t socketconnected[UDPIP_SOCKET_MAX_NUM] = 
-            {
-				[0] = OEMMSG_QUEUE_UDPSOCKET1_CONNECTED,
-				[1] = OEMMSG_QUEUE_UDPSOCKET2_CONNECTED,
-				[2] = OEMMSG_QUEUE_UDPSOCKET3_CONNECTED,
-				[3] = OEMMSG_QUEUE_UDPSOCKET4_CONNECTED,
-				[4] = OEMMSG_QUEUE_UDPSOCKET5_CONNECTED,
-			};
-
-			sendvalue = socketconnected[MsgDataP[0].Num - 1];
-
 			UDPIPSocket[MsgDataP[0].Num - 1].status = MsgDataP[1].Num;
 		}
 
 		if (UDPIPSocket[MsgDataP[0].Num - 1].operation == SOCKETOPEN_REPORTONCE)
 		{
-			if (xOEMMsgQueueHandle != NULL)
-				xQueueSendToBack(xOEMMsgQueueHandle, &sendvalue, OEMMSG_QUEUE_SEND_WAIT_TIME / portTICK_PERIOD_MS);
-
 			UDPIPSocket[MsgDataP[0].Num - 1].operation = SOCKETOPEN;
 		}
 				

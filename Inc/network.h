@@ -29,8 +29,7 @@ extern "C" {
 #define CHECK_NETWORK_TIMEOUT 		2000
 #define OTA_REPROGRAM_ACT_TIMEOUT	(10*1000)
 
-#define MAX_VERSION_LEN                  			(22)
-#define BARCODE_LEN_MAX          			(32)
+#define MAX_VERSION_LEN             (22)
 
 typedef enum  
 {
@@ -100,29 +99,15 @@ typedef enum
     CME_NET_ENOPROTOOPT            	/*33 the option is unknown at the level indiciated*/
 }TcpIpCmeError;
 
-typedef struct 
+typedef struct
 {
-    u8 	SysInitializeStat;
-    u8  	ModemATPorStatus;
-    u8  	NetworkReadyStat;
-    u8 	RssiValue;
-    s8		RssiDbm;
-    char   	SourceAddr[MAX_IP_ADDR_LEN];
-    char 	DestinationAddr[MAX_IP_ADDR_LEN];
-    u16 	DestinationPort;
-    u8 	Version[MAX_VERSION_LEN+2];
-    u8 	BleVersion[8+2];
-    u8 	BleMacAddr[8+2];
-    u32 	PRevInUse;
-    u32 	MCC;
-    u32 	IMSI_11_12;
-    u32 	sid;
-    u32 	nid;
-    u32 	baseId;
-    u32 	baseLat;
-    u32 	baseLong;
-    char 	barcode[BARCODE_LEN_MAX];
-}ServerConfigParam;
+    u8 SysInitializeStat;
+    u8 ModemATPorStatus;
+    u8 NetworkReadyStat;
+    u8 RssiValue;
+    s8 RssiDbm;
+    u8 Version[MAX_VERSION_LEN + 2];
+} ServerConfigParam;
 
 typedef enum
 {
@@ -148,6 +133,95 @@ extern u8 GetSysInitializeStat(void);
 extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);
 extern void CheckNetlorkTimerCallback(u8 Status);
+
+
+#define UDPIP_SOCKET_MIN_NUM (1)
+#define UDPIP_SOCKET_MAX_NUM (5)
+#define UDP_SEND_QUEUE_LENGHT_MAX (8)
+#define SMS_SEND_QUEUE_LENGHT_MAX (8)
+
+typedef enum
+{
+    SOCKETCLOSE = 0,
+    SOCKETOPEN = 1,
+    SOCKETOPEN_REPORTONCE = 2,
+} SocketOperationTypedef;
+
+typedef enum
+{
+    SOCKET_CLOSE = 0,
+} SocketStatusTypedef;
+
+typedef struct
+{
+  uint8_t operation;
+  uint8_t status;
+  uint16_t LocalPort;
+  uint16_t PortNum;
+  char DestAddrP[MAX_IP_ADDR_LEN];
+} UDPIPSocketTypedef;
+
+extern uint8_t UdpSocketOpenIndicateFlag;
+extern uint8_t UdpSocketCloseIndicateFlag;
+extern uint8_t UdpSocketListenIndicateFlag;
+extern UDPIPSocketTypedef UDPIPSocket[UDPIP_SOCKET_MAX_NUM];
+
+typedef struct
+{
+    uint16_t datalen;
+    uint8_t socketnum;
+    char *buf;
+} UdpSendUintTypedef;
+
+typedef struct
+{
+    uint8_t putindex;
+    uint8_t getindex;
+    uint8_t numinqueue;
+    UdpSendUintTypedef UDPIpSendUint[UDP_SEND_QUEUE_LENGHT_MAX];
+} UdpSendQueueTypedef;
+
+extern UdpSendQueueTypedef UdpSendQueue;
+
+extern void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint);
+
+extern void UdpSendUintOut(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint);
+
+typedef struct
+{
+    char *number;
+    char *buf;
+} SmsSendUintTypedef;
+
+typedef struct
+{
+    uint8_t putindex;
+    uint8_t getindex;
+    uint8_t numinqueue;
+    SmsSendUintTypedef SMSSendUint[SMS_SEND_QUEUE_LENGHT_MAX];
+} SmsSendQueueTypedef;
+
+extern SmsSendQueueTypedef SmsSendQueue;
+
+extern void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSSendUint);
+
+extern void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSSendUint);
+
+#define SMS_RECEIVE_SMS_STAT_MAX_LEN (32)
+#define SMS_RECEIVE_NUMBER_MAX_LEN (32)
+#define SMS_RECEIVE_DATE_TIME_MAX_LEN (32)
+#define SMS_RECEIVE_TEXT_DATA_MAX_LEN (128)
+typedef struct
+{
+    char smsstat[SMS_RECEIVE_SMS_STAT_MAX_LEN];
+    char smsnumber[SMS_RECEIVE_NUMBER_MAX_LEN];
+    char smsdatetime[SMS_RECEIVE_DATE_TIME_MAX_LEN];
+    char smstextdata[SMS_RECEIVE_TEXT_DATA_MAX_LEN];
+} SmsReceiveBufTypedef;
+
+extern SmsReceiveBufTypedef SmsReceiveBuf;
+
+extern uint8_t SmsRecFlag;
 
 #ifdef __cplusplus
 }

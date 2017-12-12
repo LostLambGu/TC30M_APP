@@ -35,14 +35,7 @@ ServerConfigParam gModemParam =
 	FALSE,
 	DEFAULT_RSSI_VALUE,
 	-113,
-	"",
-	"",
-	0,
 	"UNKNOWN",
-	"UNKNOWN",
-	"",
-	0,0,0,0,0,0,0,0,
-	"",
 };
 
 static const s8 RssiDbmTable[32] = 
@@ -52,6 +45,18 @@ static const s8 RssiDbmTable[32] =
 	-81,  -79,  -77,  -75,  -73,  -71,  -69,  -67,	// 24
 	-65,  -63,  -61,  -59,  -57,  -55,  -53,  -51	// 32
 };
+
+const char *socketnumstr[8] = {"1", "2", "3", "4", "5", "6", "7", "8"};
+
+uint8_t UdpSocketOpenIndicateFlag = 0;
+uint8_t UdpSocketCloseIndicateFlag = 0;
+uint8_t UdpSocketListenIndicateFlag = 0;
+UDPIPSocketTypedef UDPIPSocket[UDPIP_SOCKET_MAX_NUM] = {0};
+
+UdpSendQueueTypedef UdpSendQueue = {0};
+SmsSendQueueTypedef SmsSendQueue = {0};
+SmsReceiveBufTypedef SmsReceiveBuf = {0};
+uint8_t SmsRecFlag = 0;
 
 
 /* Function definition -------------------------------------------------------*/
@@ -133,10 +138,221 @@ void SetNetworkMachineStatus(NetworkStatT status)
 	NetStateMachine = status;
 }
 
+void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint)
+{
+    if ((pUdpSendQueue == NULL) || (pUDPIpSendUint == NULL))
+    {
+        QUEUE_PROCESS_LOG("UdpSendUnitIn param err");
+        return;
+    }
+
+    {
+        SystemDisableAllInterrupt();
+        UdpSendUintTypedef *ptemp = &(pUdpSendQueue->UDPIpSendUint[pUdpSendQueue->putindex % UDP_SEND_QUEUE_LENGHT_MAX]);
+        ptemp->datalen = pUDPIpSendUint->datalen;
+        ptemp->socketnum = pUDPIpSendUint->socketnum;
+        ptemp->buf = pUDPIpSendUint->buf;
+
+        pUdpSendQueue->putindex++;
+        pUdpSendQueue->numinqueue++;
+        if (pUdpSendQueue->numinqueue > UDP_SEND_QUEUE_LENGHT_MAX)
+        {
+            pUdpSendQueue->numinqueue = UDP_SEND_QUEUE_LENGHT_MAX;
+        }
+        SystemEnableAllInterrupt();
+    }
+}
+
+void UdpSendUintOut(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint)
+{
+    if ((pUdpSendQueue == NULL) || (pUDPIpSendUint == NULL))
+    {
+        QUEUE_PROCESS_LOG("UdpSendUintOut param err");
+        return;
+    }
+
+    if (pUdpSendQueue->numinqueue > 0)
+    {
+        SystemDisableAllInterrupt();
+        UdpSendUintTypedef *ptemp = &(pUdpSendQueue->UDPIpSendUint[pUdpSendQueue->getindex % UDP_SEND_QUEUE_LENGHT_MAX]);
+        pUDPIpSendUint->datalen = ptemp->datalen;
+        pUDPIpSendUint->socketnum = ptemp->socketnum;
+        pUDPIpSendUint->buf = ptemp->buf;
+
+        pUdpSendQueue->getindex++;
+        pUdpSendQueue->numinqueue--;
+        if (pUdpSendQueue->numinqueue > UDP_SEND_QUEUE_LENGHT_MAX)
+        {
+            pUdpSendQueue->numinqueue = 0;
+        }
+        SystemEnableAllInterrupt();
+    }
+
+}
+
+void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSSendUint)
+{
+    if ((pSmsSendQueue == NULL) || (pSMSSendUint == NULL))
+    {
+        QUEUE_PROCESS_LOG("SmsSendUnitIn param err");
+        return;
+    }
+
+    {
+        SystemDisableAllInterrupt();
+        SmsSendUintTypedef *ptemp = &(pSmsSendQueue->SMSSendUint[pSmsSendQueue->putindex % SMS_SEND_QUEUE_LENGHT_MAX]);
+        ptemp->number = pSMSSendUint->number;
+        ptemp->buf = pSMSSendUint->buf;
+
+        pSmsSendQueue->putindex++;
+        pSmsSendQueue->numinqueue++;
+        if (pSmsSendQueue->numinqueue > SMS_SEND_QUEUE_LENGHT_MAX)
+        {
+            pSmsSendQueue->numinqueue = SMS_SEND_QUEUE_LENGHT_MAX;
+        }
+        SystemEnableAllInterrupt();
+    }
+}
+
+void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSSendUint)
+{
+    if ((pSmsSendQueue == NULL) || (pSMSSendUint == NULL))
+    {
+        QUEUE_PROCESS_LOG("SmsSendUintOut param err");
+        return;
+    }
+
+    if (pSmsSendQueue->numinqueue > 0)
+    {
+        SystemDisableAllInterrupt();
+        SmsSendUintTypedef *ptemp = &(pSmsSendQueue->SMSSendUint[pSmsSendQueue->getindex % SMS_SEND_QUEUE_LENGHT_MAX]);
+        pSMSSendUint->number = ptemp->number;
+        pSMSSendUint->buf = ptemp->buf;
+
+        pSmsSendQueue->getindex++;
+        pSmsSendQueue->numinqueue--;
+        if (pSmsSendQueue->numinqueue > SMS_SEND_QUEUE_LENGHT_MAX)
+        {
+            pSmsSendQueue->numinqueue = 0;
+        }
+        SystemEnableAllInterrupt();
+    }
+}
+
+// socket
+void UdpIpSocketOpen(uint8_t Socket_Num, uint16_t LocalPort, char *DestAddrP, uint16_t PortNum)
+{
+    if ((Socket_Num >= UDPIP_SOCKET_MIN_NUM) && (Socket_Num <= UDPIP_SOCKET_MAX_NUM) && (DestAddrP != NULL))
+    {
+        // if (GetNetworkMachineStatus() != NET_CONNECTED_STAT)
+        // {
+        //     at_printfDebug("\r\nNetwork not ready", Socket_Num);
+        //     return;
+        // }
+
+        if (UDPIPSocket[Socket_Num - 1].status != SOCKET_CLOSE)
+        {
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket %d not close", Socket_Num);
+            return;
+        }
+
+        UDPIPSocket[Socket_Num - 1].operation = SOCKETOPEN_REPORTONCE;
+        UDPIPSocket[Socket_Num - 1].LocalPort = LocalPort;
+        UDPIPSocket[Socket_Num - 1].PortNum = PortNum;
+        strncpy(UDPIPSocket[Socket_Num - 1].DestAddrP, DestAddrP, MAX_IP_ADDR_LEN);
+
+		UdpSocketOpenIndicateFlag |= (0x01 << (Socket_Num - 1));
+
+		if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
+		{
+			// Reset Network Timer
+			SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
+			SoftwareTimerStart(&NetworkCheckTimer);
+		}
+	}
+    else
+    {
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket open param err");
+    }
+}
+
+void UdpIpSocketClose(uint8_t Socket_Num)
+{
+    if ((Socket_Num >= UDPIP_SOCKET_MIN_NUM) && (Socket_Num <= UDPIP_SOCKET_MAX_NUM))
+    {
+        if (UDPIPSocket[Socket_Num - 1].status == SOCKET_CLOSE)
+        {
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket %d already closed", Socket_Num);
+            return;
+        }
+
+        UDPIPSocket[Socket_Num - 1].operation = SOCKETCLOSE;
+        UDPIPSocket[Socket_Num - 1].status = SOCKET_CLOSE;
+        
+		UdpSocketCloseIndicateFlag |= (0x01 << (Socket_Num - 1));
+    }
+    else
+    {
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket close param err");
+    }
+}
+
+void UdpIpSocketSendData(uint8 Socket_Num, char *buffer, uint16 len)
+{
+    if ((Socket_Num >= UDPIP_SOCKET_MIN_NUM) && (Socket_Num <= UDPIP_SOCKET_MAX_NUM)
+     && (buffer != NULL) && (len > 0))
+    {
+        if (UDPIPSocket[Socket_Num - 1].status != SOCKET_CLOSE)
+        {
+            UdpSendUintTypedef UDPIpSendUint = {0};
+
+            if (UdpSendQueue.numinqueue >= UDP_SEND_QUEUE_LENGHT_MAX)
+            {
+                NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send queue fulll");
+                return;
+            }
+
+            char *tmp = pvPortMalloc(len);
+
+            if (tmp == NULL)
+            {
+                NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send malloc fail");
+                return;
+            }
+            else
+            {
+                memset(tmp, 0 , len);
+                memcpy(tmp , buffer, len);
+                UDPIpSendUint.datalen = len;
+                UDPIpSendUint.socketnum = Socket_Num;
+                UDPIpSendUint.buf = tmp;
+                UdpSendUnitIn(&UdpSendQueue, &UDPIpSendUint);
+
+				if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
+				{
+					// Reset Network Timer
+					SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
+					SoftwareTimerStart(&NetworkCheckTimer);
+				}
+			}
+        }
+        else
+        {
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send soket closed");
+        }
+    }
+    else
+    {
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send param err");
+    }
+}
+
 void NetReadySocketProcess(uint32_t *pTimeout)
 {
 	static UdpSendUintTypedef UDPIpSendUint = {0};
 	static SmsSendUintTypedef SMSSendUint = {0};
+	static uint8_t OpenStatSocketNum = 0;
+	static uint8_t SocketQue[UDPIP_SOCKET_MAX_NUM] = {0};
 
 	if (UdpSocketOpenIndicateFlag)
 	{
@@ -197,17 +413,36 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if ((UdpSendQueue.numinqueue != 0) && (udpsendoverflag == 1))
 	{
-		char *socketnumstr[8] = {"1", "2", "3", "4", "5", "6", "7", "8"};
-
 		UdpSendUintOut(&UdpSendQueue, &UDPIpSendUint);
 
 		if ((UDPIpSendUint.buf != NULL) && (UDPIpSendUint.datalen != 0))
 		{
-			SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[UDPIpSendUint.socketnum - 1]);
+			if (UdpSocketListenIndicateFlag)
+			{
+				uint8_t k = 0;
 
-			udpsendoverflag = 0;
+				memset(SocketQue, 0, sizeof(SocketQue));
 
-			*pTimeout = 10;
+				for (k = UDPIP_SOCKET_MAX_NUM; k > 0; k--)
+				{
+					if (UdpSocketListenIndicateFlag & (0x01 << (k - 1)))
+					{
+						if (UDPIPSocket[k - 1].status != 0)
+						{
+							SocketQue[OpenStatSocketNum] = k;
+							OpenStatSocketNum++;
+						}
+					}
+				}
+			}
+
+			if (OpenStatSocketNum > 0)
+			{
+				SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum] - 1]);
+				OpenStatSocketNum--;
+				udpsendoverflag = 0;
+				*pTimeout = 10;
+			}
 		}
 	}
 
