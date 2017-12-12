@@ -505,55 +505,55 @@ static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	switch (Param)
 	{
 	case 0:
-		gCDMALEDFlashingFlag = FALSE;
+		gRedLEDFlashingFlag = FALSE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: CDMA LED Flashing OFF");
-		gGPSLEDFlashingFlag = FALSE;
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
+		gGreenLEDFlashingFlag = FALSE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: GPS LED Flashing OFF");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
 		break;
 
 	case 1:
-		gCDMALEDFlashingFlag = TRUE;
+		gRedLEDFlashingFlag = TRUE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: CDMA LED Flashing ON");
-		gGPSLEDFlashingFlag = TRUE;
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
+		gGreenLEDFlashingFlag = TRUE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: GPS LED Flashing ON");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
 		break;
 
 	case 2:
-		gCDMALEDFlashingFlag = TRUE;
+		gRedLEDFlashingFlag = TRUE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: CDMA LED Flashing ON");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
 		break;
 
 	case 3:
-		gCDMALEDFlashingFlag = FALSE;
+		gRedLEDFlashingFlag = FALSE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: CDMA LED Flashing OFF");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
 		break;
 
 	case 4:
-		gGPSLEDFlashingFlag = TRUE;
+		gGreenLEDFlashingFlag = TRUE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: GPS LED Flashing ON");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
 		break;
 
 	case 5:
-		gGPSLEDFlashingFlag = FALSE;
+		gGreenLEDFlashingFlag = FALSE;
 		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: GPS LED Flashing OFF");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
 		break;
 
 	case 6:
-		// HAL_GPIO_WritePin(PB6_CDMA_LED_GPIO_Port, PB6_CDMA_LED_Pin, GPIO_PIN_RESET);
-		// HAL_GPIO_WritePin(PB7_GPS_LED_GPIO_Port, PB7_GPS_LED_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_RESET);
 		break;
 
 	case 7:
-		// HAL_GPIO_WritePin(PB6_CDMA_LED_GPIO_Port, PB6_CDMA_LED_Pin, GPIO_PIN_SET);
-		// HAL_GPIO_WritePin(PB7_GPS_LED_GPIO_Port, PB7_GPS_LED_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_SET);
 		break;
 
 	default:

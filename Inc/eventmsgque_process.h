@@ -32,7 +32,6 @@ extern "C" {
 #define QUEUE_PROCESS_LOG DebugLog
 
 extern void OemMsgQueUdpRec(void *MsgBufferP, uint32_t size);
-extern void OemNmeaDataProcess(uint8_t *MsgBufferP, uint32_t size);
 
 #define UDPIP_SOCKET_MIN_NUM (1)
 #define UDPIP_SOCKET_MAX_NUM (5)

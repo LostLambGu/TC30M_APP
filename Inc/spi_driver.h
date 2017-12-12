@@ -12,6 +12,7 @@
 #define _SPI_SERIAL_FLASH_DRV_H
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
+#include "include.h"
 
 // PA4- SPI FLASH CS
 #define SPI_FLASH_CS_PORT  		PA4_FLASH_CS_N_GPIO_Port

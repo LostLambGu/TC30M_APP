@@ -33,12 +33,12 @@ extern "C" {
 
 #define FunStates FunctionalState
 
-#define LTE_AT_PORT_READY()	(HAL_GPIO_ReadPin(PB13_MCU_CTS3_GPIO_Port,PB13_MCU_CTS3_Pin) == GPIO_PIN_RESET)
+#define LTE_AT_PORT_READY()	(HAL_GPIO_ReadPin(PB13_MCU_CTS3_GPIO_Port, PB13_MCU_CTS3_Pin) == GPIO_PIN_RESET)
 
 // Variable Declared
 extern uint8_t Lis2dhMemsChipID;
-extern uint8_t gCDMALEDFlashingFlag;
-extern uint8_t gGPSLEDFlashingFlag;
+extern uint8_t gRedLEDFlashingFlag;
+extern uint8_t gGreenLEDFlashingFlag;
 
 //Function Declare
 extern void DelayMsTime(uint16_t delay_time); //delay delay_time * 1ms

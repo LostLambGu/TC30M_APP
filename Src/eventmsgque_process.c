@@ -99,11 +99,6 @@ void OemMsgQueUdpRec(void *MsgBufferP, uint32_t size)
     OemMsgHandle(OEM_UDP_RECEIVE_DATA, MsgBufferP, size);
 }
 
-void OemNmeaDataProcess(uint8_t *MsgBufferP, uint32_t size)
-{
-    OemMsgHandle(OEM_GPS_NMEA_EVENT_MSG, MsgBufferP, size);
-}
-
 
 void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint)
 {

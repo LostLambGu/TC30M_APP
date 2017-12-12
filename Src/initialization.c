@@ -41,13 +41,11 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
-uint8_t gCDMALEDFlashingFlag = FALSE;
-uint8_t gGPSLEDFlashingFlag = FALSE;
+uint8_t gRedLEDFlashingFlag = FALSE;
+uint8_t gGreenLEDFlashingFlag = FALSE;
 uint8_t Lis2dhMemsChipID = 0;
 
 extern uint8_t ModemPowerOnFlag;
-
-extern void OemNmeaDataProcess(uint8_t *MsgBufferP, uint32_t size);
 
 static uint8_t AccIntHappenStatus = FALSE;
 
@@ -154,12 +152,12 @@ void ModemRTSEnControl(FunStates Status)
 	if (Status == ENABLE)
 	{
 		// Active
-		HAL_GPIO_WritePin(GPIOB, PB14_MCU_RTS3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PB14_MCU_RTS3_GPIO_Port, PB14_MCU_RTS3_Pin, GPIO_PIN_RESET);
 	}
 	else if (Status == DISABLE)
 	{
 		// Inactivation
-		HAL_GPIO_WritePin(GPIOB, PB14_MCU_RTS3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(PB14_MCU_RTS3_GPIO_Port, PB14_MCU_RTS3_Pin, GPIO_PIN_SET);
 	}
 }
 
@@ -210,10 +208,10 @@ static void CompileSetRTCTime(void)
 void SystemInitialization(void)
 {
 	// Init LED
-	HAL_GPIO_WritePin(PB6_CDMA_LED_GPIO_Port, PB6_CDMA_LED_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(PB7_GPS_LED_GPIO_Port, PB7_GPS_LED_Pin, GPIO_PIN_RESET);
-	gCDMALEDFlashingFlag = TRUE;
-	gGPSLEDFlashingFlag = TRUE;
+	HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_RESET);
+	gRedLEDFlashingFlag = TRUE;
+	gGreenLEDFlashingFlag = TRUE;
 
 	// Show Version
 	ShowSoftVersion();
@@ -275,14 +273,14 @@ void CheckRegularTimerCallback(uint8_t Status)
 
 void CheckLEDFlashTimerCallback(uint8_t Status)
 {
-	if (gCDMALEDFlashingFlag == TRUE)
+	if (gRedLEDFlashingFlag == TRUE)
 	{
-		HAL_GPIO_TogglePin(PB6_CDMA_LED_GPIO_Port, PB6_CDMA_LED_Pin);
+		HAL_GPIO_TogglePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin);
 	}
 
-	if (gGPSLEDFlashingFlag == TRUE)
+	if (gGreenLEDFlashingFlag == TRUE)
 	{
-		HAL_GPIO_TogglePin(PB7_GPS_LED_GPIO_Port, PB7_GPS_LED_Pin);
+		HAL_GPIO_TogglePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin);
 	}
 
 	// Reset Timer

@@ -29,24 +29,24 @@ extern DebugCtlPrarm DbgCtl;
 const ATCompareTable_t ATCmdTypeTable[AT_CMD_DEF_LAST] =
 	{
 		{"AT", AT_CMD_DEF_INITIAL, TRUE},
-		{"AT*LIST", AT_CMD_DEF_PROTOTYPE, TRUE},
-		{"AT*RESET", AT_CMD_DEF_RESET, TRUE},
-		{"AT*SLEEP", AT_CMD_DEF_SLEEP, TRUE},
-		{"AT*TO", AT_CMD_DEF_TRANSFER, TRUE},
-		{"AT*PWR", AT_CMD_DEF_PWRCTL, TRUE},
-		{"AT*LED", AT_CMD_DEF_LED, TRUE},
-		{"AT*FLASH", AT_CMD_DEF_FLASH, TRUE},
-		{"AT*GPS", AT_CMD_DEF_GPS, TRUE},
-		{"AT*GSENSOR", AT_CMD_DEF_GSENSOR, TRUE},
-		{"AT*ADC", AT_CMD_DEF_ADC, TRUE},
-		{"AT*RTC", AT_CMD_DEF_RTC, TRUE},
-		{"AT*MODEM", AT_CMD_DEF_MODEM, TRUE},
-		{"AT*IOINFO", AT_CMD_DEF_IOINFO, TRUE},
-		{"AT*GPIOREAD", AT_CMD_DEF_GPIOREAD, TRUE},
-		{"AT*GPIOWRITE", AT_CMD_DEF_GPIOWRITE, TRUE},
-		{"AT*WDT", AT_CMD_DEF_WATCHDOG, TRUE},
-		{"AT*DBGCTL", AT_CMD_DEF_DBGCTL, TRUE},
-		{"AT*RIMEI", AT_CMD_DEF_READ_IMEI, TRUE},
+		{"AT*ATELLIST", AT_CMD_DEF_PROTOTYPE, TRUE},
+		{"AT*ATELRESET", AT_CMD_DEF_RESET, TRUE},
+		{"AT*ATELSLEEP", AT_CMD_DEF_SLEEP, TRUE},
+		{"AT*ATELTO", AT_CMD_DEF_TRANSFER, TRUE},
+		{"AT*ATELPWR", AT_CMD_DEF_PWRCTL, TRUE},
+		{"AT*ATELLED", AT_CMD_DEF_LED, TRUE},
+		{"AT*ATELFLASH", AT_CMD_DEF_FLASH, TRUE},
+		{"AT*ATELGPS", AT_CMD_DEF_GPS, TRUE},
+		{"AT*ATELGSENSOR", AT_CMD_DEF_GSENSOR, TRUE},
+		{"AT*ATELADC", AT_CMD_DEF_ADC, TRUE},
+		{"AT*ATELRTC", AT_CMD_DEF_RTC, TRUE},
+		{"AT*ATELMODEM", AT_CMD_DEF_MODEM, TRUE},
+		{"AT*ATELIOINFO", AT_CMD_DEF_IOINFO, TRUE},
+		{"AT*ATELGPIOREAD", AT_CMD_DEF_GPIOREAD, TRUE},
+		{"AT*ATELGPIOWRITE", AT_CMD_DEF_GPIOWRITE, TRUE},
+		{"AT*ATELWDT", AT_CMD_DEF_WATCHDOG, TRUE},
+		{"AT*ATELDBGCTL", AT_CMD_DEF_DBGCTL, TRUE},
+		{"AT*ATELRIMEI", AT_CMD_DEF_READ_IMEI, TRUE},
 };
 
 /* Static function declarations ----------------------------------------------*/
@@ -289,11 +289,10 @@ void ATCmdDetection(void)
 
 		if (DataLen >= 4)
 		{
-			if (UartData[2] == '+' && (UartData[3] == 'x' || UartData[3] == 'X'))
+			if ((strstr((char *)UartData, "AT*ATEL") == NULL) && (strstr((char *)UartData, "at*atel") == NULL))
 			{
-				extern void OemMsgHandle(uint32 MessageId, void *MsgBufferP, uint32 size);
-				ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n%s", UartData);
-				OemMsgHandle(OEM_AT_CMD_MSG, UartData, DataLen);
+				extern void AppUartAtProcess(uint8_t * UartData, uint8_t DataLen);
+				AppUartAtProcess(UartData, DataLen);
 				return;
 			}
 		}

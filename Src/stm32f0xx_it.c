@@ -40,6 +40,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_adc;
 extern RTC_HandleTypeDef hrtc;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
@@ -63,21 +64,21 @@ void NMI_Handler(void)
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
-/**
-* @brief This function handles Hard fault interrupt.
-*/
-void HardFault_Handler(void)
-{
-  /* USER CODE BEGIN HardFault_IRQn 0 */
+// /**
+// * @brief This function handles Hard fault interrupt.
+// */
+// void HardFault_Handler(void)
+// {
+//   /* USER CODE BEGIN HardFault_IRQn 0 */
 
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
-  {
-  }
-  /* USER CODE BEGIN HardFault_IRQn 1 */
+//   /* USER CODE END HardFault_IRQn 0 */
+//   while (1)
+//   {
+//   }
+//   /* USER CODE BEGIN HardFault_IRQn 1 */
 
-  /* USER CODE END HardFault_IRQn 1 */
-}
+//   /* USER CODE END HardFault_IRQn 1 */
+// }
 
 /**
 * @brief This function handles System service call via SWI instruction.
@@ -140,6 +141,35 @@ void RTC_IRQHandler(void)
   /* USER CODE BEGIN RTC_IRQn 1 */
 
   /* USER CODE END RTC_IRQn 1 */
+}
+
+/**
+* @brief This function handles EXTI line 4 to 15 interrupts.
+*/
+void EXTI4_15_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI4_15_IRQn 0 */
+
+  /* USER CODE END EXTI4_15_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  /* USER CODE BEGIN EXTI4_15_IRQn 1 */
+
+  /* USER CODE END EXTI4_15_IRQn 1 */
+}
+
+/**
+* @brief This function handles DMA1 channel 1 interrupt.
+*/
+void DMA1_Ch1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Ch1_IRQn 0 */
+
+  /* USER CODE END DMA1_Ch1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc);
+  /* USER CODE BEGIN DMA1_Ch1_IRQn 1 */
+
+  /* USER CODE END DMA1_Ch1_IRQn 1 */
 }
 
 /**
