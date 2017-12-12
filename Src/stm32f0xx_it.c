@@ -40,7 +40,11 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern RTC_HandleTypeDef hrtc;
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
+extern __IO uint8_t factorymodeindicatefalg;
 
 /******************************************************************************/
 /*            Cortex-M0 Processor Interruption and Exception Handlers         */ 
@@ -124,17 +128,160 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+* @brief This function handles RTC Interrupt through EXTI lines 17, 19 and 20.
+*/
+void RTC_IRQHandler(void)
+{
+  /* USER CODE BEGIN RTC_IRQn 0 */
+
+  /* USER CODE END RTC_IRQn 0 */
+  HAL_RTC_AlarmIRQHandler(&hrtc);
+  HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_IRQn 1 */
+
+  /* USER CODE END RTC_IRQn 1 */
+}
+
+/**
+* @brief This function handles USART1 global interrupt.
+*/
+static void UARTx_IRQ_Com_Handler(UART_HandleTypeDef *huart)
+{
+  /* UART parity error interrupt occurred ------------------------------------*/
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_PE) != RESET)
+  {
+    __HAL_UART_CLEAR_FEFLAG(huart);
+    huart->ErrorCode |= HAL_UART_ERROR_PE;
+  }
+  /* UART frame error interrupt occurred -------------------------------------*/
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_FE) != RESET)
+  {
+    __HAL_UART_CLEAR_FEFLAG(huart);
+    huart->ErrorCode |= HAL_UART_ERROR_FE;
+  }
+  /* UART noise error interrupt occurred -------------------------------------*/
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_NE) != RESET)
+  {
+    __HAL_UART_CLEAR_NEFLAG(huart);
+    huart->ErrorCode |= HAL_UART_ERROR_NE;
+  }
+  /* UART Over-Run interrupt occurred ----------------------------------------*/
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_ORE) != RESET)
+  {
+    __HAL_UART_CLEAR_OREFLAG(huart);
+  }
+  /* UART wakeup from Stop mode interrupt occurred -------------------------------------*/
+  /*if(__HAL_UART_GET_FLAG(huart, UART_IT_WUF) != RESET)
+  { 
+    __HAL_UART_GET_FLAG(huart, UART_CLEAR_WUF);
+  }*/
+  if (huart->ErrorCode != HAL_UART_ERROR_NONE)
+  {
+  }
+}
+
+/**
 * @brief This function handles USART1 global interrupt / USART1 wake-up interrupt through EXTI line 25.
 */
 void USART1_IRQHandler(void)
 {
+
+  UART_HandleTypeDef *huart = &huart1;
   /* USER CODE BEGIN USART1_IRQn 0 */
 
   /* USER CODE END USART1_IRQn 0 */
-  HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
+  //HAL_UART_IRQHandler(&huart1);
+  UARTx_IRQ_Com_Handler(&huart1);
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE) != RESET)
+  {
+    uint8_t RevData;
+    /* Read one byte from the receive data register and send it back */
+    RevData = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
 
-  /* USER CODE END USART1_IRQn 1 */
+    if (0x1b == RevData)
+    {
+      factorymodeindicatefalg = FALSE;
+      __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+      return;
+    }
+    huart->Instance->DR = RevData;
+
+    if (Uart1RxCount & UART_FIRST_END_CHAR) // Get 0x0D
+    {
+      if (RevData != UART1_END_CHAR_OA)
+        Uart1RxCount = 0; // Restart
+      else
+      {
+        Uart1RxCount |= UART_FINISHED_RECV; // Finished
+      }
+    }
+    else
+    {
+      if (RevData == UART1_END_CHAR_OD)
+        Uart1RxCount |= UART_FIRST_END_CHAR;
+      else
+      {
+        Uart1RxBuffer[Uart1RxCount & UART_BUF_MAX_LENGTH] = RevData;
+        Uart1RxCount++;
+        if (Uart1RxCount >= UART_BUF_MAX_LENGTH)
+          Uart1RxCount = 0; // Error
+      }
+    }
+
+    /* Clear RXNE interrupt flag */
+    //__HAL_UART_FLUSH_DRREGISTER(huart);
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+  }
+}
+
+/**
+* @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
+*/
+void USART2_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
+}
+
+/**
+* @brief This function handles USART3 to USART8 global interrupts / USART3 wake-up interrupt through EXTI line 28.
+*/
+void USART3_8_IRQHandler(void)
+{
+  uint8_t tmp = 0;
+  UART_HandleTypeDef *huart = &huart3;
+  /* USER CODE BEGIN USART6_IRQn 0 */
+
+  /* USER CODE END USART6_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart3);
+  UARTx_IRQ_Com_Handler(&huart3);
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE) != RESET)
+  {
+    /* Read one byte from the receive data register and send it back */
+    tmp = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
+
+    Uart3RxBuffer[Uart3RxCount] = tmp;
+    Uart3RxCount++;
+    if (Uart3RxCount >= (UART3_RX_BUFFER_SIZE - 2))
+    {
+      Uart3RxCount = 0;
+    }
+
+    SoftwareTimerReset(&UART3RevCDMATimer, CheckUART3RevCDMATimerCallback, CHECK_UART3RevCDMATimer_STAT_TIMEOUT);
+    SoftwareTimerStart(&UART3RevCDMATimer);
+    
+    /* Clear RXNE interrupt flag */
+    //__HAL_UART_FLUSH_DRREGISTER(huart);
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+  }
+  /* USER CODE BEGIN USART6_IRQn 1 */
+
+  /* USER CODE END USART6_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
