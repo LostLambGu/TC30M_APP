@@ -6,10 +6,9 @@
 * History:
 *  06/02/2015 : parseatat V1.00
 *******************************************************************************/
-#include "stm32f0xx_hal.h"
 
-#include "include.h"
 #include "parseatat.h"
+#include "ltecatm.h"
 #include "eventmsgque_process.h"
 
 #define ParseatPrint DebugPrintf
@@ -2158,13 +2157,9 @@ static void MmiATDefault (GSM_FB_CMD FB_CMD,char* MsgDataP)
 	
 	if (SmsRecFlag)
 	{
-		uint16_t sendvalue = 0xffff;
-		
 		strcpy(SmsReceiveBuf.smstextdata, MsgDataP);
-		sendvalue = OEMMSG_QUEUE_MCU_SMSRECEIVE;
-
-		if (xOEMMsgQueueHandle != NULL)
-			xQueueSendToBack(xOEMMsgQueueHandle, &sendvalue, OEMMSG_QUEUE_SEND_WAIT_TIME / portTICK_PERIOD_MS);
+		
+		SmsReceivedHandle(&SmsReceiveBuf, sizeof(SmsReceiveBuf));
 
 		SmsRecFlag = 0;
 	}

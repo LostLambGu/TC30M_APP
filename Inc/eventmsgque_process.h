@@ -24,14 +24,11 @@ extern "C" {
 
 /* Defines ------------------------------------------------------------------*/
 
-#define OEMMSG_QUEUE_LENGTH (128)
-#define OEMMSG_QUEUE_SIZE (2)
+#define EVENTMSGQUE_PROCESS_LOG DebugLog
 
-#define OEMMSG_QUEUE_SEND_WAIT_TIME (50)  // ms
+extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
 
-#define QUEUE_PROCESS_LOG DebugLog
-
-extern void OemMsgQueUdpRec(void *MsgBufferP, uint32_t size);
+extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
 
 #ifdef __cplusplus
 }

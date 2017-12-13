@@ -18,10 +18,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "include.h"
 
-#include "sendatcmd.h"
-#include "network.h"
-#include "parseatat.h"
-
 //Function Declare
 extern u8 GetModemPoweronStat(void);
 extern void SetModemNeedInitStat(u8 Status);

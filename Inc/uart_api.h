@@ -90,7 +90,6 @@ extern uint8_t Uart3RxBuffer[UART3_RX_BUFFER_SIZE];
 #define STATUS_RELAYING 4
 
 extern void PutStrToUart3Modem(char *string, uint16_t slen);
-extern void UART3SendHexData(char *string, uint16_t slen);
 extern void SendATCmdToModemDirectly(char *string, uint8_t UpgradeMode);
 extern int SendDatatoIop(char *at_commands, uint16_t slen);
 extern void UART1PrintMassData(uint8_t *string, uint16_t slen);

@@ -20,6 +20,7 @@ extern "C" {
 
 #include "initialization.h"
 #include "uart_api.h"
+#include "atcmd.h"
 #include "limifsm.h"
 #include "rtcclock.h"
 #include "iqmgr.h"
@@ -27,7 +28,7 @@ extern "C" {
 #include "sendatcmd.h"
 #include "ltecatm.h"
 #include "network.h"
-#include "parseatat.h"
+// #include "parseatat.h"
 
 #define APP_LOG DebugLog
 #define APP_PRINT DebugPrintf

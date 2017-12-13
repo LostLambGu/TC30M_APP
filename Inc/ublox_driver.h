@@ -11,7 +11,7 @@
 #define _UBLOX_DRIVER_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f40x_hal.h"
+#include "stm32f0xx_hal.h"
 #include "include.h"
 
 /* Exported macro ------------------------------------------------------------*/
@@ -32,7 +32,7 @@
     UBLOXGPIO.Pin = UBLOX_POWER_PIN;      \
     UBLOXGPIO.Mode = GPIO_MODE_OUTPUT_PP; \
     UBLOXGPIO.Pull = GPIO_NOPULL;         \
-    UBLOXGPIO.Speed = GPIO_SPEED_HIGH;    \
+    UBLOXGPIO.Speed = GPIO_SPEED_FREQ_HIGH;    \
     HAL_GPIO_Init(UBLOX_POWER_PORT, &UBLOXGPIO)
 
 #define UBLOX_SET_POWER() HAL_GPIO_WritePin(UBLOX_POWER_PORT, UBLOX_POWER_PIN, GPIO_PIN_SET)

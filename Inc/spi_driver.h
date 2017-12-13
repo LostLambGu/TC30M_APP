@@ -13,6 +13,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 #include "include.h"
+#define SPIPrintf DebugPrintf
 
 // PA4- SPI FLASH CS
 #define SPI_FLASH_CS_PORT  		PA4_FLASH_CS_N_GPIO_Port

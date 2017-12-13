@@ -8,8 +8,8 @@
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "include.h"
-#include "ltecatm_arrow.h"
+#include "ltecatm.h"
+#include "parseatat.h"
 
 /* Private define ------------------------------------------------------------*/
 #undef NRCMD
@@ -128,7 +128,7 @@ void LteCmdDetection(void)
 				socketlen = socketlen * 10 + lenstr[i];
 			}
 
-			OemMsgQueUdpRec(tmp, socketlen + 4 + j);
+			UdpReceivedHandle(tmp, socketlen + 4 + j);
 
 			AtBuffer.buf = "OK\r\n";
 			AtBuffer.len = 4;

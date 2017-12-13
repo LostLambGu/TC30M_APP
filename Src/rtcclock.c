@@ -10,9 +10,19 @@
 /* Includes ------------------------------------------------------------------*/
 #include "rtc.h"
 #include "rtcclock.h"
-#include "uart_apt.h"
+#include "uart_api.h"
 
 /* Private typedef -----------------------------------------------------------*/
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#define RTCTimPrintf DebugPrintf
+
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/

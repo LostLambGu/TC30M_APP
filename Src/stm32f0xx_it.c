@@ -35,10 +35,19 @@
 #include "stm32f0xx.h"
 #include "stm32f0xx_it.h"
 
-/* USER CODE BEGIN 0 */
+#include "uart_api.h"
+#include "usrtimer.h"
+#include "initialization.h"
+#include "ublox_driver.h"
 
-/* USER CODE END 0 */
+/* Private define ------------------------------------------------------------*/
+#ifndef FALSE
+#define FALSE 0
+#endif
 
+#ifndef TRUE
+#define TRUE 1
+#endif
 /* External variables --------------------------------------------------------*/
 extern DMA_HandleTypeDef hdma_adc;
 extern RTC_HandleTypeDef hrtc;
@@ -226,7 +235,7 @@ void USART1_IRQHandler(void)
   {
     uint8_t RevData;
     /* Read one byte from the receive data register and send it back */
-    RevData = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
+    RevData = (uint8_t)(huart->Instance->RDR & (uint8_t)0x00FF);
 
     if (0x1b == RevData)
     {
@@ -234,7 +243,7 @@ void USART1_IRQHandler(void)
       __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
       return;
     }
-    huart->Instance->DR = RevData;
+    huart->Instance->TDR = RevData;
 
     if (Uart1RxCount & UART_FIRST_END_CHAR) // Get 0x0D
     {
@@ -293,7 +302,7 @@ void USART3_8_IRQHandler(void)
   if (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE) != RESET)
   {
     /* Read one byte from the receive data register and send it back */
-    tmp = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FF);
+    tmp = (uint8_t)(huart->Instance->RDR & (uint8_t)0x00FF);
 
     Uart3RxBuffer[Uart3RxCount] = tmp;
     Uart3RxCount++;

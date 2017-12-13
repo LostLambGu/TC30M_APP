@@ -92,6 +92,8 @@ typedef int16_t    		i16t;     ///< range: -32768 .. +32767
 typedef uint32_t   		u32t;     ///< range: 0 .. 4'294'967'295
 typedef int32_t     		i32t;     ///< range: -2'147'483'648 .. +2'147'483'647
 
+typedef uint8_t bool;
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -115,5 +117,7 @@ typedef int32_t     		i32t;     ///< range: -2'147'483'648 .. +2'147'483'647
 // #include "ltecatm.h"
 // #include "network.h"
 // #include "parseatat.h"
+
+#include "eventmsgque_process.h"
 
 #endif

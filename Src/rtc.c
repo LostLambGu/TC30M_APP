@@ -51,7 +51,7 @@ void MX_RTC_Init(void)
 {
   RTC_TimeTypeDef sTime;
   RTC_DateTypeDef sDate;
-  RTC_AlarmTypeDef sAlarm;
+  // RTC_AlarmTypeDef sAlarm;
 
     /**Initialize RTC Only 
     */

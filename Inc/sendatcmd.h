@@ -9,7 +9,6 @@
 #ifndef	__SENDATCMD__H__
 #define	__SENDATCMD__H__
  /* Includes */
-#include "stm32f0xx_hal.h"
 #include "include.h"
 
 typedef enum

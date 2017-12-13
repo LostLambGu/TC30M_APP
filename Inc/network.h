@@ -17,9 +17,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "include.h"
-#include "sendatcmd.h"
-#include "ltecatm.h"
-#include "parseatat.h"
 
 /* Defines  ------------------------------------------------------------------*/
 #define DEFAULT_RSSI_VALUE			0
@@ -137,8 +134,8 @@ extern void CheckNetlorkTimerCallback(u8 Status);
 
 #define UDPIP_SOCKET_MIN_NUM (1)
 #define UDPIP_SOCKET_MAX_NUM (5)
-#define UDP_SEND_QUEUE_LENGHT_MAX (8)
-#define SMS_SEND_QUEUE_LENGHT_MAX (8)
+#define UDP_SEND_QUEUE_LENGHT_MAX (6)
+#define SMS_SEND_QUEUE_LENGHT_MAX (3)
 
 typedef enum
 {
@@ -222,6 +219,12 @@ typedef struct
 extern SmsReceiveBufTypedef SmsReceiveBuf;
 
 extern uint8_t SmsRecFlag;
+
+extern void UdpIpSocketOpen(uint8_t Socket_Num, uint16_t LocalPort, char *DestAddrP, uint16_t PortNum);
+
+extern void UdpIpSocketClose(uint8_t Socket_Num);
+
+extern void UdpIpSocketSendData(char *buffer, uint16_t len);
 
 #ifdef __cplusplus
 }

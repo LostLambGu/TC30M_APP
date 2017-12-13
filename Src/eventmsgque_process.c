@@ -14,44 +14,16 @@
 
 /* Variables -----------------------------------------------------------------*/
 
-// UdpRecUintTypedef UdpRecUint = {0};
-
-// uint8_t UdpRecBuf[UART3_RX_BUFFER_SIZE] = {0};
-
-extern uint16_t ADC_ReadRaw(uint16_t adc);
-extern void ATCmdDetection(void);
-
 /* Function definition -------------------------------------------------------*/
-void OemMsgQueSmsSend(void)
+
+void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
 {
-    if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
-    {
-        // Reset Network Timer
-        SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
-        SoftwareTimerStart(&NetworkCheckTimer);
-    }
+    
 }
 
-void OemMsgQueSmsDeleteAll(void)
+void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
 {
-    SendATCmd(GSM_CMD_CMGD, GSM_CMD_TYPE_EVALUATE , "1,4");
-}
-
-void OemMsgSmsReceived(void *MsgBufferP, uint32_t size)
-{
-    OemMsgHandle(OEM_SMS_REV_MSG, MsgBufferP, size);
-}
-
-void OemMsgQueUdpConnectStatus(uint8_t socketnum, uint8_t status)
-{
-    uint8_t data[2] = {socketnum, status};
-    OemMsgHandle(OEM_PPP_UDP_STATUS_MSG, data, sizeof(data));
-}
-
-
-void OemMsgQueUdpRec(void *MsgBufferP, uint32_t size)
-{
-    OemMsgHandle(OEM_UDP_RECEIVE_DATA, MsgBufferP, size);
+    
 }
 
 

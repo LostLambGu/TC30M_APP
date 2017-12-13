@@ -17,7 +17,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
-#include "SendATCmd.h"
 
 /* Exported types ------------------------------------------------------------*/
 typedef struct

@@ -11,6 +11,8 @@
 #include "ublox_driver.h"
 #include "i2c.h"
 
+#define UbloxPrintf DebugPrintf
+
 extern I2C_HandleTypeDef hi2c2;
 /* Private variables ---------------------------------------------------------*/
 GPIO_InitTypeDef UBLOXGPIO;
@@ -67,7 +69,7 @@ void ReadUbloxData(void)
 	// Read NMEA Data Length
 	if (HAL_I2C_Mem_Read(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u16)UBLOX_LEN_START_ADDR, I2C_MEMADD_SIZE_8BIT, (u8 *)I2CRXBuffer, 2, UBLOX_OPERATE_TIMEOUT) != HAL_OK)
 	{
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: RD Len First Fail", FmtTimeShow());
+		UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: RD Len First Fail", FmtTimeShow());
 	}
 	else
 	{
@@ -89,7 +91,7 @@ void ReadUbloxData(void)
 				}
 				else
 				{
-					ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: RD Len Go on Fail", FmtTimeShow());
+					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: RD Len Go on Fail", FmtTimeShow());
 				}
 			}
 		}
@@ -103,7 +105,7 @@ void ReadUbloxData(void)
 			{
 				//UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: NMEA DATA:\r\n[\r\n%s]",FmtTimeShow(),MsgBuffer.Data);
 				// UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n%s", MsgBuffer.Data);
-				if (DbgCtl.ATCmdInfoEn)
+				if (DbgCtl.UbloxDbgInfoEn)
 				{
 					UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
 				}
@@ -121,11 +123,11 @@ void ReadUbloxData(void)
 				//if length is still above max size, it means the data includes 2 packet data at least.
 				if (HAL_I2C_Master_Receive(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data, MsgBuffer.DataLen, UBLOX_OPERATE_TIMEOUT) == HAL_OK)
 				{
-					UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: abnormal data[%d]", FmtTimeShow(), MsgBuffer.DataLen);
+					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal data[%d]", FmtTimeShow(), MsgBuffer.DataLen);
 				}
 				else
 				{
-					UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: abnormal break[%d]", FmtTimeShow(), MsgBuffer.DataLen);
+					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal break[%d]", FmtTimeShow(), MsgBuffer.DataLen);
 				}
 				HAL_Delay(50);
 				// Recheck Data Length
@@ -139,7 +141,7 @@ void ReadUbloxData(void)
 				}
 				else
 				{
-					ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: abnormal Recheck", FmtTimeShow());
+					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal Recheck", FmtTimeShow());
 				}
 			}
 			//if clear buffer,parsefun will display 0

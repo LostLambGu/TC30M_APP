@@ -8,11 +8,7 @@
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "cmsis_os.h"
-
 #include "usart.h"
-#include "spi.h"
-#include "can.h"
 #include "i2c.h"
 #include "adc.h"
 #include "iwdg.h"
@@ -20,9 +16,7 @@
 #include "initialization.h"
 #include "deepsleep.h"
 #include "rtcclock.h"
-#include "lis2dh_driver.h"
 #include "ublox_driver.h"
-#include "W25Q128.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE

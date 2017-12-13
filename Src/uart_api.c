@@ -12,8 +12,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "cmsis_os.h"
-
 #include "uart_api.h"
 #include "rtcclock.h"
 
@@ -154,7 +152,7 @@ int fputc(int ch, FILE *f)
 {
 	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, UART_SEND_DATA_TIMEOUT);
 
-	while (!(huart1.Instance->SR & USART_FLAG_TXE))
+	while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == 0)
 		;
 
 	return (ch);
@@ -189,14 +187,6 @@ static int check_command(const char *command)
 		}
 	}
 	return 0;
-}
-
-void UART3SendHexData(char *string, uint16_t slen)
-{
-	// HAL_UART_Transmit(&huart1, "\r\n--->>", 7, UART_SEND_DATA_TIMEOUT);
-	// HAL_UART_Transmit(&huart1, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
-	HAL_UART_Transmit(&huart3, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
-	DebugPrintf(DbgCtl.NormalInfoEn, "\r\nLTE: SEND Hex Data Len: (%d)", slen);
 }
 
 void PutStrToUart3Modem(char *string, uint16_t slen)
@@ -247,7 +237,7 @@ void UART1PrintMassData(uint8_t *string, uint16_t slen)
     {
         while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == 0)
             ;
-        huart1.Instance->DR = ((uint8_t)0x00FF & string[i]);
+        huart1.Instance->TDR = ((uint8_t)0x00FF & string[i]);
     }
 }
 

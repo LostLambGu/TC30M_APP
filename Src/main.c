@@ -48,6 +48,9 @@
 #include "usart.h"
 #include "gpio.h"
 
+#include "initialization.h"
+#include "application.h"
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */

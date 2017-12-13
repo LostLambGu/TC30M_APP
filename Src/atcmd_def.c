@@ -19,7 +19,7 @@
 #include "ublox_driver.h"
 #include "iocontrol.h"
 #include "deepsleep.h"
-#include "flash.h"
+//#include "flash.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
@@ -209,7 +209,7 @@ static void ATCmdDefGPSFactoryTest(void)
 		{
 			while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == 0)
 				;
-			huart1.Instance->DR = ((uint8_t)0x00FF & MsgBuffer.Data[i]);
+			huart1.Instance->TDR = ((uint8_t)0x00FF & MsgBuffer.Data[i]);
 		}
 
 		memset((void *)&MsgBuffer, 0, sizeof(MsgBuffer));
@@ -273,7 +273,7 @@ static void ATCmdModemFactoryTest(void)
 
 static void ATCmdGsensorFactoryTest(void)
 {
-	uint8_t ChipID;
+	// uint8_t ChipID;
 	/* Check Chip ID */
 	// ChipID = AccelReadRegister(LIS2DH_MEMS_I2C_ADDRESS, LIS2DH_WHO_AM_I);
 
@@ -307,8 +307,8 @@ static void ATCmdDefAdcFactoryTest(void)
 
 static void ATCmdDefFlashFactoryTest(void)
 {
-	uint16_t i, j, sectorsize = 4096, pagesize = 256;
-	uint8_t readbuf[256] = {0}, writebuf[256] = {0};
+	// uint16_t i, j, sectorsize = 4096, pagesize = 256;
+	// uint8_t readbuf[256] = {0}, writebuf[256] = {0};
 
 	ATCmdPrintf(TRUE, "\r\nSFlash factory test start!");
 	// SerialFlashInit();
@@ -365,8 +365,8 @@ static void ATCmdDefRtcFactoryTest(void)
 
 static void ATCmdIoFactoryTest(void)
 {
-	char *str[2] = {"LOW", "HIGH"};
-	ATCmdPrintf(TRUE, "\r\nIO:PWR_DET, %s", str[READ_IO(PC14_CHG_END_GPIO_Port, PC14_CHG_END_Pin)]);
+	// char *str[2] = {"LOW", "HIGH"};
+	// ATCmdPrintf(TRUE, "\r\nIO:PWR_DET, %s", str[READ_IO(PC14_CHG_END_GPIO_Port, PC14_CHG_END_Pin)]);
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
@@ -686,7 +686,7 @@ static void ATCmdDefGPIOWRITE(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 
 static void ATCmdDefWatchDog(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 {
-	uint32_t milliseconds;
+	// uint32_t milliseconds;
 
 	// if (Len == 0)
 	// {

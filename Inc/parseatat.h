@@ -9,11 +9,8 @@
 #ifndef	__RECEATCMD__H__
 #define	__RECEATCMD__H__
  /* Includes */
-#include "stm32f0xx_hal.h"
 #include "include.h"
 #include "sendatcmd.h"
-#include "ltecatm.h"
-#include "network.h"
 
 /* Defines */
 #define GSM_MAX_PARAM			13

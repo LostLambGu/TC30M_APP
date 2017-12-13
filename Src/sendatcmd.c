@@ -10,6 +10,7 @@
 #include "include.h"
 #include "sendatcmd.h"
 #include "network.h"
+#include "ltecatm.h"
 
 #undef NRCMD
 #define NRCMD (1)
