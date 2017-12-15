@@ -13,6 +13,7 @@
 #include "usrtimer.h"
 
 /* Variables -----------------------------------------------------------------*/
+BinaryMsgFormatTypeDef BinaryMsgRec = {0};
 
 /* Function definition -------------------------------------------------------*/
 

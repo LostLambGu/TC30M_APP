@@ -152,11 +152,12 @@ void ReadUbloxData(void)
 
 double ChangetoRadian(int value)
 {
-	int tmp = 0.0;
-	tmp = value;
+	int tmp = value;
+
 	tmp = (tmp / 10000000) * 10000000;
 	value = value - tmp;
-	return (value * 10 / 6 + tmp) / 10;
+
+	return (value / 60.0 + tmp) / 10000000.0;
 }
 
 bool NmeaGPGGAParseFun(void *pdata, int *fixmode)
@@ -973,7 +974,7 @@ bool NmeaParseFun(PswGpsNmeaStreamMsgT *pNmeaMsg, ValGpsInfo *GpsInfop)
 		}
 		else if (pNmeaMsg->Data[uidx] == 0x0d && pNmeaMsg->Data[uidx + 1] == 0x0a)
 		{
-			char name[GPSNMEA_CMD_INFO_LEN];
+			char name[GPSNMEA_CMD_NAME_LEN];
 			uidx++;
 			if (uTempLen < GPSNMEA_CMD_NAME_LEN)
 			{
@@ -1028,7 +1029,9 @@ bool NmeaParseFun(PswGpsNmeaStreamMsgT *pNmeaMsg, ValGpsInfo *GpsInfop)
 		GpsInfop->Milliseconds = gLocMsg.UTCTime.Milliseconds;
 		//               GpsInfop->GPSweek = gLocMsg.UTCTime.GPSweek;
 		//               GpsInfop->GPSTimeOfWeek = gLocMsg.UTCTime.GPSTimeOfWeek;
-		GpsInfop->hdop = gLocMsg.HorizontalDilutionOfPrecision;
+		GpsInfop->validFix = fixmode;
+		// GpsInfop->hdop = gLocMsg.HorizontalDilutionOfPrecision;
+		GpsInfop->pdop = gLocMsg.PositionDilutionOfPrecision;
 		//               UbloxPrintf(DbgCtl.UbloxDbgInfoEn,"\r\n====111111111 year : %d  month: %d day : %d  hour: %d minute : %d  second: %d DayOfWeek: %d Milliseconds: %d GPSweek: %d GPSTimeOfWeek: %d=====\r\n",GpsInfo.Year,
 		//				GpsInfo.Month,GpsInfo.Day,GpsInfo.Hour,GpsInfo.Minute,GpsInfo.Second,GpsInfo.DayOfWeek,GpsInfo.Milliseconds,GpsInfo.GPSweek,GpsInfo.GPSTimeOfWeek);
 		//		UbloxPrintf("\nUblox GPS Lock time %d:%d:%d\n", GpsInfop->Hour, GpsInfop->Minute , GpsInfop->Second);

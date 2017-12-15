@@ -53,7 +53,8 @@ typedef struct
     double Heading;
     double Velocity;
     double Altitude;
-    double hdop;
+    // double hdop;
+    double pdop;
     uint16 SatelliteCount;
     bool bGpsLock;
 

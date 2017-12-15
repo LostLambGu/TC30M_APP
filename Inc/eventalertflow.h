@@ -1,42 +1,31 @@
 /*******************************************************************************
-* File Name          : eventmsgque_process.h
+* File Name          : eventalertflow.h
 * Author             : Yangjie Gu
-* Description        : This file provides all the eventmsgque_process functions.
+* Description        : This file provides all the eventalertflow functions.
 
 * History:
-*  10/28/2017 : eventmsgque_process V1.00
+*  12/14/2017 : eventalertflow V1.00
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __EVENT_MSG_QUEUE_PROCESS_H__
-#define __EVENT_MSG_QUEUE_PROCESS_H__
+#ifndef _EVENT_ALERT_FLOW_
+#define _EVENT_ALERT_FLOW_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "wedgedatadefine.h"
+#include "stm32f0xx_hal.h"
 
-#include "uart_api.h"
+/* Defines -------------------------------------------------------------------*/
 
-#include "network.h"
-
-/* Defines ------------------------------------------------------------------*/
-
-#define EVENTMSGQUE_PROCESS_LOG DebugLog
-
-#define EVENTMSGQUE_PROCESS_PRINT DebugPrintf
-
-extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
-
-extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __EVENT_MSG_QUEUE_PROCESS_H__ */
+#endif /* _EVENT_ALERT_FLOW_ */
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
