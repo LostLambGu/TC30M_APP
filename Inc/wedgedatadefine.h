@@ -169,6 +169,14 @@ typedef struct
     uint8_t ASCII_DATA[MSG_FMT_ASCII_DATA_250_BYTES];
 } AsciiMsgFormatTypedDef;
 
+enum
+{
+    No_Ignition_detect = 0,
+    Virtual_Ignition_Battery_Voltage,
+    Virtual_Ignition_GPS_velocity,
+    Wired_Ignition
+};
+
 typedef struct
 {
     uint8_t itype;  /* <itype> is: 0 – No Ignition detect
@@ -223,6 +231,8 @@ typedef struct
                         (default: 0 ; range: 10 – 65535 seconds) */
 } IDLETypeDef;
 
+#define SODO_METERS_RANGE_MIN (10000)
+#define SODO_METERS_RANGE_MAX (20000000)
 typedef struct
 {
     uint32_t meters;    /* <meters> is the service odometer setting in meters
@@ -230,6 +240,7 @@ typedef struct
                         (range: 10,000 – 20,000,000 meters) */
 } SODOTypeDef;
 
+#define VODO_METERS_RANGE_MAX (500000000)
 typedef struct
 {
     uint32_t meters;    /* <meters> is the virtual odometer setting in meters
@@ -405,6 +416,12 @@ typedef struct
     FTPCFGTypeDef FTPCFG;
     APNCFGTypeDef APNCFG;
 } WEDGECfgTypeDef;
+
+typedef struct
+{
+    uint16_t unsent;
+    uint16_t sent;
+} MQSTATTypeDef;
 
 #ifdef __cplusplus
 }
