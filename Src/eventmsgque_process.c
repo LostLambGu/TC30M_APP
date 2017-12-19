@@ -52,7 +52,7 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
 
 }
 
-void WedgeResponseAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
+void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
 {
 
 }
@@ -61,9 +61,6 @@ void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size
 {
 
 }
-
-
-
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved

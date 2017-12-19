@@ -91,7 +91,7 @@ extern uint8_t WedgeCfgStateGet(void);
 extern void WedgeCfgStateProcess(void);
 
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
-extern void WedgeResponseAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 
 #ifdef __cplusplus

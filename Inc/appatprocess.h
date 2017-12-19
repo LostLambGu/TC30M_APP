@@ -23,7 +23,10 @@ extern "C" {
 #define APP_AT_LOG DebugLog
 #define APP_AT_PRINT DebugPrintf
 
+extern uint8_t *AppAtProcess(uint8_t * Data, uint8_t DataLen);
 extern void AppUartAtProcess(uint8_t * UartData, uint8_t DataLen);
+extern void AppUdpAtProcess(uint8_t * UdpData, uint8_t DataLen);
+extern void AppSmsAtProcess(uint8_t * SmsData, uint8_t DataLen);
 
 #ifdef __cplusplus
 }

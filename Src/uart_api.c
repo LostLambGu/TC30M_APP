@@ -39,6 +39,7 @@ DebugCtlPrarm DbgCtl =
 		.NormalInfoEn = TRUE,
 		.ATCmdInfoEn = TRUE,
 		.ATCmdDbgEn = TRUE,
+		.AppATCmdDbgEn = TRUE,
 		.Lis2dhDbgInfoEn = TRUE,
 		.RTCDebugInfoEn = FALSE,
 		.UbloxDbgInfoEn = TRUE,
