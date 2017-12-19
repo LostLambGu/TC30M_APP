@@ -12,6 +12,7 @@
 
 #include "uart_api.h"
 #include "initialization.h"
+#include "network.h"
 #include "sendatcmd.h"
 #include "rtcclock.h"
 #include "usrtimer.h"

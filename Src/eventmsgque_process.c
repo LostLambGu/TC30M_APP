@@ -11,9 +11,14 @@
 #include "eventmsgque_process.h"
 #include "rtcclock.h"
 #include "usrtimer.h"
+#include "network.h"
 
 /* Variables -----------------------------------------------------------------*/
 BinaryMsgFormatTypeDef BinaryMsgRec = {0};
+BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
+AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
+WEDGECfgTypeDef WEDGECfgRecord = {0};
+WEDGECfgStateTypedef WEDGECfgState = {0};
 
 /* Function definition -------------------------------------------------------*/
 
@@ -25,6 +30,36 @@ void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
 void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
 {
     
+}
+
+void WedgeCfgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State)
+{
+
+}
+
+uint8_t WedgeCfgStateGet(void)
+{
+	return 0;
+}
+
+void WedgeCfgStateProcess(void)
+{
+    
+}
+
+void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
+{
+
+}
+
+void WedgeResponseAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
+{
+
+}
+
+void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
+{
+
 }
 
 

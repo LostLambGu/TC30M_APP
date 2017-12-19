@@ -9,6 +9,7 @@
 
 #include "parseatat.h"
 #include "ltecatm.h"
+#include "network.h"
 #include "eventmsgque_process.h"
 
 #define ParseatPrint DebugPrintf

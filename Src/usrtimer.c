@@ -14,6 +14,7 @@
 #include "initialization.h"
 #include "sendatcmd.h"
 #include "parseatat.h"
+#include "network.h"
 #include "uart_api.h"
 
 /*----------------------------------------------------------------------------*/

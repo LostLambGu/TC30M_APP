@@ -19,6 +19,85 @@ extern "C" {
 #include "stm32f0xx_hal.h"
 
 /* Defines -------------------------------------------------------------------*/
+typedef enum
+{
+    WEDGEPYLD_STATUS = 0,
+    WEDGEPYLD_COMMAND,
+    WEDGEPYLD_COMMAND_RESPONSE,
+    WEDGEPYLD_DIAGNOSTIC_RESPONSE,
+    WEDGEPYLD_DIAGNOSTIC_REQUEST,
+    WEDGEPYLD_INVALID_MAX
+} WEDGEPYLDTypeDef;
+
+typedef enum
+{
+    /* Events and Alarms table */
+    Location_request = 500,
+    Drive_Report_Location,
+    IDLE_Detect,
+    Service_Alert,
+    Starter_Disabled = 505,
+    Starter_Enabled = 506,
+    Door_unlock = 511,
+    Location_of_Disabled_Vehicle = 515,
+    Periodic_Report_with_Ignition_OFF = 521,
+    Alarm1_input_INACTIVE = 524,
+    Alarm1_input_ACTIVE,
+    Alarm2_input_INACTIVE,
+    Alarm2_input_ACTIVE,
+    Modem_powered_up = 530,
+    Ignition_OFF,
+    Ignition_ON,
+    Low_Battery_Alert = 536,
+    Heading_Change_Detect = 559,
+    Over_Speed_Threshold_Detect,
+    Health_Message = 580,
+    Stop_Report = 583,
+
+    /* Configuration Acknowledgement */
+    Configure_Ignition_Type_Acknowledge = 600,
+    Configure_Reporting_Intervals_Acknowledge,
+    Configure_Low_Battery_Voltage_Level_Acknowledge = 603,
+    Configure_IDLE_Detect_Acknowledge,
+    Configure_Service_Odometer_Acknowledge,
+    Configure_Heading_Change_Acknowledge,
+    Configure_Tow_Alert_Acknowledge,
+    Configure_Stop_Report_Acknowledge,
+    Configure_Virtual_Odometer_Acknowledge,
+    Configure_Geofence_Acknowledge,
+    Configure_Setting_Cur_Loc_as_Geofence_SUCCEED_Acknowledge,
+    Configure_Setting_Cur_Loc_as_Geofence_FAIL_Acknowledge,
+    Configure_Over_Speed_Threshold_Acknowledge = 613,
+    Configure_Alarm1_Input_Acknowledge = 615,
+    Configure_Alarm2_Input_Acknowledge,
+    Unsupported_Unknown_command = 699,
+
+    /* Geofence Alerts */
+    Geofence1_entered = 700,
+    Geofence2_entered,
+    Geofence3_entered,
+    Geofence4_entered,
+    Geofence5_entered,
+    Geofence6_entered,
+    Custom_Geofence7_entered,
+    Custom_Geofence8_entered,
+    Custom_Geofence9_entered,
+    Custom_Geofence10_entered,
+    Geofence1_exited,
+    Geofence2_exited,
+    Geofence3_exited,
+    Geofence4_exited,
+    Geofence5_exited,
+    Geofence6_exited,
+    Custom_Geofence7_exited,
+    Custom_Geofence8_exited,
+    Custom_Geofence9_exited,
+    Custom_Geofence10_exited,
+    Tow_Alert_Exited = 720,
+
+    WEDGEEVID_ID_INVALID = 0xFFFF
+} WEDGEEVIDTypeDef;
+
 #define MSG_FMT_DEFAULT_1_BYTES (1)
 #define MSG_FMT_IDENT_15_BYTES (15)
 #define MSG_FMT_EVID_2_BYTES (2)
@@ -97,10 +176,16 @@ typedef struct
                     2 – Virtual Ignition – GPS velocity
                     3 – Wired Ignition */
     uint16_t dbnc;  /* <dbnc>:0 to 1024 seconds */
-    float voff;     /* <voff>,<von> is: Voltage level for detecting Ignition OFF and ON */
-    float von;
-    int32_t spdoff; /* <spdoff>,<spdon>: The speed in meters per second for Ignition OFF and ON */
-    int32_t spdon;
+    union
+    {
+        float voff;     /* <voff>,<von> is: Voltage level for detecting Ignition OFF and ON */
+        int32_t spdoff; /* <spdoff>,<spdon>: The speed in meters per second for Ignition OFF and ON */
+    } offthreshold;
+    union
+    {
+        float von;
+        int32_t spdon;
+    } onthreshold;
 } IGNTYPETypeDef;
 
 typedef struct
@@ -235,8 +320,11 @@ typedef struct
     microcontroller. */
     uint8_t mode;
     uint32_t ontime;
-    uint32_t sleeptime;
-    uint16_t debounce;
+    union
+    {
+        uint32_t sleeptime;
+        uint32_t debounce;
+    } dbcslp;
 } PWRMGTTypeDef;
 
 typedef struct
@@ -291,6 +379,7 @@ typedef struct
     uint8_t pwd[APNCFG_PWD_LEN_MAX_32_BYTES];
 } APNCFGTypeDef;
 
+#define WEDGE_GEOFENCES_NUM_MAX (10)
 typedef struct
 {
     IGNTYPETypeDef IGNTYPE;
@@ -304,16 +393,7 @@ typedef struct
     DIRCHGTypeDef DIRCHG;
     TOWTypeDef TOW;
     STPINTVLTypeDef STPINTVL;
-    GFNCTypeDef GFNC1;
-    GFNCTypeDef GFNC2;
-    GFNCTypeDef GFNC3;
-    GFNCTypeDef GFNC4;
-    GFNCTypeDef GFNC5;
-    GFNCTypeDef GFNC6;
-    GFNCTypeDef GFNC7;
-    GFNCTypeDef GFNC8;
-    GFNCTypeDef GFNC9;
-    GFNCTypeDef GFNC10;
+    GFNCTypeDef GFNC[WEDGE_GEOFENCES_NUM_MAX];
     RELAYTypeDef RELAY;
     OSPDTypeDef OSPD;
     PLSRLYTypeDef PLSRLY;
@@ -325,8 +405,6 @@ typedef struct
     FTPCFGTypeDef FTPCFG;
     APNCFGTypeDef APNCFG;
 } WEDGECfgTypeDef;
-
-extern BinaryMsgFormatTypeDef BinaryMsgRec;
 
 #ifdef __cplusplus
 }
