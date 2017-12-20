@@ -421,6 +421,8 @@ typedef struct
 {
     uint16_t unsent;
     uint16_t sent;
+    uint16_t queinindex;
+    uint16_t queoutindex;
 } MQSTATTypeDef;
 
 #ifdef __cplusplus

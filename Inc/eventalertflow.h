@@ -44,21 +44,22 @@ typedef struct
 
 typedef enum
 {
-    WEDGE_IGNITION_STATE_GET = 0,
-    WEDGE_POWER_ON_OFF_STATE_GET,
-    WEDGE_GPS_LASTFIX_STATE_GET,
-    WEDGE_GPS_FIX_STATE_GET,
-    WEDGE_GPS_VOLOCITY_GET,
-    WEDGE_LONGTITUDE_GET,
-    WEDGE_LATITUDE_GET,
-    WEDGE_SODO_LASTREPORT_MILEAGE_GET,
-    WEDGE_VOLTAGE_VALUE_GET,
-    WEDGE_TOW_ALERTGEOFENCE_GET,
-    WEDGE_HEADING_LASTREPORT_DEG_GET,
-    WEDGE_MQSTAT_GET,
+    WEDGE_IGNITION_STATE = 0,
+    WEDGE_POWER_ON_OFF_STATE,
+    WEDGE_GPS_LASTFIX_STATE,
+    WEDGE_GPS_FIX_STATE,
+    WEDGE_GPS_VOLOCITY,
+    WEDGE_LONGTITUDE,
+    WEDGE_LATITUDE,
+    WEDGE_SODO_LASTREPORT_MILEAGE,
+    WEDGE_VOLTAGE_VALUE,
+    WEDGE_TOW_ALERTGEOFENCE,
+    WEDGE_HEADING_LASTREPORT_DEG,
+    WEDGE_MQSTAT,
+    WEDGE_BASE_RTC_TIME,
 
-    WEDGE_SYSSTAT_GET_MAX
-} WEDGESysStateGetTypeDef;
+    WEDGE_SYSSTAT_MAX
+} WEDGESysStateOperateTypeDef;
 
 typedef struct
 {
@@ -74,11 +75,12 @@ typedef struct
     TowAlertGeoFenceTypedef TowAlertGeoFence;
     float HeadingLastReportDeg;
     MQSTATTypeDef MQSTAT;
+    uint32_t RTCBaseTime;
 } WEDGESysStateTypeDef;
 
 extern uint8_t WedgeSysStateInit(void);
-extern void *WedgeSysStateGet(WEDGESysStateGetTypeDef SysStateGet);
-extern void WedgeSysStateSet(WEDGESysStateGetTypeDef SysStateSet, const void *pvData);
+extern void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet);
+extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData);
 extern void WedgeIgnitionStateProcess(void);
 
 

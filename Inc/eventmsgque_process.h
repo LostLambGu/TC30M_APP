@@ -76,23 +76,147 @@ typedef struct
 {
     uint8_t CfgChgNum;
     uint8_t CfgChgState[WEDGE_CFG_STATE_NUM_MAX];
-} WEDGECfgStateTypedef;
+} WEDGECfgChgStateTypedef;
+
+typedef enum
+{
+    WEDGE_CFG_IGNTYPE = 0,
+    WEDGE_CFG_RPTINTVL,
+    WEDGE_CFG_IOALRM1,
+    WEDGE_CFG_IOALRM2,
+    WEDGE_CFG_LVA,
+    WEDGE_CFG_IDLE,
+    WEDGE_CFG_SODO,
+    WEDGE_CFG_VODO,
+    WEDGE_CFG_DIRCHG,
+    WEDGE_CFG_TOW,
+    WEDGE_CFG_STPINTVL,
+    WEDGE_CFG_GFNC1,
+    WEDGE_CFG_GFNC2,
+    WEDGE_CFG_GFNC3,
+    WEDGE_CFG_GFNC4,
+    WEDGE_CFG_GFNC5,
+    WEDGE_CFG_GFNC6,
+    WEDGE_CFG_GFNC7,
+    WEDGE_CFG_GFNC8,
+    WEDGE_CFG_GFNC9,
+    WEDGE_CFG_GFNC10,
+    WEDGE_CFG_RELAY,
+    WEDGE_CFG_OSPD,
+    WEDGE_CFG_PLSRLY,
+    WEDGE_CFG_PWRMGT,
+    WEDGE_CFG_HWRST,
+    WEDGE_CFG_USRDAT,
+    WEDGE_CFG_SMS,
+    WEDGE_CFG_SVRCFG,
+    WEDGE_CFG_FTPCFG,
+    WEDGE_CFG_APNCFG,
+
+    WEDGE_CFG_OPERATE_INVALID_MAX
+} WEDGECfgOperateTypeDef;
 
 extern BinaryMsgFormatTypeDef BinaryMsgRecord;
 extern AsciiMsgFormatTypedDef AsciiMsgRecord;
-extern WEDGECfgTypeDef WEDGECfgRecord;
-extern WEDGECfgStateTypedef WEDGECfgState;
+extern WEDGECfgChgStateTypedef WEDGECfgState;
 
 extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
 extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
 
-extern void WedgeCfgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
-extern uint8_t WedgeCfgStateGet(void);
-extern void WedgeCfgStateProcess(void);
+extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
+extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
+
+extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
+extern uint8_t WedgeCfgChgStateGet(void);
+extern void WedgeCfgChgStateProcess(void);
 
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
 extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+
+extern uint8_t WedgeFlashChipErase(void);
+extern uint8_t WedgeFlashEraseSector(uint32_t address);
+extern uint8_t WedgeFlashReadData(uint32_t address, const uint8_t * const pDataBuf, const uint32_t datalen);
+extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t * const pDataBuf, const uint32_t datalen);
+
+enum
+{
+    WEDGE_MSG_QUE_SENT = 0xBB,
+    WEDGE_MSG_QUE_UNSENT = 0xFF
+};
+
+enum
+{
+    WEDGE_MSG_QUE_UDP_TYPE = 0xCC,
+    WEDGE_MSG_QUE_SMS_TYPE = 0x33
+};
+
+#define WEDGE_MSG_QUE_DATA_LEN_MAX (254)
+
+typedef struct
+{
+    uint8_t sentstate;
+    uint8_t type;
+    uint8_t data[WEDGE_MSG_QUE_DATA_LEN_MAX];
+} WEDGEMsgQueCellTypeDef;
+
+#define WEDGE_STORAGE_SECTOR_SIZE (4096)
+#define WEDGE_STORAGE_BASE_ADDR (0x00000000)
+
+#define WEDGE_MSG_QUE_OFFSET (WEDGE_STORAGE_SECTOR_SIZE * 256)
+#define WEDGE_MSG_QUE_START_ADDR (WEDGE_STORAGE_BASE_ADDR + WEDGE_MSG_QUE_OFFSET)
+#define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 256)
+#define WEDGE_MSG_QUE_TOTAL_NUM (WEDGE_MSG_QUE_TOTAL_SIZE / sizeof(WEDGEMsgQueCellTypeDef))
+#define WEDGE_MSG_QUE_END_ADDR (WEDGE_MSG_QUE_START_ADDR + WEDGE_MSG_QUE_TOTAL_SIZE - 1)
+
+extern uint8_t WedgeMsgQueInit(void);
+extern uint8_t WedgeMsgQueInWrite(const WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index);
+extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index);
+
+typedef enum
+{
+    WEDGE_RTC_TIMER_INVALID = 0,
+    WEDGE_RTC_TIMER_PERIODIC,
+    WEDGE_RTC_TIMER_ONETIME,
+
+    WEDGE_RTC_TIMER_MAX
+} WEDGERTCTimerTypeDef;
+
+typedef enum
+{
+    Periodic_Moving_Event = 0,
+    Periodic_OFF_Event,
+    Periodic_Health_Event,
+
+    WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX
+} WEDGERTCTimerInstanceTypeDef;
+
+typedef struct
+{
+    WEDGERTCTimerTypeDef RTCTimerType;
+    WEDGERTCTimerInstanceTypeDef RTCTimerInstance;
+    uint32_t settime;
+} RTCTimerListCellTypeDef;
+
+#define WEDGE_RTC_TIMER_INSTANCE_MAX (32)
+typedef struct
+{
+    uint8_t instancenum;
+    RTCTimerListCellTypeDef currentinstance;
+    RTCTimerListCellTypeDef instancearray[WEDGE_RTC_TIMER_INSTANCE_MAX];
+} RTCTimerListTypeDef;
+
+typedef enum
+{
+    WEDGE_RTC_TIMER_MODIFY_INCREASE = 0,
+    WEDGE_RTC_TIMER_MODIFY_DECREASE,
+
+    WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
+} WEDGERTCTimerModifySettimeTypeDef;
+
+extern uint8_t WedgeRtcTimerInit(void);
+extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
+extern uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType);
+extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerModifySettimeTypeDef ModifyType);
 
 #ifdef __cplusplus
 }

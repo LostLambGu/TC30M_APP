@@ -11,8 +11,6 @@
 #include "appatprocess.h"
 #include "eventmsgque_process.h"
 
-extern WEDGECfgTypeDef WEDGECfgRecord;
-
 uint8_t *AppAtProcess(uint8_t * Data, uint8_t DataLen)
 {
 	return NULL;

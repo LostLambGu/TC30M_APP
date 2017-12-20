@@ -26,56 +26,60 @@ uint8_t WedgeSysStateInit(void)
     return TRUE;
 }
 
-void *WedgeSysStateGet(WEDGESysStateGetTypeDef SysStateGet)
+void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
 {
     switch (SysStateGet)
     {
-    case WEDGE_IGNITION_STATE_GET:
+    case WEDGE_IGNITION_STATE:
         return &(WEDGESysState.WEDGEIgnitionState);
         // break;
 
-    case WEDGE_POWER_ON_OFF_STATE_GET:
+    case WEDGE_POWER_ON_OFF_STATE:
         return &(WEDGESysState.PowerOnOff);
         // break;
 
-    case WEDGE_GPS_LASTFIX_STATE_GET:
+    case WEDGE_GPS_LASTFIX_STATE:
         return &(WEDGESysState.GpsLastFix);
         // break;
 
-    case WEDGE_GPS_FIX_STATE_GET:
+    case WEDGE_GPS_FIX_STATE:
         return &(WEDGESysState.GpsFix);
         // break;
 
-    case WEDGE_GPS_VOLOCITY_GET:
+    case WEDGE_GPS_VOLOCITY:
         return &(WEDGESysState.GpsVelocity);
         // break;
 
-    case WEDGE_LONGTITUDE_GET:
+    case WEDGE_LONGTITUDE:
         return &(WEDGESysState.Longitude);
         // break;
 
-    case WEDGE_LATITUDE_GET:
+    case WEDGE_LATITUDE:
         return &(WEDGESysState.Latitude);
         // break;
 
-    case WEDGE_SODO_LASTREPORT_MILEAGE_GET:
+    case WEDGE_SODO_LASTREPORT_MILEAGE:
         return &(WEDGESysState.SerOdoLastReportMileage);
         // break;
 
-    case WEDGE_VOLTAGE_VALUE_GET:
+    case WEDGE_VOLTAGE_VALUE:
         return &(WEDGESysState.VoltageValue);
         // break;
 
-    case WEDGE_TOW_ALERTGEOFENCE_GET:
+    case WEDGE_TOW_ALERTGEOFENCE:
         return &(WEDGESysState.TowAlertGeoFence);
         // break;
 
-    case WEDGE_HEADING_LASTREPORT_DEG_GET:
+    case WEDGE_HEADING_LASTREPORT_DEG:
         return &(WEDGESysState.HeadingLastReportDeg);
         // break;
 
-    case WEDGE_MQSTAT_GET:
+    case WEDGE_MQSTAT:
         return &(WEDGESysState.MQSTAT);
+        // break;
+
+    case WEDGE_BASE_RTC_TIME:
+        return &(WEDGESysState.RTCBaseTime);
         // break;
 
     default:
@@ -85,56 +89,60 @@ void *WedgeSysStateGet(WEDGESysStateGetTypeDef SysStateGet)
     }
 }
 
-void WedgeSysStateSet(WEDGESysStateGetTypeDef SysStateSet, const void *pvData)
+void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData)
 {
     switch (SysStateSet)
     {
-    case WEDGE_IGNITION_STATE_GET:
+    case WEDGE_IGNITION_STATE:
         WEDGESysState.WEDGEIgnitionState = *((WEDGEIgnitionStateTypeDef *)pvData);
         break;
 
-    case WEDGE_POWER_ON_OFF_STATE_GET:
+    case WEDGE_POWER_ON_OFF_STATE:
         WEDGESysState.PowerOnOff = *((uint8_t *)pvData);
         break;
 
-    case WEDGE_GPS_LASTFIX_STATE_GET:
+    case WEDGE_GPS_LASTFIX_STATE:
         WEDGESysState.GpsLastFix = *((uint8_t *)pvData);
         break;
 
-    case WEDGE_GPS_FIX_STATE_GET:
+    case WEDGE_GPS_FIX_STATE:
         WEDGESysState.GpsFix = *((uint8_t *)pvData);
         break;
 
-    case WEDGE_GPS_VOLOCITY_GET:
+    case WEDGE_GPS_VOLOCITY:
         WEDGESysState.GpsVelocity = *((double *)pvData);
         break;
 
-    case WEDGE_LONGTITUDE_GET:
+    case WEDGE_LONGTITUDE:
         WEDGESysState.Longitude = *((double *)pvData);
         break;
 
-    case WEDGE_LATITUDE_GET:
+    case WEDGE_LATITUDE:
         WEDGESysState.Latitude = *((double *)pvData);
         break;
 
-    case WEDGE_SODO_LASTREPORT_MILEAGE_GET:
+    case WEDGE_SODO_LASTREPORT_MILEAGE:
         WEDGESysState.SerOdoLastReportMileage = *((uint32_t *)pvData);
         break;
 
-    case WEDGE_VOLTAGE_VALUE_GET:
+    case WEDGE_VOLTAGE_VALUE:
         WEDGESysState.VoltageValue = *((float *)pvData);
         break;
 
-    case WEDGE_TOW_ALERTGEOFENCE_GET:
+    case WEDGE_TOW_ALERTGEOFENCE:
         WEDGESysState.TowAlertGeoFence = *((TowAlertGeoFenceTypedef *)pvData);
         break;
 
-    case WEDGE_HEADING_LASTREPORT_DEG_GET:
+    case WEDGE_HEADING_LASTREPORT_DEG:
         WEDGESysState.HeadingLastReportDeg = *((float *)pvData);
         break;
 
-    case WEDGE_MQSTAT_GET:
+    case WEDGE_MQSTAT:
         WEDGESysState.MQSTAT = *((MQSTATTypeDef *)pvData);
+        break;
+
+    case WEDGE_BASE_RTC_TIME:
+        WEDGESysState.RTCBaseTime = *((uint32_t *)pvData);
         break;
 
     default:
@@ -147,7 +155,7 @@ void WedgeSysStateSet(WEDGESysStateGetTypeDef SysStateSet, const void *pvData)
 
 void WedgeIgnitionStateProcess(void)
 {
-    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE_GET)))
+    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
     {
     case WEDGE_IGN_IGNORE_STATE:
         break;
