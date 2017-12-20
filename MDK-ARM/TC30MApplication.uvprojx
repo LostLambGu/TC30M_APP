@@ -696,6 +696,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\version.c</FilePath>
             </File>
+            <File>
+              <FileName>eventalertflow.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\eventalertflow.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
