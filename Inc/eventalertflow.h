@@ -18,9 +18,13 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
+#include "uart_api.h"
 #include "wedgedatadefine.h"
 
 /* Defines -------------------------------------------------------------------*/
+#define EVENT_ALERT_FLOW_LOG DebugLog
+#define EVENT_ALERT_FLOW_PRINT DebugPrintf
+
 typedef enum
 {
     WEDGE_IGN_IGNORE_STATE = 0,
@@ -38,6 +42,24 @@ typedef struct
     double Latitude;
 } TowAlertGeoFenceTypedef;
 
+typedef enum
+{
+    WEDGE_IGNITION_STATE_GET = 0,
+    WEDGE_POWER_ON_OFF_STATE_GET,
+    WEDGE_GPS_LASTFIX_STATE_GET,
+    WEDGE_GPS_FIX_STATE_GET,
+    WEDGE_GPS_VOLOCITY_GET,
+    WEDGE_LONGTITUDE_GET,
+    WEDGE_LATITUDE_GET,
+    WEDGE_SODO_LASTREPORT_MILEAGE_GET,
+    WEDGE_VOLTAGE_VALUE_GET,
+    WEDGE_TOW_ALERTGEOFENCE_GET,
+    WEDGE_HEADING_LASTREPORT_DEG_GET,
+    WEDGE_MQSTAT_GET,
+
+    WEDGE_SYSSTAT_GET_MAX
+} WEDGESysStateGetTypeDef;
+
 typedef struct
 {
     WEDGEIgnitionStateTypeDef WEDGEIgnitionState;
@@ -52,8 +74,11 @@ typedef struct
     TowAlertGeoFenceTypedef TowAlertGeoFence;
     float HeadingLastReportDeg;
     MQSTATTypeDef MQSTAT;
-} WEDGESysState;
+} WEDGESysStateTypeDef;
 
+extern uint8_t WedgeSysStateInit(void);
+extern void *WedgeSysStateGet(WEDGESysStateGetTypeDef SysStateGet);
+extern void WedgeSysStateSet(WEDGESysStateGetTypeDef SysStateSet, const void *pvData);
 extern void WedgeIgnitionStateProcess(void);
 
 

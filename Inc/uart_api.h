@@ -97,7 +97,8 @@ extern void UART1PrintMassData(uint8_t *string, uint16_t slen);
 
 #define CheckATPortStatSting "AT+CCLK?\r\n"
 
-#define DebugLog(format, ...) SerialDbgPrintf(1, "\r\n" format, ##__VA_ARGS__)
+extern char *FmtTimeShow(void);
+#define DebugLog(format, ...) SerialDbgPrintf(1, "\r\n[%s] " format, FmtTimeShow(), ##__VA_ARGS__)
 #define DebugPrintf(value, format, ...) SerialDbgPrintf(value, format, ##__VA_ARGS__)
 
 #ifdef __cplusplus
