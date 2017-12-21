@@ -12,6 +12,7 @@
 #include "rtcclock.h"
 #include "usrtimer.h"
 #include "network.h"
+#include "ublox_driver.h"
 
 /* Variables -----------------------------------------------------------------*/
 static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
@@ -226,24 +227,210 @@ void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData)
     return;
 }
 
-void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State)
+void WedgeCfgChgStateInit(void)
 {
 
+
+
+
+
+
+
+
+
+
+
+}
+
+void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State)
+{
+    if (CfgChg >= CFG_CHG_INVALIAD_MAX)
+    {
+        EVENTMSGQUE_PROCESS_LOG("WEDGE CFG CHG SET: Param err");
+    }
+
+    if (State != FALSE)
+    {
+        WEDGECfgState.CfgChgNum++;
+    }
+    else
+    {
+        WEDGECfgState.CfgChgNum--;
+    }
+
+    if (State == FALSE)
+    {
+        WEDGECfgState.CfgChgState[CfgChg] = FALSE;
+    }
+    else
+    {
+        WEDGECfgState.CfgChgState[CfgChg] = TRUE;
+    }
+}
+
+uint8_t WedgeCfgChgStateIsChanged(void)
+{
+    return WEDGECfgState.CfgChgNum;
 }
 
 uint8_t WedgeCfgChgStateGet(void)
 {
+
+
+
+
+
+
+
+
+
+
 	return 0;
 }
 
 void WedgeCfgChgStateProcess(void)
 {
+    if (WEDGECfgState.CfgChgNum == 0)
+    {
+        return;
+    }
     
+    // case SMS_ADDR_CFG_CHG:
+    //     break;
+    // case SVRCFG_CFG_CHG:
+    //     break;
+    // case FTPCFG_CFG_CHG:
+    //     break;
+    // case APNCFG_CFG_CHG:
+    //     break;
+    // case HWRST_CFG_CHG:
+    //     break;
+    // case PWRMGT_CFG_CHG:
+    //     break;
+    // case USRDAT_CFG_CHG:
+    //     break;
+    // case CFGALL_CFG_CHG:
+    //     break;
+    // case RESET_DEFAULT_CFG_CHG:
+    //     break;
+    // case IGNTYP_CFG_CHG:
+    //     break;
+    // case RPTINTVL_CFG_CHG:
+    //     break;
+    // case ALARM1_CFG_CHG:
+    //     break;
+    // case ALARM2_CFG_CHG:
+    //     break;
+    // case LVA_CFG_CHG:
+    //     break;
+    // case IDLE_CFG_CHG:
+    //     break;
+    // case SODO_CFG_CHG:
+    //     break;
+    // case DIRCHG_CFG_CHG:
+    //     break;
+    // case TOW_CFG_CHG:
+    //     break;
+    // case STPINTVL_CFG_CHG:
+    //     break;
+    // case VODO_CFG_CHG:
+    //     break;
+    // case GEOFENCES1_CFG_CHG:
+    // case GEOFENCES2_CFG_CHG:
+    // case GEOFENCES3_CFG_CHG:
+    // case GEOFENCES4_CFG_CHG:
+    // case GEOFENCES5_CFG_CHG:
+    // case GEOFENCES6_CFG_CHG:
+    // case GEOFENCES7_CFG_CHG:
+    // case GEOFENCES8_CFG_CHG:
+    // case GEOFENCES9_CFG_CHG:
+    // case GEOFENCES10_CFG_CHG:
+    //     break;
+    // case RELAY_CFG_CHG:
+    //     break;
+    // case PLSRLY_CFG_CHG:
+    //     break;
+    // case OPSOD_CFG_CHG:
+    //     break;
+    // default:
+    //     EVENTMSGQUE_PROCESS_LOG("WEDGE CFG CHG SET: Param err");
+    //     break;
 }
 
 void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
 {
 
+}
+
+static void BytesOrderSwap(uint8_t *pBuf, uint16_t num)
+{
+    uint16_t i = 0, count = num / 2;
+    uint8_t tmp = 0;
+
+    for (i = 0; i < count; i++)
+    {
+        tmp = pBuf[i];
+        pBuf[i] = pBuf[num - i - 1];
+        pBuf[num - i - 1] = tmp;
+    }
+}
+
+#define KN_TO_KM_FACTOR (1.852)
+#define WEDGE_GPS_HEADING_DEG_FATCTOR (10)
+#define WEDGE_GPS_PDOP_FACTOR (10)
+
+void WedgeUpdateBinaryMsgGpsRecord(void)
+{
+    float *tmpf = NULL;
+    uint8_t Buf[4] = {0};
+    int32_t *tmpi = NULL;
+    uint32_t *tmpu = NULL;
+    double speedkm = 0.0;
+    double headingdeg = 0.0;
+    double pdop = 0.0;
+
+    BinaryMsgRecord.GPS_DT[0] = (uint8_t)GpsInfo.Year;
+    BinaryMsgRecord.GPS_DT[1] = (uint8_t)GpsInfo.Month;
+    BinaryMsgRecord.GPS_DT[2] = (uint8_t)GpsInfo.Day;
+    BinaryMsgRecord.GPS_TM[0] = (uint8_t)GpsInfo.Hour;
+    BinaryMsgRecord.GPS_TM[1] = (uint8_t)GpsInfo.Minute;
+    BinaryMsgRecord.GPS_TM[2] = (uint8_t)GpsInfo.Second;
+
+    tmpf = (float *)(&(BinaryMsgRecord.POS_LAT[0]));
+    *tmpf = (float)GpsInfo.Latitude;
+
+    tmpf = (float *)(&(BinaryMsgRecord.POS_LON[0]));
+    *tmpf = (float)GpsInfo.Longitude;
+
+    tmpi = (int32_t *)Buf;
+    *tmpi = (int32_t)(GpsInfo.Altitude);
+    BytesOrderSwap(Buf, 3);
+    BinaryMsgRecord.POS_ALT[0] = Buf[0];
+    BinaryMsgRecord.POS_ALT[1] = Buf[1];
+    BinaryMsgRecord.POS_ALT[2] = Buf[2];
+
+    speedkm = GpsInfo.Velocity * KN_TO_KM_FACTOR;
+    tmpu = (uint32_t *)Buf;
+    *tmpu = (uint32_t)(speedkm);
+    BytesOrderSwap(Buf, 2);
+    BinaryMsgRecord.POS_SPD[0] = Buf[0];
+    BinaryMsgRecord.POS_SPD[1] = Buf[1];
+
+    headingdeg = GpsInfo.Heading * WEDGE_GPS_HEADING_DEG_FATCTOR;
+    tmpu = (uint32_t *)Buf;
+    *tmpu = (uint32_t)(headingdeg);
+    BytesOrderSwap(Buf, 2);
+    BinaryMsgRecord.POS_HDG[0] = Buf[0];
+    BinaryMsgRecord.POS_HDG[1] = Buf[1];
+
+    BinaryMsgRecord.POS_SATS[0] = (uint8_t)GpsInfo.SatelliteCount;
+
+    pdop = GpsInfo.pdop * WEDGE_GPS_PDOP_FACTOR;
+    tmpu = (uint32_t *)Buf;
+    *tmpu = (uint32_t)(pdop);
+    BytesOrderSwap(Buf, 2);
+    BinaryMsgRecord.POS_QUAL[0] = Buf[0];
+    BinaryMsgRecord.POS_QUAL[1] = Buf[1];
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
@@ -475,7 +662,7 @@ uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)
 uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
 {
     uint8_t i = 0, Index = 0, ret = 0;
-    RTCTimerListCellTypeDef tmpinstance = {0};
+    RTCTimerListCellTypeDef tmpinstance;
 
     if (InstanceType >= WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX)
     {

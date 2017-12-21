@@ -65,6 +65,7 @@ typedef enum
     WEDGE_HEADING_LASTREPORT_DEG,
     WEDGE_MQSTAT,
     WEDGE_BASE_RTC_TIME,
+    WEDGE_LAST_HWRST_RTC_TIME,
 
     WEDGE_SYSSTAT_MAX
 } WEDGESysStateOperateTypeDef;
@@ -84,6 +85,7 @@ typedef struct
     float HeadingLastReportDeg;
     MQSTATTypeDef MQSTAT;
     uint32_t RTCBaseTime;
+    uint32_t LastHWRSTRTCTime;
 } WEDGESysStateTypeDef;
 
 extern uint8_t WedgeSysStateInit(void);

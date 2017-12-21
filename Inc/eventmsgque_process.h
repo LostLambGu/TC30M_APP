@@ -37,6 +37,7 @@ extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
 extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
 
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
+extern void WedgeUpdateBinaryMsgGpsRecord(void);
 extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 
@@ -126,7 +127,9 @@ typedef struct
     uint8_t CfgChgState[WEDGE_CFG_STATE_NUM_MAX];
 } WEDGECfgChgStateTypedef;
 
+extern void WedgeCfgChgStateInit(void);
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
+extern uint8_t WedgeCfgChgStateIsChanged(void);
 extern uint8_t WedgeCfgChgStateGet(void);
 extern void WedgeCfgChgStateProcess(void);
 

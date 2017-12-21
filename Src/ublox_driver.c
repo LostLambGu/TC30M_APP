@@ -10,6 +10,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ublox_driver.h"
 #include "i2c.h"
+#include "eventalertflow.h"
+#include "eventmsgque_process.h"
 
 #define UbloxPrintf DebugPrintf
 
@@ -1101,36 +1103,22 @@ void UbloxGPSTimerProcess(void)
 												GpsInfo.Heading,  GpsInfo.Velocity, GpsInfo.Altitude, GpsInfo.hdop,GpsInfo.SatelliteCount,GpsInfo.bGpsLock );
 	        UbloxPrintf(DbgCtl.UbloxDbgInfoEn,"\r\n[%s] UBlox:FixType[%d]SelectionType[%d]",FmtTimeShow(),gLocMsg.FixType ,gLocMsg.SelectionType); */
 	}
-#if 0
-        if (PreGpsLocked != GpsLocked)
-        {
-                if (GpsLocked)
-                {
-                        count = 1;
-                        OemMsgHandle(OEM_GPS_NMEA_EVENT_MSG, MsgBufferP, sizeof(PswGpsNmeaStreamMsgT));
-                }
-                OemMsgHandle(OEM_GPS_LOC_INF_MSG, &GpsInfo, sizeof(ValGpsInfo));
-                PreGpsLocked = GpsLocked;
-        }
-        if (GpsLocked)
-        {
-                if (count < ExtGpsTimeBFixes)
-                {
-                        count++;
-                }
-                else
-                {
-                        count = 1;
-                        OemMsgHandle(OEM_GPS_NMEA_EVENT_MSG, MsgBufferP, sizeof(PswGpsNmeaStreamMsgT));
-                        OemMsgHandle(OEM_GPS_LOC_INF_MSG, &GpsInfo, sizeof(ValGpsInfo));
-                }
-        }
-#else
-//OemMsgHandle(OEM_GPS_NMEA_EVENT_MSG, MsgBufferP, sizeof(PswGpsNmeaStreamMsgT));
-//OemMsgHandle(OEM_GPS_LOC_INF_MSG, &GpsInfo, sizeof(ValGpsInfo));
-#endif
-	//ExeTimerReset(&ExtGpsTimercb, UbloxGPSTimerCb, ExeCalMsec(UBLOX_GPS_TIMER), 0/*ExeCalMsec(1000)*/);
-	//ExeTimerStart(&ExtGpsTimercb);
+
+	WedgeSysStateSet(WEDGE_GPS_FIX_STATE, &(GpsInfo.validFix));
+	if (GpsInfo.validFix)
+	{
+		uint8_t tmp = 0;
+		WedgeSysStateSet(WEDGE_GPS_LASTFIX_STATE, &(GpsInfo.validFix));
+		WedgeUpdateBinaryMsgGpsRecord();
+
+		tmp = *((uint8_t *)WedgeSysStateGet(WEDGE_POWER_ON_OFF_STATE));
+		if (0 == tmp)
+		{
+			tmp = 1;
+			WedgeSysStateSet(WEDGE_POWER_ON_OFF_STATE, &tmp);
+			WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Modem_powered_up);
+		}
+	}
 }
 
 /*******************************************************************************

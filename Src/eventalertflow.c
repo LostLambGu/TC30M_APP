@@ -82,6 +82,9 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
         return &(WEDGESysState.RTCBaseTime);
         // break;
 
+    case WEDGE_LAST_HWRST_RTC_TIME:
+        return &(WEDGESysState.LastHWRSTRTCTime);
+
     default:
         EVENT_ALERT_FLOW_LOG("WEDGE SYS Get: Param err");
         return NULL;
@@ -143,6 +146,10 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
 
     case WEDGE_BASE_RTC_TIME:
         WEDGESysState.RTCBaseTime = *((uint32_t *)pvData);
+        break;
+
+    case WEDGE_LAST_HWRST_RTC_TIME:
+        WEDGESysState.LastHWRSTRTCTime = *((uint32_t *)pvData);
         break;
 
     default:
