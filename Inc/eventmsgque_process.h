@@ -33,6 +33,54 @@ extern "C" {
 
 #define EVENTMSGQUE_PROCESS_PRINT DebugPrintf
 
+extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
+extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
+
+extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
+extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+
+typedef enum
+{
+    WEDGE_CFG_IGNTYPE = 0,
+    WEDGE_CFG_RPTINTVL,
+    WEDGE_CFG_IOALRM1,
+    WEDGE_CFG_IOALRM2,
+    WEDGE_CFG_LVA,
+    WEDGE_CFG_IDLE,
+    WEDGE_CFG_SODO,
+    WEDGE_CFG_VODO,
+    WEDGE_CFG_DIRCHG,
+    WEDGE_CFG_TOW,
+    WEDGE_CFG_STPINTVL,
+    WEDGE_CFG_GFNC1,
+    WEDGE_CFG_GFNC2,
+    WEDGE_CFG_GFNC3,
+    WEDGE_CFG_GFNC4,
+    WEDGE_CFG_GFNC5,
+    WEDGE_CFG_GFNC6,
+    WEDGE_CFG_GFNC7,
+    WEDGE_CFG_GFNC8,
+    WEDGE_CFG_GFNC9,
+    WEDGE_CFG_GFNC10,
+    WEDGE_CFG_RELAY,
+    WEDGE_CFG_OSPD,
+    WEDGE_CFG_PLSRLY,
+    WEDGE_CFG_PWRMGT,
+    WEDGE_CFG_HWRST,
+    WEDGE_CFG_USRDAT,
+    WEDGE_CFG_SMS,
+    WEDGE_CFG_SVRCFG,
+    WEDGE_CFG_FTPCFG,
+    WEDGE_CFG_APNCFG,
+
+    WEDGE_CFG_OPERATE_INVALID_MAX
+} WEDGECfgOperateTypeDef;
+
+extern uint8_t WedgeCfgInit(void);
+extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
+extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
+
 typedef enum
 {
     SMS_ADDR_CFG_CHG = 0,
@@ -78,60 +126,9 @@ typedef struct
     uint8_t CfgChgState[WEDGE_CFG_STATE_NUM_MAX];
 } WEDGECfgChgStateTypedef;
 
-typedef enum
-{
-    WEDGE_CFG_IGNTYPE = 0,
-    WEDGE_CFG_RPTINTVL,
-    WEDGE_CFG_IOALRM1,
-    WEDGE_CFG_IOALRM2,
-    WEDGE_CFG_LVA,
-    WEDGE_CFG_IDLE,
-    WEDGE_CFG_SODO,
-    WEDGE_CFG_VODO,
-    WEDGE_CFG_DIRCHG,
-    WEDGE_CFG_TOW,
-    WEDGE_CFG_STPINTVL,
-    WEDGE_CFG_GFNC1,
-    WEDGE_CFG_GFNC2,
-    WEDGE_CFG_GFNC3,
-    WEDGE_CFG_GFNC4,
-    WEDGE_CFG_GFNC5,
-    WEDGE_CFG_GFNC6,
-    WEDGE_CFG_GFNC7,
-    WEDGE_CFG_GFNC8,
-    WEDGE_CFG_GFNC9,
-    WEDGE_CFG_GFNC10,
-    WEDGE_CFG_RELAY,
-    WEDGE_CFG_OSPD,
-    WEDGE_CFG_PLSRLY,
-    WEDGE_CFG_PWRMGT,
-    WEDGE_CFG_HWRST,
-    WEDGE_CFG_USRDAT,
-    WEDGE_CFG_SMS,
-    WEDGE_CFG_SVRCFG,
-    WEDGE_CFG_FTPCFG,
-    WEDGE_CFG_APNCFG,
-
-    WEDGE_CFG_OPERATE_INVALID_MAX
-} WEDGECfgOperateTypeDef;
-
-extern BinaryMsgFormatTypeDef BinaryMsgRecord;
-extern AsciiMsgFormatTypedDef AsciiMsgRecord;
-extern WEDGECfgChgStateTypedef WEDGECfgState;
-
-extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
-extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
-
-extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
-extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
-
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
 extern uint8_t WedgeCfgChgStateGet(void);
 extern void WedgeCfgChgStateProcess(void);
-
-extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
-extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
-extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 
 extern uint8_t WedgeFlashChipErase(void);
 extern uint8_t WedgeFlashEraseSector(uint32_t address);
@@ -197,7 +194,7 @@ typedef struct
     uint32_t settime;
 } RTCTimerListCellTypeDef;
 
-#define WEDGE_RTC_TIMER_INSTANCE_MAX (32)
+#define WEDGE_RTC_TIMER_INSTANCE_MAX (16)
 typedef struct
 {
     uint8_t instancenum;
@@ -211,12 +208,12 @@ typedef enum
     WEDGE_RTC_TIMER_MODIFY_DECREASE,
 
     WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
-} WEDGERTCTimerModifySettimeTypeDef;
+} WEDGERTCTimerSettimeTypeDef;
 
 extern uint8_t WedgeRtcTimerInit(void);
 extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
 extern uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType);
-extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerModifySettimeTypeDef ModifyType);
+extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType);
 
 #ifdef __cplusplus
 }

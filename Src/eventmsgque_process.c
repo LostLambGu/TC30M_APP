@@ -14,11 +14,10 @@
 #include "network.h"
 
 /* Variables -----------------------------------------------------------------*/
-BinaryMsgFormatTypeDef BinaryMsgRec = {0};
-BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
-AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
+static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
+static AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
 static WEDGECfgTypeDef WEDGECfgRecord = {0};
-WEDGECfgChgStateTypedef WEDGECfgState = {0};
+static WEDGECfgChgStateTypedef WEDGECfgState = {0};
 static RTCTimerListTypeDef RTCTimerList = {0};
 
 /* Function definition -------------------------------------------------------*/
@@ -292,24 +291,289 @@ uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef * const pQueCell, const uint32
 	return 1;
 }
 
+static uint8_t WedgeRtcTimerInstanceInsert(RTCTimerListCellTypeDef Instance)
+{
+    uint8_t i = 0;
+
+    if (RTCTimerList.instancenum >= WEDGE_RTC_TIMER_INSTANCE_MAX)
+    {
+        return 1;
+    }
+
+    if ((Instance.RTCTimerType >= WEDGE_RTC_TIMER_MAX) || (Instance.RTCTimerType == WEDGE_RTC_TIMER_INVALID))
+    {
+        return 2;
+    }
+
+    for (i = 0; i < WEDGE_RTC_TIMER_INSTANCE_MAX; i++)
+    {
+        if ((RTCTimerList.instancearray[i]).RTCTimerType == WEDGE_RTC_TIMER_INVALID)
+        {
+
+        }
+        else if ((RTCTimerList.instancearray[i]).RTCTimerType < WEDGE_RTC_TIMER_MAX)
+        {
+            if ((RTCTimerList.instancearray[i]).RTCTimerInstance == Instance.RTCTimerInstance)
+            {
+                RTCTimerList.instancearray[i] = Instance;
+                return 0;
+            }
+        }
+        else
+        {
+
+        }
+    }
+
+    if ((RTCTimerList.currentinstance).RTCTimerInstance == Instance.RTCTimerInstance)
+    {
+        RTCTimerList.currentinstance = Instance;
+        return 0;
+    }
+
+    for (i = 0; i < WEDGE_RTC_TIMER_INSTANCE_MAX; i++)
+    {
+        if ((RTCTimerList.instancearray[i]).RTCTimerType == WEDGE_RTC_TIMER_INVALID)
+        {
+            break;
+        }
+    }
+
+    if (i >= WEDGE_RTC_TIMER_INSTANCE_MAX)
+    {
+        return 3;
+    }
+
+    RTCTimerList.instancearray[i] = Instance;
+    RTCTimerList.instancenum++;
+
+    return 0;
+}
+
+static uint8_t WedgeRtcTimerFetchMinInArray(RTCTimerListCellTypeDef *pInstance, uint8_t *pIndex)
+{
+    RTCTimerListCellTypeDef mintmpinstance;
+    uint8_t i = 0, Index;
+
+    if ((pInstance == NULL) || (pIndex == NULL))
+    {
+        return 1;
+    }
+
+    if (RTCTimerList.instancenum == 0)
+    {
+        return 2;
+    }
+
+    mintmpinstance.settime = 0xFFFFFFFF;
+    Index = WEDGE_RTC_TIMER_INSTANCE_MAX;
+
+    for (i = 0; i < WEDGE_RTC_TIMER_INSTANCE_MAX; i++)
+    {
+        if (((RTCTimerList.instancearray[i]).RTCTimerType != WEDGE_RTC_TIMER_INVALID)
+            && ((RTCTimerList.instancearray[i]).RTCTimerType < WEDGE_RTC_TIMER_MAX))
+        {
+            if ((RTCTimerList.instancearray[i]).settime < mintmpinstance.settime)
+            {
+                mintmpinstance = RTCTimerList.instancearray[i];
+                Index = i;
+            }
+        }
+    }
+
+    if (Index == WEDGE_RTC_TIMER_INSTANCE_MAX)
+    {
+        return 3;
+    }
+
+    *pInstance = mintmpinstance;
+    *pIndex = Index;
+    return 0;
+}
+
+static uint32_t WedgeRtcCurrentSeconds(void)
+{
+    TimeTableT timetable = {0};
+    uint32_t currenttimeinseconds = {0};
+
+    timetable = GetRTCDatetime();
+    currenttimeinseconds = TimeTableToSeconds(timetable);
+
+    return currenttimeinseconds;
+}
+
+static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
+{
+    uint32_t curseconds = WedgeRtcCurrentSeconds();
+    uint32_t setseconds = 0;
+
+    if ((RTCTimerList.currentinstance).settime <= curseconds)
+    {
+        return 1;
+    }
+
+    setseconds = (RTCTimerList.currentinstance).settime - curseconds;
+
+    return SetRTCAlarmTime(setseconds, DbgCtl.WedgeEvtMsgQueInfoEn);
+}
+
 uint8_t WedgeRtcTimerInit(void)
 {
+
+
+
+
+
+
+
+
+
+
+
+
 	return 1;
 }
 
 uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)
 {
-return 1;
+    uint8_t Index = 0, ret = 0;
+    RTCTimerListCellTypeDef tmpinstance;
+
+    ret = WedgeRtcTimerInstanceInsert(Instance);
+    if (ret)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Add Insert err: %d",
+				FmtTimeShow(), ret);
+        return 1;
+    }
+
+    ret = WedgeRtcTimerFetchMinInArray(&tmpinstance, &Index);
+    if (ret)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Add Fetch err: %d",
+				FmtTimeShow(), ret);
+        return 2;
+    }
+    
+    if (tmpinstance.settime < (RTCTimerList.currentinstance).settime)
+    {
+        RTCTimerList.instancearray[Index] = RTCTimerList.currentinstance;
+        RTCTimerList.currentinstance = tmpinstance;
+    }
+
+    ret = WedgeRtcTimerInstanceAlarmRefresh();
+    if (ret)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Add Refresh err: %d",
+				FmtTimeShow(), ret);
+        return 3;
+    }
+
+    return 0;
 }
 
 uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
 {
-return 1;
+    uint8_t i = 0, Index = 0, ret = 0;
+    RTCTimerListCellTypeDef tmpinstance = {0};
+
+    if (InstanceType >= WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX)
+    {
+        return 1;
+    }
+
+    if (RTCTimerList.instancenum == 0)
+    {
+        return 2;
+    }
+
+    for (i = 0; i < WEDGE_RTC_TIMER_INSTANCE_MAX; i++)
+    {
+        if (((RTCTimerList.instancearray[i]).RTCTimerType > WEDGE_RTC_TIMER_INVALID)
+        &&  ((RTCTimerList.instancearray[i]).RTCTimerType < WEDGE_RTC_TIMER_MAX))
+        {
+            if ((RTCTimerList.instancearray[i]).RTCTimerInstance == InstanceType)
+            {
+                (RTCTimerList.instancearray[i]).RTCTimerType = WEDGE_RTC_TIMER_INVALID;
+                RTCTimerList.instancenum--;
+            }
+        }
+    }
+
+    if ((RTCTimerList.currentinstance).RTCTimerInstance == InstanceType)
+    {
+        ret = WedgeRtcTimerFetchMinInArray(&tmpinstance, &Index);
+        if (ret)
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Del Fetch err: %d",
+                                      FmtTimeShow(), ret);
+            return 3;
+        }
+
+        RTCTimerList.currentinstance = tmpinstance;
+        (RTCTimerList.instancearray[Index]).RTCTimerType = WEDGE_RTC_TIMER_INVALID;
+
+        ret = WedgeRtcTimerInstanceAlarmRefresh();
+        if (ret)
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Del Refresh err: %d",
+                                      FmtTimeShow(), ret);
+            return 4;
+        }
+    }
+
+    return 0;
+    
 }
 
-uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerModifySettimeTypeDef ModifyType)
+uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType)
 {
-    return 1;
+    uint8_t i = 0, ret = 0;
+
+    if (ModifyType >= WEDGE_RTC_TIMER_MODIFY_INVALID_MAX)
+    {
+        return 1;
+    }
+    
+    if (Delta == 0)
+    {
+        return 0;
+    }
+
+    for (i = 0; i < WEDGE_RTC_TIMER_INSTANCE_MAX; i++)
+    {
+        if (((RTCTimerList.instancearray[i]).RTCTimerType > WEDGE_RTC_TIMER_INVALID)
+        &&  ((RTCTimerList.instancearray[i]).RTCTimerType < WEDGE_RTC_TIMER_MAX))
+        {
+            if (ModifyType == WEDGE_RTC_TIMER_MODIFY_INCREASE)
+            {
+                (RTCTimerList.instancearray[i]).settime += Delta;
+            }
+            else
+            {
+                (RTCTimerList.instancearray[i]).settime -= Delta;
+            }
+        }
+    }
+
+    if (ModifyType == WEDGE_RTC_TIMER_MODIFY_INCREASE)
+    {
+        (RTCTimerList.currentinstance).settime += Delta;
+    }
+    else
+    {
+        (RTCTimerList.currentinstance).settime -= Delta;
+    }
+
+    ret = WedgeRtcTimerInstanceAlarmRefresh();
+	if (ret)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE RTC Timer Modify Refresh err: %d",
+                                  FmtTimeShow(), ret);
+        return 2;
+    }
+
+    return 0;
 }
 
 /*******************************************************************************

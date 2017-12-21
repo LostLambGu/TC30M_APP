@@ -61,6 +61,7 @@ typedef struct
     uint8_t VersionDebugInfoEn;
     uint8_t NetworkDbgInfoEn;
     uint8_t LteRecDbgInfoEn;
+    uint8_t WedgeEvtMsgQueInfoEn;
 } DebugCtlPrarm;
 
 extern DebugCtlPrarm DbgCtl;
