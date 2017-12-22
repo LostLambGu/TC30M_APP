@@ -22,9 +22,6 @@ extern "C" {
 #include "wedgedatadefine.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define EVENT_ALERT_FLOW_LOG DebugLog
-#define EVENT_ALERT_FLOW_PRINT DebugPrintf
-
 typedef enum
 {
     WEDGE_IGN_IGNORE_STATE = 0,
@@ -61,6 +58,9 @@ typedef enum
     WEDGE_LATITUDE,
     WEDGE_SODO_LASTREPORT_MILEAGE,
     WEDGE_VOLTAGE_VALUE,
+    WEDGE_IDLE_DETECT_TIMER_START,
+    WEDGE_TOW_ALERT_ONCE_ALREADY,
+    WEDGE_OUT_TOW_GEOFNC_COUNT,
     WEDGE_TOW_ALERTGEOFENCE,
     WEDGE_HEADING_LASTREPORT_DEG,
     WEDGE_MQSTAT,
@@ -81,6 +81,9 @@ typedef struct
     double Latitude;
     uint32_t SerOdoLastReportMileage;
     float VoltageValue;
+    uint8_t IDLEDtectTimerStart;
+    uint8_t TowAlertOnceAlready;
+    uint8_t OutTowGeoFncCount;
     TowAlertGeoFenceTypedef TowAlertGeoFence;
     float HeadingLastReportDeg;
     MQSTATTypeDef MQSTAT;
@@ -93,6 +96,7 @@ extern void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet);
 extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData);
 extern void WedgeIgnitionStateProcess(void);
 
+extern void WedgeServiceOdometerAlert(void);
 
 #ifdef __cplusplus
 }

@@ -196,6 +196,20 @@ void ADCDMAConversion(uint16_t *uhADCxConvertedVal, uint16_t *ADC1ConvertedVolt)
 	ADC1ConvertedVolt[1] = ADCxVolt2;
 }
 
+double ADCGetVinVoltage(void)
+{
+  uint16_t uhADCxConvertedVal[2];
+  double tempvol = 0;
+
+	// Start Conversion
+  HAL_ADC_Start_DMA(&hadc, (uint32_t *)uhADCxConvertedVal, 2);
+  ADC_ConversionStop();
+
+	// To calculate
+	tempvol = (((uhADCxConvertedVal[1] * 3300.0) / 4096.0) * 30.0962);
+	return tempvol;
+}
+
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */

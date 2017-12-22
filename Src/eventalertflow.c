@@ -9,6 +9,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "eventalertflow.h"
+#include "eventmsgque_process.h"
+#include "ublox_driver.h"
 
 /* Defines -------------------------------------------------------------------*/
 #ifndef FALSE
@@ -18,6 +20,9 @@
 #ifndef TRUE
 #define TRUE 1
 #endif
+
+#define EVENT_ALERT_FLOW_LOG DebugLog
+#define EVENT_ALERT_FLOW_PRINT DebugPrintf
 
 static WEDGESysStateTypeDef WEDGESysState;
 
@@ -64,6 +69,18 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
 
     case WEDGE_VOLTAGE_VALUE:
         return &(WEDGESysState.VoltageValue);
+        // break;
+
+    case WEDGE_IDLE_DETECT_TIMER_START:
+        return &(WEDGESysState.IDLEDtectTimerStart);
+        // break;
+
+    case WEDGE_TOW_ALERT_ONCE_ALREADY:
+        return &(WEDGESysState.TowAlertOnceAlready);
+        // break;
+
+    case WEDGE_OUT_TOW_GEOFNC_COUNT:
+        return &(WEDGESysState.OutTowGeoFncCount);
         // break;
 
     case WEDGE_TOW_ALERTGEOFENCE:
@@ -132,6 +149,18 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
         WEDGESysState.VoltageValue = *((float *)pvData);
         break;
 
+    case WEDGE_IDLE_DETECT_TIMER_START:
+        WEDGESysState.IDLEDtectTimerStart = *((uint8_t *)pvData);
+        break;
+
+    case WEDGE_TOW_ALERT_ONCE_ALREADY:
+        WEDGESysState.TowAlertOnceAlready = *((uint8_t *)pvData);
+        break;
+
+    case WEDGE_OUT_TOW_GEOFNC_COUNT:
+        WEDGESysState.OutTowGeoFncCount = *((uint8_t *)pvData);
+        break;
+
     case WEDGE_TOW_ALERTGEOFENCE:
         WEDGESysState.TowAlertGeoFence = *((TowAlertGeoFenceTypedef *)pvData);
         break;
@@ -185,6 +214,207 @@ void WedgeIgnitionStateProcess(void)
     }
 
     return;
+}
+
+void WedgeServiceOdometerAlert(void)
+{
+    VODOTypeDef VODO = {0};
+    SODOTypeDef SODO = {0};
+    uint32_t SerOdoLastReportMileage = 0;
+
+    VODO = *((VODOTypeDef *)WedgeCfgGet(WEDGE_CFG_VODO));
+
+    SerOdoLastReportMileage = *((uint32_t *)WedgeSysStateGet(WEDGE_SODO_LASTREPORT_MILEAGE));
+
+    if (SerOdoLastReportMileage > VODO.meters)
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Evt Alrt Flw SODO err"
+                                , FmtTimeShow());
+        WedgeSysStateSet(WEDGE_SODO_LASTREPORT_MILEAGE, &(VODO.meters));
+
+        return;
+    }
+
+    SODO = *((SODOTypeDef *)WedgeCfgGet(WEDGE_CFG_SODO));
+    if ((VODO.meters - SerOdoLastReportMileage) >= SODO.meters)
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
+                                , FmtTimeShow());
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Service_Alert);
+        WedgeSysStateSet(WEDGE_SODO_LASTREPORT_MILEAGE, &(VODO.meters));
+        return;
+    }
+}
+
+extern double ADCGetVinVoltage(void);
+void WedgeLowBatteryAlert(void)
+{
+    LVATypeDef LVA = {0};
+    float voltage = 0.0;
+
+    LVA = *((LVATypeDef *)WedgeCfgGet(WEDGE_CFG_LVA));
+    voltage = (float)ADCGetVinVoltage();
+
+    if (voltage < LVA.battlvl)
+    {
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
+        return;
+    }
+}
+
+#define WEDGE_IDLE_DETECT_SPPED_MILE (3)
+#define MILE_TO_KM_FACTOR (1.6093)
+extern TIMER WedgeIDLETimer;
+
+static void CheckWedgeIDLETimerCallback(uint8_t status)
+{
+    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
+                                , FmtTimeShow());
+    WedgeResponseUdpBinary(WEDGEPYLD_STATUS, IDLE_Detect);
+}
+
+void WedgeIDLEDetectAlert(void)
+{
+    IDLETypeDef IDLE = {0};
+    double speedkm = 0.0;
+    uint8_t IDLEDtectTimerStart = 0;
+
+    IDLE = *((IDLETypeDef *)WedgeCfgGet(WEDGE_CFG_IDLE));
+
+    if (IDLE.duration == 0)
+    {
+        return;
+    }
+
+    IDLEDtectTimerStart = *((uint32_t *)WedgeSysStateGet(WEDGE_IDLE_DETECT_TIMER_START));
+    speedkm = UbloxSpeedKM();
+    if (UbloxFixStateGet())
+    {
+        if (speedkm <= (WEDGE_IDLE_DETECT_SPPED_MILE * MILE_TO_KM_FACTOR))
+        {
+            if (IDLEDtectTimerStart == 0)
+            {
+                SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
+                SoftwareTimerStart(&WedgeIDLETimer);
+
+                IDLEDtectTimerStart = TRUE;
+                WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+            }
+            else
+            {
+                // Check Wedge IDLE Detect Timer
+                IsSoftwareTimeOut(&WedgeIDLETimer);
+            }
+        }
+        else
+        {
+            SoftwareTimerReset(&WedgeIDLETimer, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
+            SoftwareTimerStop(&WedgeIDLETimer);
+
+            IDLEDtectTimerStart = 0;
+            WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+        }
+    }
+    else
+    {
+        if (IDLEDtectTimerStart == 0)
+        {
+           SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
+           SoftwareTimerStart(&WedgeIDLETimer);
+
+           IDLEDtectTimerStart = TRUE;
+           WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+        }
+        else
+        {
+            // Check Wedge IDLE Detect Timer
+            IsSoftwareTimeOut(&WedgeIDLETimer);
+        }
+    }
+}
+
+#define WEDGE_OUT_TOW_GEOFENCE_CONSECUTIVE_MAX_TIMES (10)
+
+static uint8_t WedgeIsOutsideTowGeoFnc(TowAlertGeoFenceTypedef TowAlertGeoFence, uint16_t radius)
+{
+
+
+
+
+
+
+
+    return 1; // Yes
+}
+
+void WedgeTowAlert(void)
+{
+    TOWTypeDef TOW;
+    TowAlertGeoFenceTypedef TowAlertGeoFence;
+    uint8_t TowAlertOnceAlready;
+    uint8_t OutTowGeoFncCount;
+    static uint32_t SystickRec = 0;
+
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+    TowAlertOnceAlready = *((uint8_t *)WedgeSysStateGet(WEDGE_TOW_ALERT_ONCE_ALREADY));
+    if (TRUE == TowAlertOnceAlready)
+    {
+        return;
+    }
+
+    TOW = *((TOWTypeDef *)WedgeCfgGet(WEDGE_CFG_TOW));
+
+    if (TOW.enable == 0)
+    {
+        return;
+    }
+
+    OutTowGeoFncCount = *((uint8_t *)WedgeSysStateGet(WEDGE_OUT_TOW_GEOFNC_COUNT));
+
+    TowAlertGeoFence = *((TowAlertGeoFenceTypedef *)WedgeSysStateGet(WEDGE_TOW_ALERTGEOFENCE));
+    if (WedgeIsOutsideTowGeoFnc(TowAlertGeoFence, TOW.radius))
+    {
+        OutTowGeoFncCount++;
+
+        if (WEDGE_OUT_TOW_GEOFENCE_CONSECUTIVE_MAX_TIMES <= OutTowGeoFncCount)
+        {
+            EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt"
+                                    , FmtTimeShow());
+            WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Tow_Alert_Exited);
+
+            TowAlertOnceAlready = TRUE;
+            WedgeSysStateSet(WEDGE_OUT_TOW_GEOFNC_COUNT, &TowAlertOnceAlready);
+        }
+    }
+    else
+    {
+        OutTowGeoFncCount = 0;
+    }
+
+    WedgeSysStateSet(WEDGE_OUT_TOW_GEOFNC_COUNT, &OutTowGeoFncCount);
+}
+
+static uint8_t WedgeIsGeofenceViolation(GFNCTypeDef GFNC)
+{
+    return 1; // Yes
+}
+
+void WedgeGeofenceAlert(void)
+{
+
 }
 
 /*******************************************************************************

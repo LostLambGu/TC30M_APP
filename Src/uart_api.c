@@ -51,6 +51,7 @@ DebugCtlPrarm DbgCtl =
 		.NetworkDbgInfoEn = TRUE,
 		.LteRecDbgInfoEn = FALSE,
 		.WedgeEvtMsgQueInfoEn = TRUE,
+		.WedgeEvtAlrtFlwInfoEn = TRUE,
 };
 
 /* Function definition -------------------------------------------------------*/

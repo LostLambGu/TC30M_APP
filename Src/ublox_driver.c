@@ -1114,11 +1114,31 @@ void UbloxGPSTimerProcess(void)
 		tmp = *((uint8_t *)WedgeSysStateGet(WEDGE_POWER_ON_OFF_STATE));
 		if (0 == tmp)
 		{
-			tmp = 1;
-			WedgeSysStateSet(WEDGE_POWER_ON_OFF_STATE, &tmp);
-			WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Modem_powered_up);
+			if (WedgeRtcHwrstPowerLostJudge())
+			{
+				tmp = 1;
+				WedgeSysStateSet(WEDGE_POWER_ON_OFF_STATE, &tmp);
+				
+				WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Modem_powered_up);
+			}
 		}
 	}
+}
+
+#define KN_TO_KM_FACTOR (1.852)
+
+double UbloxSpeedKM(void)
+{
+    double speedkm = 0.0;
+
+    speedkm = GpsInfo.Velocity * KN_TO_KM_FACTOR;
+
+    return speedkm;
+}
+
+uint8_t UbloxFixStateGet(void)
+{
+	return GpsInfo.validFix;
 }
 
 /*******************************************************************************

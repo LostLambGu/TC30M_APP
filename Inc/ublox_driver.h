@@ -295,6 +295,8 @@ extern void UbloxI2cInit(void);
 extern void UbloxI2cDeInit(void);
 extern void ReadUbloxData(void);
 extern void UbloxGPSTimerProcess(void);
+extern double UbloxSpeedKM(void);
+extern uint8_t UbloxFixStateGet(void);
 
 #endif
 

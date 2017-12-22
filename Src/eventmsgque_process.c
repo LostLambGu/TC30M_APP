@@ -357,11 +357,6 @@ void WedgeCfgChgStateProcess(void)
     //     break;
 }
 
-void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
-{
-
-}
-
 static void BytesOrderSwap(uint8_t *pBuf, uint16_t num)
 {
     uint16_t i = 0, count = num / 2;
@@ -375,7 +370,6 @@ static void BytesOrderSwap(uint8_t *pBuf, uint16_t num)
     }
 }
 
-#define KN_TO_KM_FACTOR (1.852)
 #define WEDGE_GPS_HEADING_DEG_FATCTOR (10)
 #define WEDGE_GPS_PDOP_FACTOR (10)
 
@@ -409,7 +403,7 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
     BinaryMsgRecord.POS_ALT[1] = Buf[1];
     BinaryMsgRecord.POS_ALT[2] = Buf[2];
 
-    speedkm = GpsInfo.Velocity * KN_TO_KM_FACTOR;
+    speedkm = UbloxSpeedKM();
     tmpu = (uint32_t *)Buf;
     *tmpu = (uint32_t)(speedkm);
     BytesOrderSwap(Buf, 2);
@@ -431,6 +425,11 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
     BytesOrderSwap(Buf, 2);
     BinaryMsgRecord.POS_QUAL[0] = Buf[0];
     BinaryMsgRecord.POS_QUAL[1] = Buf[1];
+}
+
+void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
+{
+
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
@@ -619,6 +618,11 @@ uint8_t WedgeRtcTimerInit(void)
 
 
 	return 1;
+}
+
+uint8_t WedgeRtcHwrstPowerLostJudge(void)
+{
+    return 0; // HWRST
 }
 
 uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)

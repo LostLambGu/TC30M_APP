@@ -61,6 +61,7 @@ extern void _Error_Handler(char *, int);
 
 void MX_ADC_Init(void);
 extern void ADCDMAConversion(uint16_t *uhADCxConvertedVal, uint16_t *ADC1ConvertedVolt);
+extern double ADCGetVinVoltage(void);
 
 /* USER CODE BEGIN Prototypes */
 
