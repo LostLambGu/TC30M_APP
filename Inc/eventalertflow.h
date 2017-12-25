@@ -62,6 +62,9 @@ typedef enum
     WEDGE_TOW_ALERT_ONCE_ALREADY,
     WEDGE_OUT_TOW_GEOFNC_COUNT,
     WEDGE_TOW_ALERTGEOFENCE,
+    WEDGE_GEOFENCE_BIT_MAP,
+    WEDGE_STARTER_DISABLE_CMD_RECEIVED,
+    WEDGE_OVER_SPEED_ALERT_TIMER_START,
     WEDGE_HEADING_LASTREPORT_DEG,
     WEDGE_MQSTAT,
     WEDGE_BASE_RTC_TIME,
@@ -85,6 +88,9 @@ typedef struct
     uint8_t TowAlertOnceAlready;
     uint8_t OutTowGeoFncCount;
     TowAlertGeoFenceTypedef TowAlertGeoFence;
+    uint16_t GeofenceDefinedBitMap;
+    uint8_t StarterDisableCmdRec;
+    uint8_t OverSpeedTimerStart;
     float HeadingLastReportDeg;
     MQSTATTypeDef MQSTAT;
     uint32_t RTCBaseTime;

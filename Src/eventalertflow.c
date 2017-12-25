@@ -86,6 +86,18 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
     case WEDGE_TOW_ALERTGEOFENCE:
         return &(WEDGESysState.TowAlertGeoFence);
         // break;
+    
+    case WEDGE_GEOFENCE_BIT_MAP:
+        return &(WEDGESysState.GeofenceDefinedBitMap);
+        // break;
+
+    case WEDGE_STARTER_DISABLE_CMD_RECEIVED:
+        return &(WEDGESysState.StarterDisableCmdRec);
+        // break;
+
+    case WEDGE_OVER_SPEED_ALERT_TIMER_START:
+        return &(WEDGESysState.OverSpeedTimerStart);
+        // break;
 
     case WEDGE_HEADING_LASTREPORT_DEG:
         return &(WEDGESysState.HeadingLastReportDeg);
@@ -163,6 +175,18 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
 
     case WEDGE_TOW_ALERTGEOFENCE:
         WEDGESysState.TowAlertGeoFence = *((TowAlertGeoFenceTypedef *)pvData);
+        break;
+
+    case WEDGE_GEOFENCE_BIT_MAP:
+        WEDGESysState.GeofenceDefinedBitMap = *((uint16_t *)pvData);
+        break;
+
+    case WEDGE_STARTER_DISABLE_CMD_RECEIVED:
+        WEDGESysState.StarterDisableCmdRec = *((uint8_t *)pvData);
+        break;
+
+    case WEDGE_OVER_SPEED_ALERT_TIMER_START:
+        WEDGESysState.OverSpeedTimerStart = *((uint8_t *)pvData);
         break;
 
     case WEDGE_HEADING_LASTREPORT_DEG:
@@ -268,9 +292,13 @@ extern TIMER WedgeIDLETimer;
 
 static void CheckWedgeIDLETimerCallback(uint8_t status)
 {
+    uint8_t IDLEDtectTimerStart = 0;
+
     EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
                                 , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, IDLE_Detect);
+
+    WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
 }
 
 void WedgeIDLEDetectAlert(void)
@@ -278,6 +306,21 @@ void WedgeIDLEDetectAlert(void)
     IDLETypeDef IDLE = {0};
     double speedkm = 0.0;
     uint8_t IDLEDtectTimerStart = 0;
+    static uint32_t SystickRec = 0;
+
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
 
     IDLE = *((IDLETypeDef *)WedgeCfgGet(WEDGE_CFG_IDLE));
 
@@ -308,11 +351,14 @@ void WedgeIDLEDetectAlert(void)
         }
         else
         {
-            SoftwareTimerReset(&WedgeIDLETimer, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
-            SoftwareTimerStop(&WedgeIDLETimer);
+            if (IDLEDtectTimerStart == TRUE)
+            {
+                SoftwareTimerReset(&WedgeIDLETimer, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
+                SoftwareTimerStop(&WedgeIDLETimer);
 
-            IDLEDtectTimerStart = 0;
-            WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+                IDLEDtectTimerStart = 0;
+                WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+            }
         }
     }
     else
@@ -396,7 +442,7 @@ void WedgeTowAlert(void)
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Tow_Alert_Exited);
 
             TowAlertOnceAlready = TRUE;
-            WedgeSysStateSet(WEDGE_OUT_TOW_GEOFNC_COUNT, &TowAlertOnceAlready);
+            WedgeSysStateSet(WEDGE_TOW_ALERT_ONCE_ALREADY, &TowAlertOnceAlready);
         }
     }
     else
@@ -409,12 +455,209 @@ void WedgeTowAlert(void)
 
 static uint8_t WedgeIsGeofenceViolation(GFNCTypeDef GFNC)
 {
-    return 1; // Yes
+
+
+
+
+
+
+    return 1; // Enter 1, Exit 2.
 }
 
 void WedgeGeofenceAlert(void)
 {
+    static uint32_t SystickRec = 0;
+    uint16_t GeofenceDefinedBitMap;
+    uint8_t i = 0;
+    GFNCTypeDef GFNC = {0};
+    static uint8_t GfncViolationCount[WEDGE_GEOFENCES_NUM_MAX] = {0};
+    uint8_t ViolationType = 0;
 
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    GeofenceDefinedBitMap = *((uint16_t *)WedgeSysStateGet(WEDGE_GEOFENCE_BIT_MAP));
+
+    if (0 == GeofenceDefinedBitMap)
+    {
+        return;
+    }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+    for (i = 0; i < WEDGE_GEOFENCES_NUM_MAX; i++)
+    {
+        if ((GeofenceDefinedBitMap >> i) & 0x01)
+        {
+            GFNC = *((GFNCTypeDef *)WedgeCfgGet((WEDGECfgOperateTypeDef)(WEDGE_CFG_GFNC1 + i)));
+            ViolationType = WedgeIsGeofenceViolation(GFNC);
+            if (ViolationType != 0)
+            {
+                GfncViolationCount[i]++;
+                if (GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX <= GfncViolationCount[i])
+                {
+                    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Geofence Alrt, Index: %d"
+                                    , FmtTimeShow(), i + 1);
+                    WedgeResponseUdpBinary(WEDGEPYLD_STATUS, (WEDGEEVIDTypeDef)(Geofence1_entered + i + (10 * (ViolationType - 1))));
+                    GfncViolationCount[i] = 0;
+                }
+            }
+            else
+            {
+                GfncViolationCount[i] = 0;
+            }
+        }
+    }
+}
+
+void WedgeLocationOfDisabledVehicleOnToOff(void)
+{
+    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle, ontooff"
+                                    , FmtTimeShow());
+    WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
+}
+
+void WedgeLocationOfDisabledVehicle(void)
+{
+    uint8_t StarterDisableCmdRec = 0;
+
+    StarterDisableCmdRec = *((uint8_t *)WedgeSysStateGet(WEDGE_STARTER_DISABLE_CMD_RECEIVED));
+
+    if (0 != StarterDisableCmdRec)
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle, starter command"
+                                    , FmtTimeShow());
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
+
+        StarterDisableCmdRec = 1;
+
+        WedgeSysStateSet(WEDGE_STARTER_DISABLE_CMD_RECEIVED, &StarterDisableCmdRec);
+    }
+}
+
+void WedgeStopReportOnToOff(void)
+{
+    STPINTVLTypeDef STPINTVL = {0};
+    RTCTimerListCellTypeDef Instance;
+
+    STPINTVL = *((STPINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_STPINTVL));
+
+    if (STPINTVL.interval == 0)
+    {
+        return;
+    }
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_ONETIME;
+    Instance.RTCTimerInstance = Stop_Report_Onetime_Event;
+    Instance.settime = WedgeRtcCurrentSeconds() + 60 * STPINTVL.interval;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Stop Report Add Timer err"
+                                    , FmtTimeShow());
+    }
+    else
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Stop Report Add Timer ok"
+                                    , FmtTimeShow());
+    }
+}
+
+extern TIMER WedgeOSPDTimer;
+
+static void CheckWedgeOSPDimerCallback(uint8_t status)
+{
+    uint8_t OverSpeedTimerStart = FALSE;
+
+    if (status != 0)
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert"
+                                    , FmtTimeShow());
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Over_Speed_Threshold_Detect);
+    }
+    
+    WedgeSysStateSet(WEDGE_OVER_SPEED_ALERT_TIMER_START, &OverSpeedTimerStart);
+}
+
+void WedgeOverSpeedAlert(void)
+{
+    OSPDTypeDef OSPD;
+    double speedkm = 0.0;
+    uint8_t OverSpeedTimerStart = FALSE;
+    static uint32_t SystickRec = 0;
+
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+    OSPD = *((OSPDTypeDef *)WedgeCfgGet(WEDGE_CFG_OSPD));
+
+    if ((OSPD.speed == 0) || (OSPD.debounce == 0))
+    {
+        return;
+    }
+
+    speedkm = UbloxSpeedKM();
+    OverSpeedTimerStart = *((uint8_t *)WedgeSysStateGet(WEDGE_OVER_SPEED_ALERT_TIMER_START));
+
+    if (speedkm >= (OSPD.speed * MILE_TO_KM_FACTOR))
+    {
+        if (OverSpeedTimerStart == FALSE)
+        {
+            SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+            SoftwareTimerStart(&WedgeOSPDTimer);
+
+            OverSpeedTimerStart = TRUE;
+            WedgeSysStateSet(WEDGE_OVER_SPEED_ALERT_TIMER_START, &OverSpeedTimerStart);
+        }
+        else
+        {
+            if (WedgeOSPDTimer.TimeId == 0)
+            {
+                SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+                SoftwareTimerStart(&WedgeOSPDTimer);
+            }
+            else
+            {
+                // Check Wedge OSPD Timer
+                IsSoftwareTimeOut(&WedgeOSPDTimer);
+            }
+        }
+    }
+    else
+    {
+        if (OverSpeedTimerStart == TRUE)
+        {
+            if (WedgeOSPDTimer.TimeId != 0)
+            {
+                SoftwareTimerCreate(&WedgeOSPDTimer, 0, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+                SoftwareTimerStart(&WedgeOSPDTimer);
+            }
+            else
+            {
+                // Check Wedge OSPD Timer
+                IsSoftwareTimeOut(&WedgeOSPDTimer);
+            }
+        }
+    }
 }
 
 /*******************************************************************************

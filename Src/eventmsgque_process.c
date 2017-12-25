@@ -577,7 +577,7 @@ static uint8_t WedgeRtcTimerFetchMinInArray(RTCTimerListCellTypeDef *pInstance, 
     return 0;
 }
 
-static uint32_t WedgeRtcCurrentSeconds(void)
+uint32_t WedgeRtcCurrentSeconds(void)
 {
     TimeTableT timetable = {0};
     uint32_t currenttimeinseconds = {0};

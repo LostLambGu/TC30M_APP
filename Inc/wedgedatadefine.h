@@ -271,6 +271,7 @@ typedef struct
                         (range: 1 – 16535) */
 } STPINTVLTypeDef;
 
+#define GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX (10)
 typedef struct
 {
     uint8_t index;      /* <index> is the index of the geofence (1 – 10) */

@@ -40,6 +40,7 @@ TIMER ModemATInitTimer;
 TIMER CheckRssiTimer;
 TIMER UARTRecTimer;
 TIMER WedgeIDLETimer;
+TIMER WedgeOSPDTimer;
 
 void CheckUARTRecTimerCallback(uint8_t Status)
 {
@@ -117,6 +118,10 @@ void SoftwareTimerCounter(void)
 	// Wedge IDLE Detect Timer
 	if (WedgeIDLETimer.TimerStartCounter == TRUE)
 		WedgeIDLETimer.TimeOutVal++;
+
+	// Wedge OSPD Timer
+	if (WedgeOSPDTimer.TimerStartCounter == TRUE)
+		WedgeOSPDTimer.TimeOutVal++;
 }
 
 void SoftwareCheckTimerStatus(void)

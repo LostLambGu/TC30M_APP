@@ -47,6 +47,7 @@ extern TIMER ModemATInitTimer;
 extern TIMER CheckRssiTimer;
 extern TIMER UARTRecTimer;
 extern TIMER WedgeIDLETimer;
+extern TIMER WedgeOSPDTimer;
 
 //Function Declare
 extern void InitSoftwareTimers(void);

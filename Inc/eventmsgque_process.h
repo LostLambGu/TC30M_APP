@@ -186,6 +186,7 @@ typedef enum
     Periodic_Moving_Event = 0,
     Periodic_OFF_Event,
     Periodic_Health_Event,
+    Stop_Report_Onetime_Event,
 
     WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX
 } WEDGERTCTimerInstanceTypeDef;
@@ -213,6 +214,7 @@ typedef enum
     WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
 } WEDGERTCTimerSettimeTypeDef;
 
+extern uint32_t WedgeRtcCurrentSeconds(void);
 extern uint8_t WedgeRtcTimerInit(void);
 extern uint8_t WedgeRtcHwrstPowerLostJudge(void);
 extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
