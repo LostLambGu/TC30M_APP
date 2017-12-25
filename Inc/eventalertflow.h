@@ -50,6 +50,9 @@ typedef struct
 typedef enum
 {
     WEDGE_IGNITION_STATE = 0,
+    WEDGE_IGNITION_CHANGE_DETECTED,
+    WEDGE_IGN_OFFTOON_TIMER_START,
+    WEDGE_IGN_ONTOOFF_TIMER_START,
     WEDGE_POWER_ON_OFF_STATE,
     WEDGE_GPS_LASTFIX_STATE,
     WEDGE_GPS_FIX_STATE,
@@ -76,6 +79,9 @@ typedef enum
 typedef struct
 {
     WEDGEIgnitionStateTypeDef WEDGEIgnitionState;
+    uint8_t WedgeIgnitionChangeDetected;
+    uint8_t WedgeIgnOffToOnTimerStart;
+    uint8_t WedgeIgnOnToOffTimerStart;
     uint8_t PowerOnOff;
     uint8_t GpsLastFix;
     uint8_t GpsFix;

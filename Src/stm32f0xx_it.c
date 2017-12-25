@@ -39,6 +39,7 @@
 #include "usrtimer.h"
 #include "initialization.h"
 #include "ublox_driver.h"
+#include "eventalertflow.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
@@ -161,8 +162,22 @@ void EXTI4_15_IRQHandler(void)
   /* USER CODE BEGIN EXTI4_15_IRQn 0 */
 
   /* USER CODE END EXTI4_15_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_4) != RESET)
+  {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+  }
+
+  if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_10) != RESET)
+  {
+    uint8_t WedgeIgnitionChangeDetected = TRUE;
+    WedgeSysStateSet(WEDGE_IGNITION_CHANGE_DETECTED, &WedgeIgnitionChangeDetected);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+  }
+  
+  if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13) != RESET)
+  {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+  }
   /* USER CODE BEGIN EXTI4_15_IRQn 1 */
 
   /* USER CODE END EXTI4_15_IRQn 1 */

@@ -41,6 +41,8 @@ TIMER CheckRssiTimer;
 TIMER UARTRecTimer;
 TIMER WedgeIDLETimer;
 TIMER WedgeOSPDTimer;
+TIMER WedgeOffToOnTimer;
+TIMER WedgeOnToOffTimer;
 
 void CheckUARTRecTimerCallback(uint8_t Status)
 {
@@ -122,6 +124,14 @@ void SoftwareTimerCounter(void)
 	// Wedge OSPD Timer
 	if (WedgeOSPDTimer.TimerStartCounter == TRUE)
 		WedgeOSPDTimer.TimeOutVal++;
+
+	// Wedge OffToOn Timer
+	if (WedgeOffToOnTimer.TimerStartCounter == TRUE)
+		WedgeOffToOnTimer.TimeOutVal++;
+
+	// Wedge OnToOff Timer
+	if (WedgeOnToOffTimer.TimerStartCounter == TRUE)
+		WedgeOnToOffTimer.TimeOutVal++;
 }
 
 void SoftwareCheckTimerStatus(void)

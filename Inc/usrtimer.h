@@ -48,6 +48,8 @@ extern TIMER CheckRssiTimer;
 extern TIMER UARTRecTimer;
 extern TIMER WedgeIDLETimer;
 extern TIMER WedgeOSPDTimer;
+extern TIMER WedgeOffToOnTimer;
+extern TIMER WedgeOnToOffTimer;
 
 //Function Declare
 extern void InitSoftwareTimers(void);
