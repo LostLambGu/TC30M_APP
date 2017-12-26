@@ -1141,6 +1141,11 @@ uint8_t UbloxFixStateGet(void)
 	return GpsInfo.validFix;
 }
 
+double UbloxGetHeading(void)
+{
+	return GpsInfo.Heading;
+}
+
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
                                 End Of The File

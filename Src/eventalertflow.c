@@ -116,6 +116,18 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
         return &(WEDGESysState.HeadingLastReportDeg);
         // break;
 
+    case WEDGE_PERIODIC_OFF_EVENT_TIMER_START:
+        return &(WEDGESysState.PeriodicOffEventTimerStart);
+        // break;
+
+    case WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START:
+        return &(WEDGESysState.PeriodicHealthEventStart);
+        // break;
+
+    case WEDGE_PERIODIC_HARDWARE_RESET_TIMER_START:
+        return &(WEDGESysState.PeriodicHardwareResetTimerStart);
+        // break;
+
     case WEDGE_MQSTAT:
         return &(WEDGESysState.MQSTAT);
         // break;
@@ -126,6 +138,7 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
 
     case WEDGE_LAST_HWRST_RTC_TIME:
         return &(WEDGESysState.LastHWRSTRTCTime);
+        // break;
 
     default:
         EVENT_ALERT_FLOW_LOG("WEDGE SYS Get: Param err");
@@ -216,6 +229,18 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
 
     case WEDGE_HEADING_LASTREPORT_DEG:
         WEDGESysState.HeadingLastReportDeg = *((float *)pvData);
+        break;
+
+    case WEDGE_PERIODIC_OFF_EVENT_TIMER_START:
+        WEDGESysState.PeriodicOffEventTimerStart = *((uint8_t *)pvData);
+        break;
+
+    case WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START:
+        WEDGESysState.PeriodicHealthEventStart = *((uint8_t *)pvData);
+        break;
+
+    case WEDGE_PERIODIC_HARDWARE_RESET_TIMER_START:
+        WEDGESysState.PeriodicHardwareResetTimerStart = *((uint8_t *)pvData);
         break;
 
     case WEDGE_MQSTAT:
@@ -563,7 +588,7 @@ void WedgeLocationOfDisabledVehicle(void)
                                     , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
 
-        StarterDisableCmdRec = 1;
+        StarterDisableCmdRec = 0;
 
         WedgeSysStateSet(WEDGE_STARTER_DISABLE_CMD_RECEIVED, &StarterDisableCmdRec);
     }
@@ -598,7 +623,7 @@ void WedgeStopReportOnToOff(void)
 
 extern TIMER WedgeOSPDTimer;
 
-static void CheckWedgeOSPDimerCallback(uint8_t status)
+static void CheckWedgeOSPDTimerCallback(uint8_t status)
 {
     uint8_t OverSpeedTimerStart = FALSE;
 
@@ -647,7 +672,7 @@ void WedgeOverSpeedAlert(void)
     {
         if (OverSpeedTimerStart == FALSE)
         {
-            SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+            SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDTimerCallback, TimeMsec(OSPD.debounce));
             SoftwareTimerStart(&WedgeOSPDTimer);
 
             OverSpeedTimerStart = TRUE;
@@ -657,7 +682,7 @@ void WedgeOverSpeedAlert(void)
         {
             if (WedgeOSPDTimer.TimeId == 0)
             {
-                SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+                SoftwareTimerCreate(&WedgeOSPDTimer, 1, CheckWedgeOSPDTimerCallback, TimeMsec(OSPD.debounce));
                 SoftwareTimerStart(&WedgeOSPDTimer);
             }
             else
@@ -673,7 +698,7 @@ void WedgeOverSpeedAlert(void)
         {
             if (WedgeOSPDTimer.TimeId != 0)
             {
-                SoftwareTimerCreate(&WedgeOSPDTimer, 0, CheckWedgeOSPDimerCallback, TimeMsec(OSPD.debounce));
+                SoftwareTimerCreate(&WedgeOSPDTimer, 0, CheckWedgeOSPDTimerCallback, TimeMsec(OSPD.debounce));
                 SoftwareTimerStart(&WedgeOSPDTimer);
             }
             else
@@ -688,7 +713,7 @@ void WedgeOverSpeedAlert(void)
 #define WEDGE_IGNITION_OFFTOON_DBNC_MS (250)
 extern TIMER WedgeOffToOnTimer;
 
-static void CheckWedgeOffToOnCallback(uint8_t status)
+static void CheckWedgeOffToOnTimerCallback(uint8_t status)
 {
 
 }
@@ -722,7 +747,7 @@ void WedgeIgnitionOffToOnCheck(void)
 
         if (WedgeIgnOffToOnTimerStart == FALSE)
         {
-            SoftwareTimerCreate(&WedgeOffToOnTimer, 1, CheckWedgeOffToOnCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
+            SoftwareTimerCreate(&WedgeOffToOnTimer, 1, CheckWedgeOffToOnTimerCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
             SoftwareTimerStart(&WedgeOffToOnTimer);
 
             WedgeIgnOffToOnTimerStart = TRUE;
@@ -736,7 +761,7 @@ void WedgeIgnitionOffToOnCheck(void)
         {
             ValidMeasureCount = 0;
 
-            SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
+            SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnTimerCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
             SoftwareTimerStop(&WedgeOffToOnTimer);
 
             WedgeIgnOffToOnTimerStart = FALSE;
@@ -747,7 +772,7 @@ void WedgeIgnitionOffToOnCheck(void)
             ValidMeasureCount++;
             if (ValidMeasureCount < (TimeMsec(IGNTYPE.dbnc) / WEDGE_IGNITION_OFFTOON_DBNC_MS))
             {
-                SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
+                SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnTimerCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
                 SoftwareTimerStart(&WedgeOffToOnTimer);
             }
             else
@@ -756,7 +781,7 @@ void WedgeIgnitionOffToOnCheck(void)
 
                 ValidMeasureCount = 0;
 
-                SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
+                SoftwareTimerReset(&WedgeOffToOnTimer, CheckWedgeOffToOnTimerCallback, WEDGE_IGNITION_OFFTOON_DBNC_MS);
                 SoftwareTimerStop(&WedgeOffToOnTimer);
 
                 WedgeIgnOffToOnTimerStart = FALSE;
@@ -777,7 +802,7 @@ void WedgeIgnitionOffToOnCheck(void)
 #define WEDGE_IGNITION_ONTOOFF_DBNC_MS (250)
 extern TIMER WedgeOnToOffTimer;
 
-static void CheckWedgeOnToOffCallback(uint8_t status)
+static void CheckWedgeOnToOffTimerCallback(uint8_t status)
 {
 
 }
@@ -811,7 +836,7 @@ void WedgeIgnitionOnToOffCheck(void)
 
         if (WedgeIgnOnToOffTimerStart == FALSE)
         {
-            SoftwareTimerCreate(&WedgeOnToOffTimer, 1, CheckWedgeOnToOffCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
+            SoftwareTimerCreate(&WedgeOnToOffTimer, 1, CheckWedgeOnToOffTimerCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
             SoftwareTimerStart(&WedgeOnToOffTimer);
 
             WedgeIgnOnToOffTimerStart = TRUE;
@@ -825,7 +850,7 @@ void WedgeIgnitionOnToOffCheck(void)
         {
             ValidMeasureCount = 0;
 
-            SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
+            SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffTimerCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
             SoftwareTimerStop(&WedgeOnToOffTimer);
 
             WedgeIgnOnToOffTimerStart = FALSE;
@@ -836,7 +861,7 @@ void WedgeIgnitionOnToOffCheck(void)
             ValidMeasureCount++;
             if (ValidMeasureCount < (TimeMsec(IGNTYPE.dbnc) / WEDGE_IGNITION_ONTOOFF_DBNC_MS))
             {
-                SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
+                SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffTimerCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
                 SoftwareTimerStart(&WedgeOnToOffTimer);
             }
             else
@@ -845,7 +870,7 @@ void WedgeIgnitionOnToOffCheck(void)
 
                 ValidMeasureCount = 0;
 
-                SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
+                SoftwareTimerReset(&WedgeOnToOffTimer, CheckWedgeOnToOffTimerCallback, WEDGE_IGNITION_ONTOOFF_DBNC_MS);
                 SoftwareTimerStop(&WedgeOnToOffTimer);
 
                 WedgeIgnOnToOffTimerStart = FALSE;
@@ -865,8 +890,176 @@ void WedgeIgnitionOnToOffCheck(void)
 
 void WedgeHeadingChangeDetect(void)
 {
-    
+    DIRCHGTypeDef DIRCHG = {0};
+    double HeadingLastReportDeg = 0.0, HeadingTmp = 0.0;
+    static uint32_t SystickRec = 0;
+
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+    DIRCHG = *((DIRCHGTypeDef *)WedgeCfgGet(WEDGE_CFG_DIRCHG));
+    if (DIRCHG.deg == 0)
+    {
+        return;
+    }
+
+    HeadingLastReportDeg = *((float *)WedgeSysStateGet(WEDGE_HEADING_LASTREPORT_DEG));
+    HeadingTmp = (UbloxGetHeading() > HeadingLastReportDeg) ? 
+                (UbloxGetHeading() - HeadingLastReportDeg): (HeadingLastReportDeg - UbloxGetHeading());
+    if ((float)HeadingTmp < DIRCHG.deg)
+    {
+        return;
+    }
+
+    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Heading Change Detect"
+                                    , FmtTimeShow());
+    WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Heading_Change_Detect);
 }
+
+void WedgePeriodicMovingEventInit(void)
+{
+    RPTINTVLTypeDef RPTINTVL = {0};
+    RTCTimerListCellTypeDef Instance;
+
+    RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
+
+    if (RPTINTVL.perint == 0)
+    {
+        return;
+    }
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
+    Instance.RTCTimerInstance = Periodic_Moving_Event;
+    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.perint;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Moving Add Timer err"
+                                    , FmtTimeShow());
+    }
+    else
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Moving Add Timer ok"
+                                    , FmtTimeShow());
+    }
+}
+
+void WedgePeriodicOffEvent(void)
+{
+    uint8_t PeriodicOffEventTimerStart = FALSE;
+    RPTINTVLTypeDef RPTINTVL = {0};
+    RTCTimerListCellTypeDef Instance;
+
+    PeriodicOffEventTimerStart = *((uint8_t *)WedgeSysStateGet(WEDGE_PERIODIC_OFF_EVENT_TIMER_START));
+    if (PeriodicOffEventTimerStart == TRUE)
+    {
+        return;
+    }
+
+    RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
+    if (RPTINTVL.ioffint == 0)
+    {
+        return;
+    }
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
+    Instance.RTCTimerInstance = Periodic_OFF_Event;
+    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.ioffint;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Off Add Timer err"
+                                    , FmtTimeShow());
+        PeriodicOffEventTimerStart = FALSE;
+        WedgeSysStateSet(WEDGE_PERIODIC_OFF_EVENT_TIMER_START, &PeriodicOffEventTimerStart);
+    }
+    else
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Off Add Timer ok"
+                                    , FmtTimeShow());
+        PeriodicOffEventTimerStart = TRUE;
+        WedgeSysStateSet(WEDGE_PERIODIC_OFF_EVENT_TIMER_START, &PeriodicOffEventTimerStart);
+    }
+}
+
+void WedgePeriodicHealthEvent(void)
+{
+    uint8_t PeriodicHealthEventStart = FALSE;
+    RPTINTVLTypeDef RPTINTVL = {0};
+    RTCTimerListCellTypeDef Instance;
+
+    PeriodicHealthEventStart = *((uint8_t *)WedgeSysStateGet(WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START));
+    if (PeriodicHealthEventStart == TRUE)
+    {
+        return;
+    }
+
+    RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
+    if (RPTINTVL.perint == 0)
+    {
+        return;
+    }
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
+    Instance.RTCTimerInstance = Periodic_Health_Event;
+    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.perint;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Health Add Timer err"
+                                    , FmtTimeShow());
+        PeriodicHealthEventStart = FALSE;
+        WedgeSysStateSet(WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START, &PeriodicHealthEventStart);
+    }
+    else
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic Health Add Timer ok"
+                                    , FmtTimeShow());
+        PeriodicHealthEventStart = TRUE;
+        WedgeSysStateSet(WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START, &PeriodicHealthEventStart);
+    }
+}
+
+void WedgePeriodicHardwareResetInit(void)
+{
+    HWRSTTypeDef HWRST = {0};
+    RTCTimerListCellTypeDef Instance;
+    uint8_t PeriodicHardwareResetTimerStart = FALSE;
+
+    HWRST = *((HWRSTTypeDef *)WedgeCfgGet(WEDGE_CFG_HWRST));
+    if (HWRST.interval == 0)
+    {
+        return;
+    }
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_ONETIME;
+    Instance.RTCTimerInstance = Periodic_Hardware_Reset_Onetime;
+    Instance.settime = WedgeRtcCurrentSeconds() + 60 * HWRST.interval;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer err"
+                                    , FmtTimeShow());
+        PeriodicHardwareResetTimerStart = FALSE;
+        WedgeSysStateSet(WEDGE_PERIODIC_HARDWARE_RESET_TIMER_START, &PeriodicHardwareResetTimerStart);
+    }
+    else
+    {
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer ok"
+                                    , FmtTimeShow());
+        PeriodicHardwareResetTimerStart = TRUE;
+        WedgeSysStateSet(WEDGE_PERIODIC_HARDWARE_RESET_TIMER_START, &PeriodicHardwareResetTimerStart);
+    }
+}
+
+
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved

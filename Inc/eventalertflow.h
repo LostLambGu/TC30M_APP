@@ -69,6 +69,9 @@ typedef enum
     WEDGE_STARTER_DISABLE_CMD_RECEIVED,
     WEDGE_OVER_SPEED_ALERT_TIMER_START,
     WEDGE_HEADING_LASTREPORT_DEG,
+    WEDGE_PERIODIC_OFF_EVENT_TIMER_START,
+    WEDGE_PERIODIC_HEALTEH_EVENT_TIMER_START,
+    WEDGE_PERIODIC_HARDWARE_RESET_TIMER_START,
     WEDGE_MQSTAT,
     WEDGE_BASE_RTC_TIME,
     WEDGE_LAST_HWRST_RTC_TIME,
@@ -98,6 +101,9 @@ typedef struct
     uint8_t StarterDisableCmdRec;
     uint8_t OverSpeedTimerStart;
     float HeadingLastReportDeg;
+    uint8_t PeriodicOffEventTimerStart;
+    uint8_t PeriodicHealthEventStart;
+    uint8_t PeriodicHardwareResetTimerStart;
     MQSTATTypeDef MQSTAT;
     uint32_t RTCBaseTime;
     uint32_t LastHWRSTRTCTime;

@@ -297,6 +297,7 @@ extern void ReadUbloxData(void);
 extern void UbloxGPSTimerProcess(void);
 extern double UbloxSpeedKM(void);
 extern uint8_t UbloxFixStateGet(void);
+extern double UbloxGetHeading(void);
 
 #endif
 

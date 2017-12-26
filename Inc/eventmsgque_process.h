@@ -187,6 +187,7 @@ typedef enum
     Periodic_OFF_Event,
     Periodic_Health_Event,
     Stop_Report_Onetime_Event,
+    Periodic_Hardware_Reset_Onetime,
 
     WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX
 } WEDGERTCTimerInstanceTypeDef;
