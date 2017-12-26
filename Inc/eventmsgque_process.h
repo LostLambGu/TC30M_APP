@@ -135,8 +135,8 @@ extern void WedgeCfgChgStateProcess(void);
 
 extern uint8_t WedgeFlashChipErase(void);
 extern uint8_t WedgeFlashEraseSector(uint32_t address);
-extern uint8_t WedgeFlashReadData(uint32_t address, const uint8_t * const pDataBuf, const uint32_t datalen);
-extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t * const pDataBuf, const uint32_t datalen);
+extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
+extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
 enum
 {
@@ -169,8 +169,8 @@ typedef struct
 #define WEDGE_MSG_QUE_END_ADDR (WEDGE_MSG_QUE_START_ADDR + WEDGE_MSG_QUE_TOTAL_SIZE - 1)
 
 extern uint8_t WedgeMsgQueInit(void);
-extern uint8_t WedgeMsgQueInWrite(const WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index);
-extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index);
+extern uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell);
+extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell);
 
 typedef enum
 {

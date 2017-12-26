@@ -12,6 +12,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef NRCMD
+#define NRCMD (1)
+#endif
+
 #define min(X,Y) ((X) < (Y) ? (X) : (Y))
 #define max(X,Y) ((X) > (Y) ? (X) : (Y))
 #define SerialPrintf SerialDbgPrintf
@@ -60,18 +72,18 @@ static chip_info chips_data[] = {
 
 static int raspi_wait_ready(int sleep_ms);
 
-static void udelay(u32 time)	//delay 5+2*time (machine time)
+static void udelay(uint32_t time)	//delay 5+2*time (machine time)
 {
-	u32 Count;
+	uint32_t Count;
 	Count = time;
 	while(--Count);
 	while(--time);
 }
 
-static void SendByte(uint8 byte_value)
+static void SendByte(uint8_t byte_value)
 {
-	uint8 i;
-	uint8 cycle_cnt;
+	uint8_t i;
+	uint8_t cycle_cnt;
 
 	cycle_cnt = 8;
 	for( i= 0; i < cycle_cnt; i++ )
@@ -86,10 +98,10 @@ static void SendByte(uint8 byte_value)
 	}
 }
 
-static uint8 GetByte(void)
+static uint8_t GetByte(void)
 {
-	uint8 i;
-	uint8 data_buf;
+	uint8_t i;
+	uint8_t data_buf;
 	data_buf = 0;
 
 	// Set VIP 8051 GPIO as input ( need pull to high )
@@ -109,7 +121,7 @@ static uint8 GetByte(void)
 	return data_buf;
 }
 
-static int spic_transfer(const u8 *cmd, int n_cmd, u8 *buf, int n_buf, int flag)
+static int spic_transfer(const uint8_t *cmd, int n_cmd, uint8_t *buf, int n_buf, int flag)
 {
 	int retval = -1;
 	/*SerialPrintf(NRCMD,"\r\n[%s] SPI:cmd(%x): %02x %02x %02x %02x, buf:%02x len:%04d, flag:%s", \
@@ -150,14 +162,14 @@ static int spic_transfer(const u8 *cmd, int n_cmd, u8 *buf, int n_buf, int flag)
 	return retval;
 }
 
-static int spic_read(const u8 *cmd, size_t n_cmd, u8 *rxbuf, size_t n_rx)
+static int spic_read(const uint8_t *cmd, size_t n_cmd, uint8_t *rxbuf, size_t n_rx)
 {
 	return spic_transfer(cmd, n_cmd, rxbuf, n_rx, SPIC_READ_BYTES);
 }
 
-static int spic_write(const u8 *cmd, size_t n_cmd, const u8 *txbuf, size_t n_tx)
+static int spic_write(const uint8_t *cmd, size_t n_cmd, const uint8_t *txbuf, size_t n_tx)
 {
-	return spic_transfer(cmd, n_cmd, (u8 *)txbuf, n_tx, SPIC_WRITE_BYTES);
+	return spic_transfer(cmd, n_cmd, (uint8_t *)txbuf, n_tx, SPIC_WRITE_BYTES);
 }
 
 #if defined (RD_MODE_QUAD)
@@ -169,7 +181,7 @@ static int raspi_set_quad()
 	// Atmel set quad is not tested yet,
 	if (spi_chip_info->id == 0x1f) // Atmel, Write the 7th bit of Configuration register
 	{
-		u8 sr;
+		uint8_t sr;
 		retval = raspi_cmd(0x3f, 0, 0, &sr, 1, 0, SPIC_READ_BYTES);
 		if (retval == -1)
 			goto err_end;
@@ -182,7 +194,7 @@ static int raspi_set_quad()
 	}
 	else if (spi_chip_info->id == 0xc2) //MXIC, 
 	{
-		u8 sr;
+		uint8_t sr;
 		retval = raspi_cmd(OPCODE_RDSR, 0, 0, &sr, 1, 0, SPIC_READ_BYTES);
 		if (retval == -1)
 			goto err_end;
@@ -195,7 +207,7 @@ static int raspi_set_quad()
 	}
 	else if ((spi_chip_info->id == 0x01) || (spi_chip_info->id == 0xef)) // Spansion or WinBond
 	{
-		u8 sr[2];
+		uint8_t sr[2];
 		retval = raspi_cmd(OPCODE_RDSR, 0, 0, sr, 1, 0, SPIC_READ_BYTES);
 		if (retval == -1)
 			goto err_end;
@@ -221,9 +233,9 @@ err_end:
 /*
  * read SPI flash device ID
  */
-static int raspi_read_devid(u8 *rxbuf, int n_rx)
+static int raspi_read_devid(uint8_t *rxbuf, int n_rx)
 {
-	u8 code = OPCODE_RDID;
+	uint8_t code = OPCODE_RDID;
 	int retval;
 	
 	retval = spic_read(&code, 1, rxbuf, n_rx);
@@ -239,10 +251,10 @@ static int raspi_read_devid(u8 *rxbuf, int n_rx)
 
 
 #ifndef NO_4B_ADDRESS_SUPPORT
-static int raspi_read_rg(u8 *val, u8 opcode)
+static int raspi_read_rg(uint8_t *val, uint8_t opcode)
 {
 	int retval;
-	u8 code = opcode;
+	uint8_t code = opcode;
 	
 	if (!val)
 		SerialPrintf(NRCMD,"\r\n[%s] SPI:null pointer",FmtTimeShow());
@@ -252,11 +264,11 @@ static int raspi_read_rg(u8 *val, u8 opcode)
 	return retval;
 }
 
-static int raspi_write_rg(u8 *val, u8 opcode)
+static int raspi_write_rg(uint8_t *val, uint8_t opcode)
 {
 	int retval;
-	u8 code = opcode;
-	//u32 dr;
+	uint8_t code = opcode;
+	//uint32_t dr;
 
 	if (!val)
 		SerialPrintf(NRCMD,"\r\n[%s] SPI:null pointer",FmtTimeShow());
@@ -276,10 +288,10 @@ static int raspi_write_rg(u8 *val, u8 opcode)
 /*
  * read status register
  */
-static int raspi_read_sr(u8 *val)
+static int raspi_read_sr(uint8_t *val)
 {
 	int retval;
-	u8 code = OPCODE_RDSR;
+	uint8_t code = OPCODE_RDSR;
 
 	retval = spic_read(&code, 1, val, 1);
 	if (retval != 1) {
@@ -292,10 +304,10 @@ static int raspi_read_sr(u8 *val)
 /*
  * write status register
  */
-static int raspi_write_sr(u8 *val)
+static int raspi_write_sr(uint8_t *val)
 {
 	int retval;
-	u8 code = OPCODE_WRSR;
+	uint8_t code = OPCODE_WRSR;
 
 	retval = spic_write(&code, 1, val, 1);
 	if (retval != 1) 
@@ -308,10 +320,10 @@ static int raspi_write_sr(u8 *val)
 
 #ifndef NO_4B_ADDRESS_SUPPORT
 #ifdef SPI_FLASH_DBG_CMD
-static int raspi_read_scur(u8 *val)
+static int raspi_read_scur(uint8_t *val)
 {
 	int retval;
-	u8 code = 0x2b;
+	uint8_t code = 0x2b;
 
 	retval = spic_read(&code, 1, val, 1);
 	if (retval != 1) {
@@ -326,7 +338,7 @@ static int raspi_4byte_mode(int Enable)
 {
 	if (spi_chip_info->id == 0x01) // Spansion
 	{
-		u8 br, br_cfn; // bank register
+		uint8_t br, br_cfn; // bank register
 
 		raspi_wait_ready(1);
 
@@ -352,7 +364,7 @@ static int raspi_4byte_mode(int Enable)
 	else
 	{
 		int retval;
-		u8 code;
+		uint8_t code;
 
 		raspi_wait_ready(1);
 	
@@ -384,13 +396,13 @@ static int raspi_4byte_mode(int Enable)
  */
 static int raspi_write_enable(void)
 {
-	u8 code = OPCODE_WREN;
+	uint8_t code = OPCODE_WREN;
 	return spic_write(&code, 1, NULL, 0);
 }
 
 static int raspi_write_disable(void)
 {
-	u8 code = OPCODE_WRDI;
+	uint8_t code = OPCODE_WRDI;
 	return spic_write(&code, 1, NULL, 0);
 }
 
@@ -400,7 +412,7 @@ static int raspi_write_disable(void)
  */
 static int raspi_unprotect(void)
 {
-	u8 sr = 0;
+	uint8_t sr = 0;
 
 	if (raspi_read_sr(&sr) < 0) 
 	{
@@ -431,7 +443,7 @@ static int raspi_wait_ready(int sleep_ms)
 	 */
 	for (count = 0;  count < ((sleep_ms+1) *1000); count++) 
 	{
-		if ((raspi_read_sr((u8 *)&sr)) < 0)
+		if ((raspi_read_sr((uint8_t *)&sr)) < 0)
 			break;
 		
 		else if (!(sr & SR_WIP)) 
@@ -451,9 +463,9 @@ static int raspi_wait_ready(int sleep_ms)
  *
  * Returns 0 if successful, non-zero otherwise.
  */
-static int raspi_erase_block(u8 opcode, u32 offset)
+static int raspi_erase_block(uint8_t opcode, uint32_t offset)
 {
-	u8 buf[5];
+	uint8_t buf[5];
 
 	/* Wait until finished previous write command. */
 	if (raspi_wait_ready(3))
@@ -501,12 +513,12 @@ static chip_info *chip_prob(void)
 	chip_info *info;
 	chip_info *match;
 	int i =0;
-	u32 jedec = 0;
-	//u32 weight = 0;
-	u8 buf[5] = {'\0'};
+	uint32_t jedec = 0;
+	//uint32_t weight = 0;
+	uint8_t buf[5] = {'\0'};
 
 	raspi_read_devid(buf, 5);
-	jedec = (u32)((u32)(buf[1] << 24) | ((u32)buf[2] << 16) | ((u32)buf[3] <<8) | (u32)buf[4]);
+	jedec = (uint32_t)((uint32_t)(buf[1] << 24) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] <<8) | (uint32_t)buf[4]);
 
 	SerialPrintf(NRCMD,"\r\n[%s] SPI:Device ID:%X %X %X %X %X (%X)", \
 		FmtTimeShow(), buf[0], buf[1], buf[2], buf[3], buf[4], jedec);
@@ -537,7 +549,7 @@ static chip_info *chip_prob(void)
 	return match;
 }
 
-int spic_init(u8 EnableDelay)
+int spic_init(uint8_t EnableDelay)
 {
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	
@@ -560,7 +572,7 @@ int spic_init(u8 EnableDelay)
 	return 0;
 }
 
-u32 raspi_init(void)
+uint32_t raspi_init(void)
 {	
 	spic_init(TRUE);
 	spi_chip_info = chip_prob();
@@ -572,7 +584,7 @@ u32 raspi_init(void)
 	return (spi_chip_info->block_size * spi_chip_info->n_blocks);
 }
 
-int raspi_erase(EraseTypeT tye, uint addr)
+int raspi_erase(EraseTypeT tye, uint32_t addr)
 {
 	// Print Out
 	SerialPrintf(DbgCtl.SerialFlashEn,"\r\n[%s] SPI:erase type(0x%X) addr(0x%X)", \
@@ -581,13 +593,13 @@ int raspi_erase(EraseTypeT tye, uint addr)
 	return raspi_erase_block(tye, addr);
 }
 
-int raspi_chip_erase(u8 OpCode)
+int raspi_chip_erase(uint8_t OpCode)
 /*{
-	u8 code = OPCODE_BE;
+	uint8_t code = OPCODE_BE;
 	return spic_write(&code, 1, NULL, 0);
 }*/
 {
-	u8 buf[5];
+	uint8_t buf[5];
 
 	/* Wait until finished previous write command. */
 	if (raspi_wait_ready(3))
@@ -623,11 +635,11 @@ int raspi_chip_erase(u8 OpCode)
 	return 0;
 }
 
-int raspi_read(char *buf, uint from, int len)
+int raspi_read(char *buf, uint32_t from, int len)
 {
-	u8 cmd[5];
+	uint8_t cmd[5];
 	int rdlen;
-	//u32 start_time, end_time;
+	//uint32_t start_time, end_time;
 
 	SerialPrintf(DbgCtl.SerialFlashEn,"\r\n[%s] SPI:read from(0x%X) len(%d)", \
 		FmtTimeShow(), from, len);
@@ -658,7 +670,7 @@ int raspi_read(char *buf, uint from, int len)
 		cmd[2] = from >> 16;
 		cmd[3] = from >> 8;
 		cmd[4] = from;
-		rdlen = spic_read(cmd, 5, (u8 *)buf , len);
+		rdlen = spic_read(cmd, 5, (uint8_t *)buf , len);
 		raspi_4byte_mode(0);
 	}
 	else
@@ -668,7 +680,7 @@ int raspi_read(char *buf, uint from, int len)
 		cmd[1] = from >> 16;
 		cmd[2] = from >> 8;
 		cmd[3] = from;
-		rdlen = spic_read(cmd, 4, (u8 *)buf, len);
+		rdlen = spic_read(cmd, 4, (uint8_t *)buf, len);
 	}
 	if (rdlen != len)
 		SerialPrintf(DbgCtl.SerialFlashEn,"\r\n[%s] SPI:warning: rdlen != len",FmtTimeShow());
@@ -677,7 +689,7 @@ int raspi_read(char *buf, uint from, int len)
 	#ifdef ADDRESS_4B_MODE
 	if (spi_chip_info->addr4b) 
 	{
-		u32 page_size;
+		uint32_t page_size;
 		
 		rdlen = 0;
 		raspi_4byte_mode(1);
@@ -699,7 +711,7 @@ int raspi_read(char *buf, uint from, int len)
 	else
 	#endif
 	{
-		u32 page_size;
+		uint32_t page_size;
 
 		rdlen = 0;
 		while (len > 0) {
@@ -722,13 +734,13 @@ int raspi_read(char *buf, uint from, int len)
 	return rdlen;
 }
 
-int raspi_write(char *buf, uint to, int len)
+int raspi_write(char *buf, uint32_t to, int len)
 {
 	int rc = 0;
 	int retlen = 0;
-	u8 cmd[5];
-	u32 page_offset = 0;
-	u32 page_size = 0;
+	uint8_t cmd[5];
+	uint32_t page_offset = 0;
+	uint32_t page_size = 0;
 
 	SerialPrintf(DbgCtl.SerialFlashEn,"\r\n[%s] SPI:write to(0x%X) len(%d) addr4b(%d)", \
 		FmtTimeShow(), to, len,spi_chip_info->addr4b);
@@ -800,10 +812,10 @@ int raspi_write(char *buf, uint to, int len)
 
 		#ifdef ADDRESS_4B_MODE
 		if (spi_chip_info->addr4b)
-			rc = spic_write(cmd, 5, (u8 *)buf, page_size);
+			rc = spic_write(cmd, 5, (uint8_t *)buf, page_size);
 		else
 		#endif
-			rc = spic_write(cmd, 4, (u8 *)buf, page_size);
+			rc = spic_write(cmd, 4, (uint8_t *)buf, page_size);
 
 		//SerialPrintf(DbgCtl.SerialFlashEn,"\r\n[%s] SPI:read scur to:%x page_size:%x ret:%x",FmtTimeShow(), to, page_size, rc);
 		if ((retlen & 0xffff) == 0)

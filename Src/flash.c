@@ -12,6 +12,18 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+#ifndef NRCMD
+#define NRCMD (1)
+#endif
+
 #define SerialPrintf SerialDbgPrintf
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -21,7 +33,7 @@ flash_info flash_data = {FALSE,0,0,0};
 
 void SerialFlashInit(void)
 {
-	u32 size;
+	uint32_t size;
 	flash_data.bi_flashstart = 0;
 	flash_data.bi_flashoffset = 0;
 	if ((size = raspi_init()) == 0) 
@@ -35,7 +47,7 @@ void SerialFlashInit(void)
 	}
 }
 
-FlashStatusT SerialFlashRead(u8 *buf, uint from, int len)
+FlashStatusT SerialFlashRead(uint8_t *buf, uint32_t from, int len)
 {
 	int Result = -1;	
 
@@ -69,7 +81,7 @@ FlashStatusT SerialFlashRead(u8 *buf, uint from, int len)
 	}
 }
 
-FlashStatusT SerialFlashWrite(u8 *buf, uint to, int len)
+FlashStatusT SerialFlashWrite(uint8_t *buf, uint32_t to, int len)
 {
 	int Result = -1;
 
@@ -103,7 +115,7 @@ FlashStatusT SerialFlashWrite(u8 *buf, uint to, int len)
 	}
 }
 
-FlashStatusT SerialFlashErase(EraseTypeT type, uint index)
+FlashStatusT SerialFlashErase(EraseTypeT type, uint32_t index)
 {
 	int Result = -1;
 
@@ -172,10 +184,10 @@ FlashStatusT SerialFlashErase(EraseTypeT type, uint index)
 	}
 }
 
-FlashStatusT SerialFlashBlocksErase(u32 start_block, u32 num_blocks)
+FlashStatusT SerialFlashBlocksErase(uint32_t start_block, uint32_t num_blocks)
 {
-	u32 len = 0;
-	u32 offs = 0;
+	uint32_t len = 0;
+	uint32_t offs = 0;
 
 	if(num_blocks > spi_chip_info->block_size)
 	{

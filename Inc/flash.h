@@ -11,8 +11,9 @@
 #ifndef _SERIAL_FLAH__H
 #define _SERIAL_FLAH__H
 /* Includes ------------------------------------------------------------------*/
-#include "include.h"
+#include "stm32f0xx_hal.h"
 #include "spi_driver.h"
+#include "uart_api.h"
 
 #define SERIAL_FLASH_START_ADDR			0x00000000
 #define SERIAL_FLASH_END_ADDR			0x00400000
@@ -28,19 +29,19 @@ typedef enum
 
 typedef struct
 {
-	u8		bi_flashvalidflag;
-	u32 		bi_flashstart;	/* start of FLASH memory */
-	u32	 	bi_flashsize;	/* size  of FLASH memory */
-	u32 		bi_flashoffset;	/* reserved area for startup monitor */
+	uint8_t		bi_flashvalidflag;
+	uint32_t 		bi_flashstart;	/* start of FLASH memory */
+	uint32_t	 	bi_flashsize;	/* size  of FLASH memory */
+	uint32_t 		bi_flashoffset;	/* reserved area for startup monitor */
 }flash_info;
 
 
 //Function Declare
 extern void SerialFlashInit(void);
-extern FlashStatusT SerialFlashRead(u8 *buf, uint from, int len);
-extern FlashStatusT SerialFlashWrite(u8 *buf, uint to, int len);
-extern FlashStatusT SerialFlashErase(EraseTypeT type, uint index);
-extern FlashStatusT SerialFlashBlocksErase(u32 start_block, u32 num_blocks);
+extern FlashStatusT SerialFlashRead(uint8_t *buf, uint32_t from, int len);
+extern FlashStatusT SerialFlashWrite(uint8_t *buf, uint32_t to, int len);
+extern FlashStatusT SerialFlashErase(EraseTypeT type, uint32_t index);
+extern FlashStatusT SerialFlashBlocksErase(uint32_t start_block, uint32_t num_blocks);
 
 #endif  /* _SERIAL_FLAH__H */
 

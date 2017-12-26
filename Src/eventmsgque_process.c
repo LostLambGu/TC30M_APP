@@ -13,6 +13,7 @@
 #include "usrtimer.h"
 #include "network.h"
 #include "ublox_driver.h"
+#include "flash.h"
 
 /* Variables -----------------------------------------------------------------*/
 static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
@@ -444,35 +445,119 @@ void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size
 
 uint8_t WedgeFlashChipErase(void)
 {
-    return 1;
+    FlashStatusT ret;
+
+    ret = SerialFlashErase(FLASH_ERASE_ALL, 0);
+    if (ret != FLASH_STAT_OK)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Chip Erase err: %d",
+				FmtTimeShow(), ret);
+    }
+
+    return ret;
 }
 
 uint8_t WedgeFlashEraseSector(uint32_t address)
 {
-    return 1;
+    FlashStatusT ret;
+
+    ret = SerialFlashErase(FLASH_ERASE_04KB, address / WEDGE_STORAGE_SECTOR_SIZE);
+    
+    if (ret != FLASH_STAT_OK)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Sector Erase err: %d",
+				FmtTimeShow(), ret);
+    }
+
+    return ret;
 }
 
-uint8_t WedgeFlashReadData(uint32_t address, const uint8_t * const pDataBuf, const uint32_t datalen)
+uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen)
 {
-    return 1;
+    FlashStatusT ret;
+
+    ret = SerialFlashRead(pDataBuf, address, datalen);
+
+    if (ret != FLASH_STAT_OK)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Read err: %d",
+				FmtTimeShow(), ret);
+    }
+
+    return ret;
 }
 
-uint8_t WedgeFlashWriteData(uint32_t address, uint8_t * const pDataBuf, const uint32_t datalen)
+uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen)
 {
-    return 1;
+    FlashStatusT ret;
+
+    ret = SerialFlashWrite(pDataBuf, address, datalen);
+
+    if (ret != FLASH_STAT_OK)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Write err: %d",
+				FmtTimeShow(), ret);
+    }
+
+    return ret;
 }
 
 uint8_t WedgeMsgQueInit(void)
 {
+
+
+
+
 	return 1;
 }
 
-uint8_t WedgeMsgQueInWrite(const WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index)
+uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
 {
-	return 1;
+	MQSTATTypeDef MQSTAT = {0};
+    uint16_t inindex = 0, outindex = 0, delta = 0, numinsector = 0;
+    uint32_t address = 0;
+
+    MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+
+    inindex = MQSTAT.queinindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    address = WEDGE_MSG_QUE_START_ADDR + inindex * sizeof(WEDGEMsgQueCellTypeDef);
+
+    if ((address % WEDGE_STORAGE_SECTOR_SIZE) == 0)
+    {
+        if (inindex <= outindex)
+        {
+            delta = outindex - inindex;
+            numinsector = (WEDGE_STORAGE_SECTOR_SIZE / sizeof(WEDGEMsgQueCellTypeDef));
+            if (delta < numinsector)
+            {
+                if (MQSTAT.unsent > numinsector)
+                {
+                    if (0 == WedgeFlashEraseSector(address))
+                    {
+                        MQSTAT.unsent -= (numinsector - delta);
+                        MQSTAT.sent -= delta;
+                        MQSTAT.queoutindex += (numinsector - delta);
+
+                        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+                    }
+                    else
+                    {
+                        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err: %d",
+                                                  FmtTimeShow(), ret);
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+
+    }
 }
 
-uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef * const pQueCell, const uint32_t index)
+uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell)
 {
 	return 1;
 }

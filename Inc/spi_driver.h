@@ -15,7 +15,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
-#include "include.h"
+#include "uart_api.h"
 
 // PA4- SPI FLASH CS
 #define SPI_FLASH_CS_PORT  		PA4_FLASH_CS_N_GPIO_Port
@@ -178,10 +178,10 @@ typedef enum
 typedef struct
 {
 	char		*name;
-	u8		id;
-	u32		jedec_id;
-	u32		block_size;
-	uint		n_blocks;
+	uint8_t		id;
+	uint32_t		jedec_id;
+	uint32_t		block_size;
+	uint32_t		n_blocks;
 	char		addr4b;
 }chip_info;
 
@@ -189,12 +189,12 @@ typedef struct
 extern chip_info *spi_chip_info;
 
 //Function Declare
-extern int spic_init(u8 EnableDelay);
-extern u32 raspi_init(void);
-extern int raspi_erase(EraseTypeT tye, uint addr);
-extern int raspi_chip_erase(u8 OpCode);
-extern int raspi_read(char *buf, uint from, int len);
-extern int raspi_write(char *buf, uint to, int len);
+extern int spic_init(uint8_t EnableDelay);
+extern uint32_t raspi_init(void);
+extern int raspi_erase(EraseTypeT tye, uint32_t addr);
+extern int raspi_chip_erase(uint8_t OpCode);
+extern int raspi_read(char *buf, uint32_t from, int len);
+extern int raspi_write(char *buf, uint32_t to, int len);
 
 #ifdef __cplusplus
 }
