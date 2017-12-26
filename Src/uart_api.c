@@ -41,6 +41,7 @@ DebugCtlPrarm DbgCtl =
 		.ATCmdDbgEn = TRUE,
 		.AppATCmdDbgEn = TRUE,
 		.Lis2dhDbgInfoEn = TRUE,
+		.SerialFlashEn = TRUE,
 		.RTCDebugInfoEn = FALSE,
 		.UbloxDbgInfoEn = TRUE,
 		.ParseatCmdEn = TRUE,
