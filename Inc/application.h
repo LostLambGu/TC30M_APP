@@ -22,6 +22,7 @@ extern "C" {
 #include "uart_api.h"
 #include "atcmd.h"
 #include "limifsm.h"
+#include "lis3dh_driver.h"
 #include "rtcclock.h"
 #include "iqmgr.h"
 #include "usrtimer.h"

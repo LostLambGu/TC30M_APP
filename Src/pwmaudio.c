@@ -37,7 +37,7 @@ void StartPWMAudio(uint32_t freq, uint8_t ratio)
 
 	htim2.Instance = TIM2;
 	/* Compute the prescaler value to have TIM2 counter clock equal to 16000000 Hz */
-	htim2.Init.Prescaler = (uint32_t)(SystemCoreClock / 16000000) - 1;
+	htim2.Init.Prescaler = (uint32_t)(SystemCoreClock / 24000000) - 1;
 	;
 	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim2.Init.Period = freq;

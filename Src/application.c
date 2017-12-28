@@ -19,7 +19,7 @@ void ApplicationProcess(void)
     // Soft Timer
     SoftwareCheckTimerStatus();
     // Gsensor Interupt
-    // GsensorIntProcess();
+    GsensorIntProcess();
 }
 
 /*******************************************************************************

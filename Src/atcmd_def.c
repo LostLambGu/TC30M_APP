@@ -17,9 +17,11 @@
 #include "initialization.h"
 #include "rtcclock.h"
 #include "ublox_driver.h"
+#include "lis3dh_driver.h"
+#include "pwmaudio.h"
 #include "iocontrol.h"
 #include "deepsleep.h"
-//#include "flash.h"
+#include "flash.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
@@ -58,6 +60,7 @@ static void ATCmdDefSleep(uint8_t Len, int32_t Param);
 static void ATCmdDefTransfer(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefPwrCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf);
+static void ATCmdDefPwm(uint8_t Len, int Param);
 static void ATCmdDefGPS(uint8_t Len, int Param);
 static void ATCmdGsensorTest(uint8_t Len, int Param);
 static void ATCmdDefGPIOREAD(uint8_t Len, int Param, uint8_t *dataBuf);
@@ -153,6 +156,10 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 			ATCmdDefLed(Len, Param, dataBuf);
 			break;
 
+		case AT_CMD_DEF_PWM:
+			ATCmdDefPwm(Len, Param);
+			break;
+
 		case AT_CMD_DEF_GPS:
 			ATCmdDefGPS(Len, Param);
 			break;
@@ -190,33 +197,22 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 static void ATCmdDefGPSFactoryTest(void)
 {
-	uint16_t i = 0;
-	UbloxPowerEnControl(ENABLE);
+	const uint8_t temp = DbgCtl.UbloxDbgInfoEn;
 
+	UbloxPowerEnControl(ENABLE);
+	DbgCtl.UbloxDbgInfoEn = TRUE;
 	factorymodeindicatefalg = TRUE;
 
-	HAL_Delay(1000);
 	ATCmdPrintf(TRUE, "\r\nGps fatctory test mode\r\n");
 
+	HAL_Delay(1000);
 	while (TRUE == factorymodeindicatefalg)
 	{
-		// if (MsgBuffer.DataLen != 0)
-		// {
-		// 	HAL_UART_Transmit(&huart1, MsgBuffer.Data, MsgBuffer.DataLen, 50);
-		// }
-
-		for (i = 0; i < MsgBuffer.DataLen; i++)
-		{
-			while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == 0)
-				;
-			huart1.Instance->TDR = ((uint8_t)0x00FF & MsgBuffer.Data[i]);
-		}
-
-		memset((void *)&MsgBuffer, 0, sizeof(MsgBuffer));
-		MsgBuffer.DataLen = 0;
-		HAL_Delay(927);
+		ReadUbloxData();
+		HAL_Delay(CHECK_UBLOX_STAT_TIMEOUT);
 	}
 
+	DbgCtl.UbloxDbgInfoEn = temp;
 	UbloxPowerEnControl(DISABLE);
 }
 
@@ -225,7 +221,11 @@ static void ATCmdModemFactoryTest(void)
 	uint8_t DataLen = 0;
 	uint8_t UartData[UART_BUF_MAX_LENGTH] = {'\0'};
 
+	ModemPowerEnControl(DISABLE);
+	ModemRTSEnControl(DISABLE);
+	HAL_Delay(1000);
 	factorymodeindicatefalg = TRUE;
+	
 	ModemPowerEnControl(ENABLE);
 	ModemRTSEnControl(ENABLE);
 
@@ -273,83 +273,79 @@ static void ATCmdModemFactoryTest(void)
 
 static void ATCmdGsensorFactoryTest(void)
 {
-	// uint8_t ChipID;
-	/* Check Chip ID */
-	// ChipID = AccelReadRegister(LIS2DH_MEMS_I2C_ADDRESS, LIS2DH_WHO_AM_I);
+	status_t status;
+	status = LIS3DH_GetWHO_AM_I();
 
-	// if (ChipID == WHOAMI_LIS2DH_ACC)
-	// {
-	// 	ATCmdPrintf(TRUE, "\r\nGSENSOR: PASS, 0x%x", ChipID);
-	// 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
-	// }
-	// else
-	// {
-	// 	ATCmdPrintf(TRUE, "\r\nGSENSOR: FAIL, 0x%x", ChipID);
-	// 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
-	// }
+	if (status == MEMS_SUCCESS)
+	{
+		ATCmdPrintf(TRUE, "\r\nOK\r\n");
+	}
+	else
+	{
+		ATCmdPrintf(TRUE, "\r\nERROR\r\n");
+	}
 }
 
 static void ATCmdDefAdcFactoryTest(void)
 {
 
-	uint16_t uhADCxConvertedValue[3] = {0};
-	uint16_t ADC1ConvertedVoltage[3] = {0};
+	uint16_t uhADCxConvertedValue[2] = {0};
+	uint16_t ADC1ConvertedVoltage[2] = {0};
 
 	// Srart Conversion
-	// ADCDMAConversion(uhADCxConvertedValue, ADC1ConvertedVoltage);
+	ADCDMAConversion(uhADCxConvertedValue, ADC1ConvertedVoltage);
 
 	// Show Result
 	ATCmdPrintf(TRUE, "\r\nADC: AdcCh10 VAL(%04d) VOL(%d mV)", uhADCxConvertedValue[0], ADC1ConvertedVoltage[0]);
-	ATCmdPrintf(TRUE, "\r\nADC: Power VAL(%04d) VOL(%d mV)", uhADCxConvertedValue[1], ADC1ConvertedVoltage[1]);
-	ATCmdPrintf(TRUE, "\r\nADC: Battery VAL(%04d) VOL(%d mV)", uhADCxConvertedValue[2], ADC1ConvertedVoltage[2]);
+	ATCmdPrintf(TRUE, "\r\nADC: AdcCh11 VAL(%04d) VOL(%d mV)", uhADCxConvertedValue[1], ADC1ConvertedVoltage[1]);
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
 static void ATCmdDefFlashFactoryTest(void)
 {
-	// uint16_t i, j, sectorsize = 4096, pagesize = 256;
-	// uint8_t readbuf[256] = {0}, writebuf[256] = {0};
+	uint16_t i, j, sectorsize = 4096, pagesize = 256;
+	uint8_t readbuf[256] = {0}, writebuf[256] = {0};
 
 	ATCmdPrintf(TRUE, "\r\nSFlash factory test start!");
-	// SerialFlashInit();
-	// for (i = 0; i < 5; i++)
-	// {
+	SerialFlashInit();
+	for (i = 0; i < 5; i++)
+	{
 
-	// 	if (SerialFlashErase(FLASH_ERASE_04KB, i) != FLASH_STAT_OK)
-	// 	{
-	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash sector erase error!", FmtTimeShow());
-	// 		return;
-	// 	}
+		if (SerialFlashErase(FLASH_ERASE_04KB, i) != FLASH_STAT_OK)
+		{
+			ATCmdPrintf(TRUE, "\r\n[%s] SFlash sector erase error!", FmtTimeShow());
+			return;
+		}
 
-	// 	for (j = 0; j < pagesize; j++)
-	// 	{
-	// 		writebuf[j] = j + i;
-	// 	}
+		for (j = 0; j < pagesize; j++)
+		{
+			writebuf[j] = j + i;
+		}
 
-	// 	if (SerialFlashWrite(writebuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
-	// 	{
-	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
-	// 		return;
-	// 	}
+		if (SerialFlashWrite(writebuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
+		{
+			ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
+			return;
+		}
 
-	// 	memset(readbuf, 0, sizeof(readbuf));
+		memset(readbuf, 0, sizeof(readbuf));
 
-	// 	if (SerialFlashRead(readbuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
-	// 	{
-	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
-	// 		return;
-	// 	}
+		if (SerialFlashRead(readbuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
+		{
+			ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
+			return;
+		}
 
-	// 	if (strncmp((const char *)writebuf, (const char *)readbuf, pagesize) == 0)
-	// 	{
-	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test pass!", FmtTimeShow(), i);
-	// 	}
-	// 	else
-	// 	{
-	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test fail!", FmtTimeShow(), i);
-	// 		return;
-	// 	}
-	// }
+		if (strncmp((const char *)writebuf, (const char *)readbuf, pagesize) == 0)
+		{
+			ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test pass!", FmtTimeShow(), i);
+		}
+		else
+		{
+			ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test fail!", FmtTimeShow(), i);
+			return;
+		}
+	}
 
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
@@ -451,37 +447,37 @@ static void ATCmdDefPwrCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	{
 		switch (Param)
 		{
-		// case 0:
-		// {
-		// 	Result = 0;
-		// 	ModemPowerEnControl(DISABLE);
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER OFF\r\n");
-		// }
-		// break;
+		case 0:
+		{
+			Result = 0;
+			ModemPowerEnControl(DISABLE);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER OFF\r\n");
+		}
+		break;
 
-		// case 1:
-		// {
-		// 	Result = 0;
-		// 	ModemPowerEnControl(ENABLE);
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER ON\r\n");
-		// }
-		// break;
+		case 1:
+		{
+			Result = 0;
+			ModemPowerEnControl(ENABLE);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER ON\r\n");
+		}
+		break;
 
-		// case 2:
-		// {
-		// 	Result = 0;
-		// 	UbloxPowerEnControl(DISABLE);
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER OFF\r\n");
-		// }
-		// break;
+		case 2:
+		{
+			Result = 0;
+			UbloxPowerEnControl(DISABLE);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER OFF\r\n");
+		}
+		break;
 
-		// case 3:
-		// {
-		// 	Result = 0;
-		// 	UbloxPowerEnControl(ENABLE);
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER ON\r\n");
-		// }
-		// break;
+		case 3:
+		{
+			Result = 0;
+			UbloxPowerEnControl(ENABLE);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER ON\r\n");
+		}
+		break;
 
 		default:
 			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
@@ -563,6 +559,64 @@ static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
 }
 
+static void ATCmdDefPwm(uint8_t Len, int Param)
+{
+	if (Len == 0)
+	{
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Error ", FmtTimeShow());
+		return;
+	}
+
+	switch (Param)
+	{
+	case 0:
+		StopPWMAudio();
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: STOP");
+		break;
+
+	case 1:
+		StartPWMAudio(PERIOD_0050Hz, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 50Hz");
+		break;
+
+	case 2:
+		StartPWMAudio(PERIOD_0500Hz, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 500Hz");
+		break;
+
+	case 3:
+		StartPWMAudio(PERIOD_1000Hz, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 1KHz");
+		break;
+
+	case 4:
+		StartPWMAudio(PERIOD_2000Hz, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 2KHz");
+		break;
+
+	case 5:
+		StartPWMAudio(PERIOD_4000Hz, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 4KHz");
+		break;
+
+	case 6:
+		StartPWMAudio(PERIOD_12000HZ, 10);
+		// Print Out
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nPWM: START 12KHz");
+		break;
+
+	default:
+		break;
+	}
+	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+}
+
 static void ATCmdDefGPS(uint8_t Len, int Param)
 {
 	if (Len == 0)
@@ -574,21 +628,21 @@ static void ATCmdDefGPS(uint8_t Len, int Param)
 	{
 		switch (Param)
 		{
-		// case 0:
-		// {
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: GPS Stop", FmtTimeShow());
-		// 	UbloxGPSStop();
-		// }
-		// break;
+		case 0:
+		{
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: GPS Stop", FmtTimeShow());
+			UbloxGPSStop();
+		}
+		break;
 
-		// case 1:
-		// {
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: GPS Start", FmtTimeShow());
-		// 	// Print Out
-		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: Timeout Value(%d)", FmtTimeShow(), UbloxCheckStatTimeout);
-		// 	UbloxGPSStart();
-		// }
-		// break;
+		case 1:
+		{
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: GPS Start", FmtTimeShow());
+			// Print Out
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] *GPS: Timeout Value(%d)", FmtTimeShow(), UbloxCheckStatTimeout);
+			UbloxGPSStart();
+		}
+		break;
 
 		default:
 			break;

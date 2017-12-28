@@ -164,6 +164,8 @@ void EXTI4_15_IRQHandler(void)
   /* USER CODE END EXTI4_15_IRQn 0 */
   if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_4) != RESET)
   {
+    extern void SetLis3dhAlarmStatus(uint8_t Status);
+    SetLis3dhAlarmStatus(TRUE);
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
   }
 

@@ -17,6 +17,7 @@
 #include "rtcclock.h"
 #include "usrtimer.h"
 #include "ublox_driver.h"
+#include "lis3dh_driver.h"
 #include "parseatat.h"
 #include "iqmgr.h"
 #include "version.h"
@@ -47,8 +48,6 @@ uint8_t gGreenLEDFlashingFlag = FALSE;
 uint8_t Lis2dhMemsChipID = 0;
 
 extern uint8_t ModemPowerOnFlag;
-
-static uint8_t AccIntHappenStatus = FALSE;
 
 /* Public functions ----------------------------------------------------------*/
 // DelayUsTime
@@ -106,16 +105,6 @@ void SystemEnableAllInterrupt(void)
 {
 	// portENABLE_INTERRUPTS();
 	__asm volatile( "cpsie i" );
-}
-
-void SetAccIntHappenStatus(uint8_t status)
-{
-	AccIntHappenStatus = status;
-}
-
-uint8_t GetAccIntHappenStatus(void)
-{
-	return AccIntHappenStatus;
 }
 
 void ModemPowerEnControl(FunStates Status)
@@ -239,23 +228,8 @@ void SystemInitialization(void)
 	// Close GPS
 	UbloxPowerEnControl(DISABLE);
 
-	//Extend Output pin
-
-	// Delay
-	DelayMsTime(4);
-
-	// Lis2dhMemsChipID = AccelReadRegister(LIS2DH_MEMS_I2C_ADDRESS, LIS2DH_WHO_AM_I);
-	// if (Lis2dhMemsChipID == WHOAMI_LIS2DH_ACC) //LIS2DH_MEMS_I2C_ADDRESS
-	// {
-	// 	InitLog("\r\nInit: Gsensor ID,0x%X\r\n", Lis2dhMemsChipID);
-	// 	// Gsensor settings
-	// 	/*GSensorI2cInit();*/
-
-	// 	/*comment to eliminate errors*/
-	// 	/* comment atel_ related lines */
-	// 	// atel_gsensor_stop();
-	// 	LIS2DH_SetMode(LIS2DH_POWER_DOWN);
-	// }
+	// Sensor init
+    GSensorI2cInit();
 }
 
 extern uint8_t ATUbloxTestFlag;

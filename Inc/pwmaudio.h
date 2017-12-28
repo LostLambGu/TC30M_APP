@@ -14,7 +14,7 @@
 #include "stm32f0xx_hal.h"
 
 // Range (20Hz--20kHz)
-#define PERIOD_SOURCE 16000000
+#define PERIOD_SOURCE (24000000)
 
 #define PERIOD_0050Hz (uint32_t)((PERIOD_SOURCE / 50) - 1)
 #define PERIOD_0100Hz (uint32_t)((PERIOD_SOURCE / 100) - 1)

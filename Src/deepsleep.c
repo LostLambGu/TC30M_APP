@@ -48,9 +48,33 @@ void RestorePowerConsumption(void)
 
 }
 
+#define portSY_FULL_READ_WRITE (15)
 void MCUDeepSleep(uint32_t seconds)
 {
+  /* Enter a critical section but don't use the taskENTER_CRITICAL()
+		method as that will mask interrupts that should exit sleep mode. */
+  // __disable_irq();
+  // __dsb(portSY_FULL_READ_WRITE);
+  // __isb(portSY_FULL_READ_WRITE);
 
+  HaltPowerConsumption();
+
+  SetRTCAlarmTime(seconds, TRUE);
+
+  /* enter stop mode */
+	HAL_SuspendTick();
+  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+
+  HAL_Init();
+  SystemClock_Config();
+
+  RestorePowerConsumption();
+  // extern void SystemClock_Config_PostStop(void);
+  // SystemClock_Config_PostStop();
+
+  /* Re-enable interrupts - see comments above __disable_irq() call
+			above. */
+  // __enable_irq();
 }
 
 void MCUReset(void)

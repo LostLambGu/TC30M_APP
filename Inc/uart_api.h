@@ -51,7 +51,7 @@ typedef struct
     uint8_t ATCmdInfoEn;
     uint8_t ATCmdDbgEn;
     uint8_t AppATCmdDbgEn;
-    uint8_t Lis2dhDbgInfoEn;
+    uint8_t Lis3dhDbgInfoEn;
     uint8_t SerialFlashEn;
     uint8_t RTCDebugInfoEn;
     uint8_t UbloxDbgInfoEn;

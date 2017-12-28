@@ -14,6 +14,7 @@
 #include "network.h"
 #include "ublox_driver.h"
 #include "flash.h"
+#include "eventalertflow.h"
 
 /* Variables -----------------------------------------------------------------*/
 static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
@@ -513,7 +514,7 @@ uint8_t WedgeMsgQueInit(void)
 
 uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
 {
-	MQSTATTypeDef MQSTAT = {0};
+    MQSTATTypeDef MQSTAT = {0};
     uint16_t inindex = 0, outindex = 0, delta = 0, numinsector = 0;
     uint32_t address = 0;
 
@@ -521,14 +522,15 @@ uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
 
     inindex = MQSTAT.queinindex % WEDGE_MSG_QUE_TOTAL_NUM;
     outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
-    address = WEDGE_MSG_QUE_START_ADDR + inindex * sizeof(WEDGEMsgQueCellTypeDef);
+    address = WEDGE_MSG_QUE_START_ADDR + inindex * sizeof(*pQueCell);
+    
+    numinsector = (WEDGE_STORAGE_SECTOR_SIZE / sizeof(*pQueCell));
 
     if ((address % WEDGE_STORAGE_SECTOR_SIZE) == 0)
     {
         if (inindex <= outindex)
         {
             delta = outindex - inindex;
-            numinsector = (WEDGE_STORAGE_SECTOR_SIZE / sizeof(WEDGEMsgQueCellTypeDef));
             if (delta < numinsector)
             {
                 if (MQSTAT.unsent > numinsector)
@@ -543,17 +545,81 @@ uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
                     }
                     else
                     {
-                        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err: %d",
-                                                  FmtTimeShow(), ret);
+                        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err1",
+                                                  FmtTimeShow());
                         return 1;
                     }
                 }
+                else
+                {
+                    if (0 == WedgeFlashEraseSector(address))
+                    {
+                        MQSTAT.unsent = 0;
+                        MQSTAT.sent = 0;
+                        MQSTAT.queoutindex = 0;
+                        MQSTAT.queinindex = 0;
+
+                        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+                    }
+                    else
+                    {
+                        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err2",
+                                                  FmtTimeShow());
+                        return 2;
+                    }
+                }
+            }
+            else
+            {
+                if (0 == WedgeFlashEraseSector(address))
+                {
+                    MQSTAT.sent -= numinsector;
+
+                    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+                }
+                else
+                {
+                    EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err3",
+                                              FmtTimeShow());
+                    return 3;
+                }
+            }
+        }
+        else
+        {
+            if (0 == WedgeFlashEraseSector(address))
+            {
+                if ((MQSTAT.sent + MQSTAT.unsent + numinsector - 1) >= WEDGE_MSG_QUE_TOTAL_NUM)
+                {
+                    MQSTAT.sent -= numinsector;
+                }
+
+                WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+            }
+            else
+            {
+                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err4",
+                                          FmtTimeShow());
+                return 4;
             }
         }
     }
+
+    if (0 != WedgeFlashWriteData(address, (uint8_t *)pQueCell, sizeof(*pQueCell)))
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn err5",
+                                  FmtTimeShow());
+        return 5;
+    }
     else
     {
+        MQSTAT.unsent++;
+        MQSTAT.queinindex++;
+        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
 
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn ok",
+                                  FmtTimeShow());
+        return 0;
     }
 }
 

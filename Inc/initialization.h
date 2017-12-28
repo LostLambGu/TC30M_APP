@@ -45,8 +45,6 @@ extern void DelayMsTime(uint16_t delay_time); //delay delay_time * 1ms
 extern void StringToUper(char* s);
 extern void SystemDisableAllInterrupt(void);
 extern void SystemEnableAllInterrupt(void);
-extern void SetAccIntHappenStatus(uint8_t status);
-extern uint8_t GetAccIntHappenStatus(void);
 extern void ModemPowerEnControl(FunStates Status);
 extern void ModemRTSEnControl(FunStates Status);
 extern void SystemInitialization(void);
