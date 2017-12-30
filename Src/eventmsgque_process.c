@@ -514,11 +514,258 @@ uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datale
 
 uint8_t WedgeMsgQueInit(void)
 {
+    MQSTATTypeDef MQSTAT = {0};
+    uint16_t inindex = 0, outindex = 0, sent = 0, unsent = 0, delta = 0, numinsector = 0;
+    uint32_t inaddr = 0, outaddr = 0, address = 0;
+    WEDGEMsgQueCellTypeDef MsgQueCell = {0};
+    uint16_t i = 0, empty = 0;
 
+    MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+    inindex = MQSTAT.queinindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    sent = MQSTAT.sent;
+    unsent = MQSTAT.unsent;
 
+    do
+    {
+        inaddr = WEDGE_MSG_QUE_START_ADDR + (inindex % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
 
+        if (0 != WedgeFlashReadData(inaddr, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err1",
+                                      FmtTimeShow());
+            return 1;
+        }
 
-	return 1;
+        if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type == WEDGE_MSG_QUE_EMPTY_TYPE))
+        {
+            delta =  (inaddr & WEDGE_STORAGE_SECTOR_ALIGN_MASK) / sizeof(WEDGEMsgQueCellTypeDef);
+
+            for (i = 0; i < delta; i++)
+            {
+                address = WEDGE_MSG_QUE_START_ADDR + ((inindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+                if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+                {
+                    EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err2",
+                                              FmtTimeShow());
+                    return 2;
+                }
+
+                if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type == WEDGE_MSG_QUE_EMPTY_TYPE))
+                {
+                    inindex--;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            
+            break;
+        }
+        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+        {
+            inindex++;
+            unsent++;
+
+            if (unsent >= WEDGE_MSG_QUE_TOTAL_NUM)
+            {
+                MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM;
+                MQSTAT.sent = 0;
+                MQSTAT.queinindex = (((inaddr + WEDGE_STORAGE_SECTOR_SIZE) & (~WEDGE_STORAGE_SECTOR_ALIGN_MASK)) / sizeof(WEDGEMsgQueCellTypeDef)) % WEDGE_MSG_QUE_TOTAL_NUM;
+                MQSTAT.queoutindex = inindex + 1;
+                WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+
+                return 0;
+            }
+        }
+        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_SENT)
+        {
+            address = WEDGE_MSG_QUE_START_ADDR + ((inindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+            {
+                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err3",
+                                          FmtTimeShow());
+                return 3;
+            }
+
+            if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+            {
+                break;
+            }
+            else
+            {
+                inindex++;
+                sent++;
+            }
+
+            if (sent >= WEDGE_MSG_QUE_TOTAL_NUM)
+            {
+                address &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+                inindex = (address - WEDGE_MSG_QUE_START_ADDR) / sizeof(WEDGEMsgQueCellTypeDef);
+                MQSTAT.unsent = 0;
+                MQSTAT.sent = WEDGE_MSG_QUE_TOTAL_NUM;
+                MQSTAT.queinindex = inindex;
+                MQSTAT.queoutindex = inindex;
+                WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+
+                return 0;
+            }
+        }
+        else
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err4",
+                                              FmtTimeShow());
+            return 4;
+        }
+    } while(1);
+
+    inindex %= WEDGE_MSG_QUE_TOTAL_NUM;
+    MQSTAT.queinindex = inindex;
+    
+    outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    sent = MQSTAT.sent;
+    unsent = MQSTAT.unsent;
+
+    do
+    {
+        outaddr = WEDGE_MSG_QUE_START_ADDR + (outindex % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+        if (0 != WedgeFlashReadData(outaddr, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err5",
+                                      FmtTimeShow());
+            return 5;
+        }
+
+        if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type == WEDGE_MSG_QUE_EMPTY_TYPE))
+        {
+            address = WEDGE_MSG_QUE_START_ADDR + ((outindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+            {
+                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err6",
+                                          FmtTimeShow());
+                return 6;
+            }
+
+            if (MsgQueCell.sentstate == WEDGE_MSG_QUE_SENT)
+            {
+                break;
+            }
+            else
+            {
+                empty++;
+                outindex++;
+
+                if (empty >= WEDGE_MSG_QUE_TOTAL_NUM)
+                {
+                    MQSTAT.unsent = 0;
+                    MQSTAT.sent = 0;
+                    MQSTAT.queoutindex = 0;
+                    MQSTAT.queinindex = 0;
+
+                    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+                    return 0;
+                }
+            }
+        }
+        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+        {
+            address = WEDGE_MSG_QUE_START_ADDR + ((outindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+            {
+                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err7",
+                                          FmtTimeShow());
+                return 7;
+            }
+
+            if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type == WEDGE_MSG_QUE_EMPTY_TYPE))
+            {
+                break;
+            }
+            else
+            {
+                outindex++;
+                unsent++;
+
+                if (unsent >= WEDGE_MSG_QUE_TOTAL_NUM)
+                {
+                    outaddr &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+                    outindex = (outaddr - WEDGE_MSG_QUE_START_ADDR) / sizeof(WEDGEMsgQueCellTypeDef);
+                    MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM;
+                    MQSTAT.sent = 0;
+                    MQSTAT.queinindex = outindex;
+                    MQSTAT.queoutindex = outindex;
+                    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+
+                    return 0;
+                }
+            }
+        }
+        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_SENT)
+        {
+            address = WEDGE_MSG_QUE_START_ADDR + ((outindex + 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+            {
+                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err8",
+                                          FmtTimeShow());
+                return 8;
+            }
+
+            if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+            {
+                outindex++;
+                break;
+            }
+            else
+            {
+                outindex++;
+                sent++;
+            }
+
+            if (sent >= WEDGE_MSG_QUE_TOTAL_NUM)
+            {
+                outaddr &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+                outindex = (outaddr - WEDGE_MSG_QUE_START_ADDR) / sizeof(WEDGEMsgQueCellTypeDef);
+                MQSTAT.unsent = 0;
+                MQSTAT.sent = WEDGE_MSG_QUE_TOTAL_NUM;
+                MQSTAT.queinindex = outindex;
+                MQSTAT.queoutindex = outindex;
+                WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+
+                return 0;
+            }
+        }
+        else
+        {
+            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE MsgQueInit err9",
+                                              FmtTimeShow());
+            return 9;
+        }
+
+    } while(1);
+
+    outindex %= WEDGE_MSG_QUE_TOTAL_NUM;
+    MQSTAT.queoutindex = outindex;
+
+    numinsector = (WEDGE_STORAGE_SECTOR_SIZE / sizeof(WEDGEMsgQueCellTypeDef));
+
+    if (outindex <= inindex)
+    {
+        // this is not ok
+        MQSTAT.unsent = inindex - outindex;
+        MQSTAT.sent = outindex;
+
+        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    }
+    else
+    {
+        MQSTAT.sent = outindex - inindex - (numinsector - inindex % numinsector);
+        MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM - (outindex - inindex);
+
+        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    }
+
+    return 0;
 }
 
 uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
@@ -638,98 +885,98 @@ uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
 
 uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell)
 {
-    static uint8_t msgQuePowerResumed = 0;
-    uint8_t loop = 0;
-    uint16_t indextmp = 0, outindex = 0;
-    uint32_t address = 0;
-    MQSTATTypeDef MQSTAT = {0};
+    // static uint8_t msgQuePowerResumed = 0;
+    // uint8_t loop = 0;
+    // uint16_t indextmp = 0, outindex = 0;
+    // uint32_t address = 0;
+    // MQSTATTypeDef MQSTAT = {0};
 
-    if (MQSTAT.unsent == 0)
-    {
-        if (0 != msgQuePowerResumed)
-        {
-            return 1;
-        } 
-    }
+    // if (MQSTAT.unsent == 0)
+    // {
+    //     if (0 != msgQuePowerResumed)
+    //     {
+    //         return 1;
+    //     } 
+    // }
 
-    MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
-    inindex = MQSTAT.queinindex % WEDGE_MSG_QUE_TOTAL_NUM;
-    outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
-    do
-    {
-        address = WEDGE_MSG_QUE_START_ADDR + outindex * sizeof(*pQueCell);
+    // MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+    // inindex = MQSTAT.queinindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    // outindex = MQSTAT.queoutindex % WEDGE_MSG_QUE_TOTAL_NUM;
+    // do
+    // {
+    //     address = WEDGE_MSG_QUE_START_ADDR + outindex * sizeof(*pQueCell);
 
-        if (0 != WedgeFlashReadData(address, pQueCell, sizeof(*pQueCell)))
-        {
-            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueOut err",
-                                  FmtTimeShow());
-            return 2;
-        }
+    //     if (0 != WedgeFlashReadData(address, pQueCell, sizeof(*pQueCell)))
+    //     {
+    //         EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueOut err",
+    //                               FmtTimeShow());
+    //         return 2;
+    //     }
 
-        if (pQueCell->sentstate == WEDGE_MSG_QUE_SENT)
-        {
-            if (MQSTAT.sent == WEDGE_MSG_QUE_TOTAL_NUM)
-            {
-                address &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
-                indextmp = (address - WEDGE_MSG_QUE_START_ADDR) / sizeof(*pQueCell);
+    //     if (pQueCell->sentstate == WEDGE_MSG_QUE_SENT)
+    //     {
+    //         if (MQSTAT.sent == WEDGE_MSG_QUE_TOTAL_NUM)
+    //         {
+    //             address &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+    //             indextmp = (address - WEDGE_MSG_QUE_START_ADDR) / sizeof(*pQueCell);
 
-                MQSTAT.unsent = 0;
-                MQSTAT.queinindex = indextmp;
-                MQSTAT.queoutindex = indextmp;
-                WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
-                msgQuePowerResumed = 1;
-                return 3;
-            }
+    //             MQSTAT.unsent = 0;
+    //             MQSTAT.queinindex = indextmp;
+    //             MQSTAT.queoutindex = indextmp;
+    //             WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    //             msgQuePowerResumed = 1;
+    //             return 3;
+    //         }
 
-            MQSTAT.sent++;
-            MQSTAT.unsent--;
-            MQSTAT.queoutindex++;
-            outindex++;
-            if (outindex > WEDGE_MSG_QUE_TOTAL_NUM)
-            {
-                outindex = 0;
-            }
-            loop = 1;
-        }
-        else if (pQueCell->sentstate == WEDGE_MSG_QUE_UNSENT)
-        {
-            if ((pQueCell->type == WEDGE_MSG_QUE_UDP_TYPE) || (pQueCell->type == WEDGE_MSG_QUE_SMS_TYPE))
-            {
-                if (msgQuePowerResumed == 0)
-                {
-                    if (MQSTAT.unsent == WEDGE_MSG_QUE_TOTAL_NUM)
-                    {
-                        address &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
-                        indextmp = (address - WEDGE_MSG_QUE_START_ADDR) / sizeof(*pQueCell);
+    //         MQSTAT.sent++;
+    //         MQSTAT.unsent--;
+    //         MQSTAT.queoutindex++;
+    //         outindex++;
+    //         if (outindex > WEDGE_MSG_QUE_TOTAL_NUM)
+    //         {
+    //             outindex = 0;
+    //         }
+    //         loop = 1;
+    //     }
+    //     else if (pQueCell->sentstate == WEDGE_MSG_QUE_UNSENT)
+    //     {
+    //         if ((pQueCell->type == WEDGE_MSG_QUE_UDP_TYPE) || (pQueCell->type == WEDGE_MSG_QUE_SMS_TYPE))
+    //         {
+    //             if (msgQuePowerResumed == 0)
+    //             {
+    //                 MQSTAT.queoutindex = outindex;
+    //                 if (MQSTAT.unsent == WEDGE_MSG_QUE_TOTAL_NUM)
+    //                 {
+    //                     address &= (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+    //                     indextmp = (address - WEDGE_MSG_QUE_START_ADDR) / sizeof(*pQueCell);
 
-                        MQSTAT.sent = 0;
-                        MQSTAT.queinindex = indextmp;
-                        MQSTAT.queoutindex = indextmp;
-                        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
-                        msgQuePowerResumed = 1;
-                        return 2;
-                    }
+    //                     MQSTAT.sent = 0;
+    //                     MQSTAT.queinindex = indextmp;
+    //                     MQSTAT.queoutindex = indextmp;
+    //                     WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    //                     msgQuePowerResumed = 1;
+    //                     return 2;
+    //                 }
                     
-                    MQSTAT.unsent++;
-                    MQSTAT.queoutindex = outindex;
-                    outindex++;
-                    MQSTAT.queinindex = outindex;
-                    loop = 1;
-                }
-                else
-                {
+    //                 MQSTAT.unsent++;
+    //                 outindex++;
+    //                 MQSTAT.queinindex = outindex;
+    //                 loop = 1;
+    //             }
+    //             else
+    //             {
 
-                }
+    //             }
                 
-            }
-            else
-            {
-                (address - WEDGE_MSG_QUE_START_ADDR)
-            }
-        }
-    } while (loop);
+    //         }
+    //         else
+    //         {
+    //             (address - WEDGE_MSG_QUE_START_ADDR)
+    //         }
+    //     }
+    // } while (loop);
 
-	return 0;
+	// return 0;
 }
 
 static uint8_t WedgeRtcTimerInstanceInsert(RTCTimerListCellTypeDef Instance)
@@ -1048,7 +1295,7 @@ void WedgeRTCTimerEventProcess(void)
         return;
     }
 
-    memset(&currentinstance, 0, sieof(currentinstance);)
+    memset(&currentinstance, 0, sizeof(currentinstance));
     currentinstance = WedgeRTCGetCurrentInstance();
     WedgeSetRTCAlarmStatus(FALSE);
 

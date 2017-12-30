@@ -23,7 +23,7 @@ extern "C" {
 #include "usart.h"
 
 #define UART_SEND_DATA_TIMEOUT 50
-#define MAX_PRINTF_STR_SIZE 126
+#define MAX_PRINTF_STR_SIZE 256
 
 #define IS_SMSNUMBER_OR_PLUS(x) (IS_NUMBER_ONLY(x) || x == '+')
 #define IS_ALPHABET_OR_NUMBER(x) (IS_NUMBER(x) || IS_ALPHABET(x))

@@ -111,8 +111,8 @@ int main(void)
   MX_RTC_Init();
   MX_USART2_UART_Init();
 
-  SystemInitialization();
-
+  // SystemInitialization();
+  WedgeTest();
   /* USER CODE BEGIN 2 */
   
   /* USER CODE END 2 */
