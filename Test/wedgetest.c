@@ -18,20 +18,57 @@ void SFlashMsgQueInitTest(void)
     //     DebugLog("SerialFlashErase Err");
     // }
 
-    
-    QueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
+    QueCell.sentstate = WEDGE_MSG_QUE_SENT;
     QueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
-
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < WEDGE_MSG_QUE_TOTAL_NUM; i++)
     {
         if (0 == WedgeMsgQueInWrite(&QueCell))
         {
-            DebugLog("WedgeMsgQueInWrite OK");
+            // DebugLog("WedgeMsgQueInWrite OK");
         }
 
-        MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
-        DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
-        , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
+        // MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+        // DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
+        // , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
+    }
+
+    MQSTAT.unsent = 0;
+    MQSTAT.sent = 0;
+    MQSTAT.queinindex = 0;
+    MQSTAT.queoutindex = 0;
+    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    QueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
+    QueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
+
+    for (i = 0; i < 200; i++)
+    {
+        if (0 == WedgeMsgQueInWrite(&QueCell))
+        {
+            // DebugLog("WedgeMsgQueInWrite OK");
+        }
+
+        // MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+        // DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
+        // , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
+    }
+
+    MQSTAT.unsent = 0;
+    MQSTAT.sent = 0;
+    MQSTAT.queinindex = 0;
+    MQSTAT.queoutindex = 0;
+    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    QueCell.sentstate = WEDGE_MSG_QUE_SENT;
+    QueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
+    for (i = 0; i < 16; i++)
+    {
+        if (0 == WedgeMsgQueInWrite(&QueCell))
+        {
+            // DebugLog("WedgeMsgQueInWrite OK");
+        }
+
+        // MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+        // DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
+        // , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
     }
 
     // QueCell.sentstate = WEDGE_MSG_QUE_SENT;
