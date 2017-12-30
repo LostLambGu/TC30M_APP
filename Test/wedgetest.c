@@ -22,7 +22,7 @@ void SFlashMsgQueInitTest(void)
     QueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
     QueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
 
-    for (i = 0; i < 18; i++)
+    for (i = 0; i < 8; i++)
     {
         if (0 == WedgeMsgQueInWrite(&QueCell))
         {
@@ -33,13 +33,29 @@ void SFlashMsgQueInitTest(void)
         DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
         , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
     }
+
+    // QueCell.sentstate = WEDGE_MSG_QUE_SENT;
+    // QueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
+    // for (i = 0; i < 64; i++)
+    // {
+    //     if (0 == WedgeMsgQueInWrite(&QueCell))
+    //     {
+    //         DebugLog("WedgeMsgQueInWrite OK");
+    //     }
+
+    //     MQSTAT = *((MQSTATTypeDef *)WedgeSysStateGet(WEDGE_MQSTAT));
+    //     DebugLog("i: %d, MQSTAT.unsent: %d, MQSTAT.sent :%d, MQSTAT.queinindex: %d, MQSTAT.queoutindex: %d"
+    //     , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
+    // }
     
 
     for (i = 0, j = 0, k = 0; i < 10; i++)
     {
         MQSTAT.unsent = i;
         MQSTAT.sent = 0;
-        MQSTAT.queinindex = j++;
+        j += 8;
+        MQSTAT.queinindex = j % 128;
+        k += 6;
         MQSTAT.queoutindex = k++;
         WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
 

@@ -563,7 +563,7 @@ uint8_t WedgeMsgQueInit(void)
             
             break;
         }
-        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+        else if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
         {
             inindex++;
             unsent++;
@@ -589,7 +589,7 @@ uint8_t WedgeMsgQueInit(void)
                 return 3;
             }
 
-            if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+            if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
             {
                 break;
             }
@@ -668,7 +668,7 @@ uint8_t WedgeMsgQueInit(void)
                 }
             }
         }
-        else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+        else if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
         {
             address = WEDGE_MSG_QUE_START_ADDR + ((outindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
             if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
@@ -711,7 +711,7 @@ uint8_t WedgeMsgQueInit(void)
                 return 8;
             }
 
-            if (MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT)
+            if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
             {
                 outindex++;
                 break;
