@@ -157,6 +157,11 @@ typedef struct
 {
     uint8_t sentstate;
     uint8_t type;
+} WEDGEMsgQueCellHeadTypeDef;
+typedef struct
+{
+    uint8_t sentstate;
+    uint8_t type;
     uint8_t data[WEDGE_MSG_QUE_DATA_LEN_MAX];
 } WEDGEMsgQueCellTypeDef;
 
@@ -166,8 +171,8 @@ typedef struct
 
 #define WEDGE_MSG_QUE_OFFSET (WEDGE_STORAGE_SECTOR_SIZE * 256)
 #define WEDGE_MSG_QUE_START_ADDR (WEDGE_STORAGE_BASE_ADDR + WEDGE_MSG_QUE_OFFSET)
-#define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 256)
-// #define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 8) /*Just for test!*/
+// #define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 256)
+#define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 8) /*Just for test!*/
 #define WEDGE_MSG_QUE_TOTAL_NUM (WEDGE_MSG_QUE_TOTAL_SIZE / sizeof(WEDGEMsgQueCellTypeDef))
 #define WEDGE_MSG_QUE_END_ADDR (WEDGE_MSG_QUE_START_ADDR + WEDGE_MSG_QUE_TOTAL_SIZE - 1)
 
