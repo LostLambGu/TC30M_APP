@@ -1,4 +1,5 @@
 #include "wedgetest.h"
+#include "wedgemsgque.h"
 
 void SFlashMsgQueInitTest(void)
 {

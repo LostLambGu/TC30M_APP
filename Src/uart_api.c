@@ -51,6 +51,7 @@ DebugCtlPrarm DbgCtl =
 		.VersionDebugInfoEn = TRUE,
 		.NetworkDbgInfoEn = TRUE,
 		.LteRecDbgInfoEn = FALSE,
+		.WedgeMsgQueInfoEn = TRUE,
 		.WedgeEvtMsgQueInfoEn = TRUE,
 		.WedgeEvtAlrtFlwInfoEn = TRUE,
 };

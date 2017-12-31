@@ -138,48 +138,6 @@ extern uint8_t WedgeFlashEraseSector(uint32_t address);
 extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
-enum
-{
-    WEDGE_MSG_QUE_SENT = 0xBB,
-    WEDGE_MSG_QUE_UNSENT = 0xFF
-};
-
-enum
-{
-    WEDGE_MSG_QUE_UDP_TYPE = 0xCC,
-    WEDGE_MSG_QUE_SMS_TYPE = 0x33,
-    WEDGE_MSG_QUE_EMPTY_TYPE = 0xFF
-};
-
-#define WEDGE_MSG_QUE_DATA_LEN_MAX (254)
-#define WEDGE_MSG_QUE_HEAD_SZIE_BYTES (2)
-typedef struct
-{
-    uint8_t sentstate;
-    uint8_t type;
-} WEDGEMsgQueCellHeadTypeDef;
-typedef struct
-{
-    uint8_t sentstate;
-    uint8_t type;
-    uint8_t data[WEDGE_MSG_QUE_DATA_LEN_MAX];
-} WEDGEMsgQueCellTypeDef;
-
-#define WEDGE_STORAGE_SECTOR_SIZE (4096)
-#define WEDGE_STORAGE_SECTOR_ALIGN_MASK (WEDGE_STORAGE_SECTOR_SIZE - 1)
-#define WEDGE_STORAGE_BASE_ADDR (0x00000000)
-
-#define WEDGE_MSG_QUE_OFFSET (WEDGE_STORAGE_SECTOR_SIZE * 256)
-#define WEDGE_MSG_QUE_START_ADDR (WEDGE_STORAGE_BASE_ADDR + WEDGE_MSG_QUE_OFFSET)
-// #define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 256)
-#define WEDGE_MSG_QUE_TOTAL_SIZE (WEDGE_STORAGE_SECTOR_SIZE * 8) /*Just for test!*/
-#define WEDGE_MSG_QUE_TOTAL_NUM (WEDGE_MSG_QUE_TOTAL_SIZE / sizeof(WEDGEMsgQueCellTypeDef))
-#define WEDGE_MSG_QUE_END_ADDR (WEDGE_MSG_QUE_START_ADDR + WEDGE_MSG_QUE_TOTAL_SIZE - 1)
-
-extern uint8_t WedgeMsgQueInit(void);
-extern uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell);
-extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell);
-
 typedef enum
 {
     WEDGE_RTC_TIMER_INVALID = 0,
