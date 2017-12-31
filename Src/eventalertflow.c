@@ -10,6 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "eventalertflow.h"
 #include "eventmsgque_process.h"
+#include "wedgertctimer.h"
 #include "ublox_driver.h"
 #include "iocontrol.h"
 

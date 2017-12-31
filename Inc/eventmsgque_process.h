@@ -138,56 +138,6 @@ extern uint8_t WedgeFlashEraseSector(uint32_t address);
 extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
-typedef enum
-{
-    WEDGE_RTC_TIMER_INVALID = 0,
-    WEDGE_RTC_TIMER_PERIODIC,
-    WEDGE_RTC_TIMER_ONETIME,
-
-    WEDGE_RTC_TIMER_MAX
-} WEDGERTCTimerTypeDef;
-
-typedef enum
-{
-    Periodic_Moving_Event = 0,
-    Periodic_OFF_Event,
-    Periodic_Health_Event,
-    Stop_Report_Onetime_Event,
-    Periodic_Hardware_Reset_Onetime,
-
-    WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX
-} WEDGERTCTimerInstanceTypeDef;
-
-typedef struct
-{
-    WEDGERTCTimerTypeDef RTCTimerType;
-    WEDGERTCTimerInstanceTypeDef RTCTimerInstance;
-    uint32_t settime;
-} RTCTimerListCellTypeDef;
-
-#define WEDGE_RTC_TIMER_INSTANCE_MAX (16)
-typedef struct
-{
-    uint8_t instancenum;
-    RTCTimerListCellTypeDef currentinstance;
-    RTCTimerListCellTypeDef instancearray[WEDGE_RTC_TIMER_INSTANCE_MAX];
-} RTCTimerListTypeDef;
-
-typedef enum
-{
-    WEDGE_RTC_TIMER_MODIFY_INCREASE = 0,
-    WEDGE_RTC_TIMER_MODIFY_DECREASE,
-
-    WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
-} WEDGERTCTimerSettimeTypeDef;
-
-extern uint32_t WedgeRtcCurrentSeconds(void);
-extern uint8_t WedgeRtcTimerInit(void);
-extern uint8_t WedgeRtcHwrstPowerLostJudge(void);
-extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
-extern uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType);
-extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType);
-
 #ifdef __cplusplus
 }
 #endif

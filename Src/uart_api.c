@@ -53,6 +53,7 @@ DebugCtlPrarm DbgCtl =
 		.LteRecDbgInfoEn = FALSE,
 		.WedgeMsgQueInfoEn = TRUE,
 		.WedgeEvtMsgQueInfoEn = TRUE,
+		.WedgeRtcTimerInfoEn = TRUE,
 		.WedgeEvtAlrtFlwInfoEn = TRUE,
 };
 
