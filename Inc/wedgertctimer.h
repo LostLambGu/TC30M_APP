@@ -20,7 +20,7 @@ extern "C" {
 
 #include "wedgedatadefine.h"
 
-#define WEDGE_RTC_TIMER_INSTANCE_MAX (16)
+#define WEDGE_RTC_TIMER_INSTANCE_MAX (8)
 
 typedef enum
 {
@@ -64,6 +64,8 @@ typedef enum
     WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
 } WEDGERTCTimerSettimeTypeDef;
 
+extern void WedgeSetRTCAlarmStatus(uint8_t Status);
+extern uint8_t WedgeGetRTCAlarmStatus(void);
 extern uint32_t WedgeRtcCurrentSeconds(void);
 extern uint8_t WedgeRtcTimerInit(void *pRTCTimerList);
 extern uint8_t WedgeRtcHwrstPowerLostJudge(void);

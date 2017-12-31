@@ -5,6 +5,7 @@ void WedgeRtcTimerTest(void)
     RTCTimerListCellTypeDef Cell1;
     RTCTimerListCellTypeDef Cell2;
     RTCTimerListCellTypeDef Cell3;
+    RTCTimerListCellTypeDef Cell4;
     RPTINTVLTypeDef RPTINTVL;
     uint32_t curtime = WedgeRtcCurrentSeconds();
 
@@ -20,8 +21,12 @@ void WedgeRtcTimerTest(void)
     Cell3.RTCTimerInstance = Periodic_Health_Event;
     Cell3.settime = curtime + 2;
 
-    RPTINTVL.ionint = 1;
-    RPTINTVL.ioffint = 1;
+    Cell4.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
+    Cell4.RTCTimerInstance = Periodic_OFF_Event;
+    Cell4.settime = curtime + 3;
+
+    RPTINTVL.ionint = 10;
+    RPTINTVL.ioffint = 10;
     RPTINTVL.perint = 20;
     WedgeCfgSet(WEDGE_CFG_RPTINTVL, &RPTINTVL);
 
@@ -50,6 +55,15 @@ void WedgeRtcTimerTest(void)
     else
     {
         DebugLog("WedgeRtcTimerInstanceAdd(Cell3) err");
+    }
+
+    if (0 == WedgeRtcTimerInstanceAdd(Cell4))
+    {
+        DebugLog("WedgeRtcTimerInstanceAdd(Cell4) OK");
+    }
+    else
+    {
+        DebugLog("WedgeRtcTimerInstanceAdd(Cell4) err");
     }
 
     DebugLog("WedgeRtcTimerTest Start!");
