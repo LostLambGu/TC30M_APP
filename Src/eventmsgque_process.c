@@ -884,6 +884,7 @@ uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell)
             MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM;
         }
         MQSTAT.queinindex++;
+        MQSTAT.queinindex %= WEDGE_MSG_QUE_TOTAL_NUM;
         WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
 
         EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash QueIn ok",
@@ -967,7 +968,21 @@ uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell)
         }
         else if (pQueCell->sentstate == WEDGE_MSG_QUE_SENT)
         {
-            MQSTAT.unsent++;
+            if (MQSTAT.sent >= WEDGE_MSG_QUE_TOTAL_NUM)
+            {
+                outindex--;
+                MQSTAT.sent = WEDGE_MSG_QUE_TOTAL_NUM;
+                MQSTAT.queoutindex = outindex % WEDGE_MSG_QUE_TOTAL_NUM;
+            }
+            else
+            {
+                MQSTAT.unsent++;
+                if ((MQSTAT.unsent + MQSTAT.sent) >= WEDGE_MSG_QUE_TOTAL_NUM)
+                {
+                    MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM - MQSTAT.sent;
+                }
+            }
+            
             WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
 
             EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] %s5",
