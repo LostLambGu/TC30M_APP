@@ -94,13 +94,13 @@ uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)
 {
     uint8_t Index = 0, ret = 0;
     RTCTimerListCellTypeDef tmpinstance;
-    char *WedgeRtcTimerInstanceAddErrStr = "WEDGE RTC Timer Add Insert err";
+    char *WedgeRtcTimerInstanceAddErrStr = "WEDGE RTC Timer Add";
 
     // WedgeRtcTimerInstanceInsert has Param check
     ret = WedgeRtcTimerInstanceInsert(Instance);
     if (ret)
     {
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s%d",
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s Insert err%d",
 				FmtTimeShow(), WedgeRtcTimerInstanceAddErrStr, ret);
         return 1;
     }
@@ -108,21 +108,37 @@ uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)
     ret = WedgeRtcTimerFetchMinInArray(&tmpinstance, &Index);
     if (ret)
     {
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s%d",
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s Fetch err%d",
 				FmtTimeShow(), WedgeRtcTimerInstanceAddErrStr, ret);
-        return 2;
+
+        if (ret != 3)
+        {
+            return 2;
+        }
     }
     
-    if (tmpinstance.settime < (RTCTimerList.currentinstance).settime)
+    if (ret == 3)
     {
-        RTCTimerList.instancearray[Index] = RTCTimerList.currentinstance;
-        RTCTimerList.currentinstance = tmpinstance;
-    }
 
+    }
+    else
+    {
+        // Need this condition?
+        if ((RTCTimerList.currentinstance.RTCTimerType == WEDGE_RTC_TIMER_INVALID) || (RTCTimerList.currentinstance.RTCTimerType >= WEDGE_RTC_TIMER_MAX))
+        {
+            RTCTimerList.currentinstance = tmpinstance;
+        }
+        else if (tmpinstance.settime < (RTCTimerList.currentinstance).settime)
+        {
+            RTCTimerList.instancearray[Index] = RTCTimerList.currentinstance;
+            RTCTimerList.currentinstance = tmpinstance;
+        }
+    }
+    
     ret = WedgeRtcTimerInstanceAlarmRefresh();
     if (ret)
     {
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s%d",
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s Refresh err%d",
 				FmtTimeShow(), WedgeRtcTimerInstanceAddErrStr, ret);
         return 3;
     }
@@ -134,6 +150,7 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
 {
     uint8_t i = 0, Index = 0, ret = 0;
     RTCTimerListCellTypeDef tmpinstance;
+    char *WedgeRtcTimerInstanceDelErrStr = "WEDGE RTC Timer Del";
 
     if (InstanceType >= WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX)
     {
@@ -163,8 +180,8 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
         ret = WedgeRtcTimerFetchMinInArray(&tmpinstance, &Index);
         if (ret)
         {
-            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE RTC Timer Del Fetch err%d",
-                                      FmtTimeShow(), ret);
+            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s Fetch err%d",
+                                      FmtTimeShow(), WedgeRtcTimerInstanceDelErrStr, ret);
             return 3;
         }
 
@@ -174,8 +191,8 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
         ret = WedgeRtcTimerInstanceAlarmRefresh();
         if (ret)
         {
-            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE RTC Timer Del Refresh err%d",
-                                      FmtTimeShow(), ret);
+            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s Refresh err%d",
+                                      FmtTimeShow(), WedgeRtcTimerInstanceDelErrStr, ret);
             return 4;
         }
     }
@@ -234,32 +251,64 @@ uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef M
     return 0;
 }
 
+uint8_t WedgeRtcTimerPeriodOverProcess(RTCTimerListCellTypeDef RTCTimerListCell, uint32_t Period)
+{
+    if (RTCTimerListCell.RTCTimerType == WEDGE_RTC_TIMER_ONETIME)
+    {
+        if (0 != WedgeRtcTimerInstanceDel(RTCTimerListCell.RTCTimerInstance))
+        {
+            return 1;
+        }
+    }
+    else if (RTCTimerListCell.RTCTimerType == WEDGE_RTC_TIMER_PERIODIC)
+    {
+        if (Period == 0)
+        {
+            return 2;
+        }
+
+        RTCTimerListCell.settime += Period;
+       if (0 != WedgeRtcTimerInstanceAdd(RTCTimerListCell))
+       {
+           return 3;
+       }
+
+       return 0;
+    }
+    else
+    {
+        return 4;
+    }
+}
+
+// #define WEDGE_MINUTE_TO_SECOND_FACTOR (60)
+#define WEDGE_MINUTE_TO_SECOND_FACTOR (1) /* Just for test! */
 void WedgeRTCTimerEventProcess(void)
 {
     RTCTimerListCellTypeDef currentinstance;
     uint8_t ret = 0;
+    uint32_t Period = 0;
+    char *WedgeRTCTimerEventProcessStr = " WEDGE RTC Timer ";
 
     if (WedgeGetRTCAlarmStatus() == FALSE)
     {
         return;
     }
 
+    WedgeSetRTCAlarmStatus(FALSE);
     memset(&currentinstance, 0, sizeof(currentinstance));
     currentinstance = WedgeRTCGetCurrentInstance();
-    WedgeSetRTCAlarmStatus(FALSE);
-
-    ret = WedgeRtcTimerInstanceAlarmRefresh();
-    if (ret == 0)
-    {
-        return;
-    }
 
     switch (currentinstance.RTCTimerInstance)
     {
     case Periodic_Moving_Event:
     {
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE RTC Timer Process: %d",
-                                  FmtTimeShow(), Periodic_Moving_Event);
+        RPTINTVLTypeDef RPTINTVL;
+
+        RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
+        Period = RPTINTVL.perint * WEDGE_MINUTE_TO_SECOND_FACTOR;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Moving_Event",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
     }
         break;
 
@@ -267,17 +316,37 @@ void WedgeRTCTimerEventProcess(void)
         break;
 
     case Periodic_Health_Event:
+        RPTINTVLTypeDef RPTINTVL;
+
+        RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
+        Period = RPTINTVL.perint * WEDGE_MINUTE_TO_SECOND_FACTOR;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Health_Event",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
         break;
 
     case Stop_Report_Onetime_Event:
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sStop_Report_Onetime_Event",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
         break;
 
     case Periodic_Hardware_Reset_Onetime:
         break;
 
     default:
-        break;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sProcess err",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        return;
     }
+
+    ret = WedgeRtcTimerPeriodOverProcess(currentinstance, Period);
+    if (0 != ret)
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%s PeriodOver err%d",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
+        return;
+    }
+    WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sProcess Ok",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
 }
 
 static uint8_t WedgeRtcTimerInstanceInsert(RTCTimerListCellTypeDef Instance)
@@ -317,6 +386,11 @@ static uint8_t WedgeRtcTimerInstanceInsert(RTCTimerListCellTypeDef Instance)
     if ((RTCTimerList.currentinstance).RTCTimerInstance == Instance.RTCTimerInstance)
     {
         RTCTimerList.currentinstance = Instance;
+
+        if (RTCTimerList.instancenum == 0)
+        {
+            RTCTimerList.instancenum++;
+        }
         return 0;
     }
 
@@ -388,14 +462,10 @@ static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
 
     if ((RTCTimerList.currentinstance).settime <= curseconds)
     {
-
-
-
-
-
-
-
-        return 4;
+        // This may cause a difference between atctual and wanted
+        setseconds = curseconds - RTCTimerList.currentinstance.settime;
+        WedgeRtcTimerModifySettime((setseconds < 1) ? 1 : setseconds, WEDGE_RTC_TIMER_MODIFY_INCREASE);
+        // return 4;
     }
 
     setseconds = (RTCTimerList.currentinstance).settime - curseconds;

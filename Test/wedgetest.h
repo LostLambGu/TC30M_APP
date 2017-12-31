@@ -5,5 +5,6 @@
 #include "eventmsgque_process.h"
 #include "flash.h"
 #include "eventalertflow.h"
+#include "wedgertctimer.h"
 
 #endif /*WEDGE_TEST_H*/
