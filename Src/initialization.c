@@ -209,6 +209,9 @@ void SystemInitialization(void)
 	//Set RTC time using compile time
 	CompileSetRTCTime();
 
+	// Spi Flash Init
+	SerialFlashInit();
+
 	// Ublox Init
 	UbloxI2cInit();
 
