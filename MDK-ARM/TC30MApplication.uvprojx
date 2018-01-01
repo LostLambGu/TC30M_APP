@@ -674,6 +674,16 @@
               <FileType>1</FileType>
               <FilePath>..\Src\lis3dh_driver.c</FilePath>
             </File>
+            <File>
+              <FileName>wedgemsgque.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgemsgque.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgertctimer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgertctimer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -698,6 +708,11 @@
               <FileName>wedgemsgquetest.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Test\wedgemsgquetest.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgertctimertest.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Test\wedgertctimertest.c</FilePath>
             </File>
           </Files>
         </Group>

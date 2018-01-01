@@ -8,6 +8,7 @@ void WedgeRtcTimerTest(void)
     RTCTimerListCellTypeDef Cell4;
     RPTINTVLTypeDef RPTINTVL;
     uint32_t curtime = WedgeRtcCurrentSeconds();
+    uint32_t i = 0;
 
     Cell1.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Cell1.RTCTimerInstance = Periodic_Moving_Event;
@@ -70,5 +71,12 @@ void WedgeRtcTimerTest(void)
     while (1)
     {
         WedgeRTCTimerEventProcess();
+        i++;
+
+        if (i % 0xffff == 0)
+        {
+            WedgeRtcTimerInstanceDel(Periodic_Health_Event);
+            WedgeRtcTimerInstanceDel(Stop_Report_Onetime_Event);
+        }
     }
 }

@@ -239,6 +239,7 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
             {
                 (RTCTimerList.instancearray[i]).RTCTimerType = WEDGE_RTC_TIMER_INVALID;
                 RTCTimerList.instancenum--;
+                return 0;
             }
         }
     }
@@ -255,6 +256,7 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
 
         RTCTimerList.currentinstance = tmpinstance;
         (RTCTimerList.instancearray[Index]).RTCTimerType = WEDGE_RTC_TIMER_INVALID;
+        RTCTimerList.instancenum--;
 
         ret = WedgeRtcTimerInstanceAlarmRefresh();
         if (ret)
@@ -263,10 +265,12 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
                                       FmtTimeShow(), WedgeRtcTimerInstanceDelErrStr, ret);
             return 4;
         }
+        return 0;
     }
 
-    return 0;
-    
+    WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] %s No Timer Instance:%d",
+                                      FmtTimeShow(), WedgeRtcTimerInstanceDelErrStr, InstanceType);
+    return 5;
 }
 
 uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType)
@@ -430,6 +434,8 @@ static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
     uint32_t curseconds = WedgeRtcCurrentSeconds();
     uint32_t setseconds = 0;
 
+
+    // If there is no instance in RTC Timer list , there is no instance type check, this may cause bugs(Luckyly this is at least on instance.)
     if ((RTCTimerList.currentinstance).settime <= curseconds)
     {
         // This may cause a difference between atctual and wanted
