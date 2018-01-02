@@ -412,11 +412,11 @@ ARM Macro Assembler    Page 7
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0 --apcs=interw
 ork --depend=tc30mapplication\startup_stm32f091xc.d -otc30mapplication\startup_
-stm32f091xc.o -I.\RTE\_TC30MApplication -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\5.0.1\C
-MSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F0xx_DFP\1.5.0\Device\Include --pr
-edefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 523" --predefin
-e="_RTE_ SETA 1" --predefine="STM32F091xC SETA 1" --list=startup_stm32f091xc.ls
-t startup_stm32f091xc.s
+stm32f091xc.o -IF:\work\STM32\TC30M\SOURCE\TC30MApplication\MDK-ARM\RTE -IC:\Ke
+il_v5\ARM\PACK\ARM\CMSIS\5.1.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\STM32F0
+xx_DFP\1.5.0\Device\Include --predefine="__MICROLIB SETA 1" --predefine="__UVIS
+ION_VERSION SETA 516" --predefine="_RTE_ SETA 1" --predefine="STM32F091xC SETA 
+1" --list=startup_stm32f091xc.lst startup_stm32f091xc.s
 
 
 

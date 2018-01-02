@@ -14,6 +14,14 @@
 #include "eventalertflow.h"
 #include "eventmsgque_process.h"
 
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
 #define WEDGE_MSGQUE_PRINT DebugPrintf
 
 #define WEDGE_MSG_QUE_HEAD_SZIE_BYTES (sizeof(WEDGEMsgQueCellHeadTypeDef))
@@ -522,7 +530,6 @@ uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell)
         return 7;
     }
 }
-
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
