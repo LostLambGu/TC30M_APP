@@ -79,6 +79,7 @@ typedef enum
 } WEDGECfgOperateTypeDef;
 
 extern uint8_t WedgeCfgInit(void);
+extern void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
 extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
 

@@ -68,7 +68,7 @@ extern void WedgeSetRTCAlarmStatus(uint8_t Status);
 extern uint8_t WedgeGetRTCAlarmStatus(void);
 extern uint32_t WedgeRtcCurrentSeconds(void);
 extern uint8_t WedgeRtcTimerInit(void *pRTCTimerList);
-extern uint8_t WedgeRtcHwrstPowerLostJudge(void);
+extern void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize);
 extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
 extern uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType);
 extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType);

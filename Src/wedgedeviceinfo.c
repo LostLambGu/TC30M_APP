@@ -10,7 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgedeviceinfo.h"
 #include "eventmsgque_process.h"
-#include "flash.h"
+#include "wedgertctimer.h"
 
 /* Defines ------------------------------------------------------------------*/
 #ifndef FALSE
@@ -165,6 +165,186 @@ uint8_t WedgeIsStartFromPowerLost(void)
 
     return ret;
 }
+
+static uint32_t WedgeDeviceInfoAddr = 0;
+static uint32_t WedgeDeviceInfoAddrGet(void)
+{
+    return WedgeDeviceInfoAddr;
+}
+
+static void WedgeDeviceInfoAddrSet(uint32_t address)
+{
+    WedgeDeviceInfoAddr = address;
+}
+
+static uint8_t WedgeDeviceInfoEraseTotal(void)
+{
+    int32_t k = 0;
+    uint32_t address = 0;
+
+    for (k = 0; k < (WEDGE_DEVICE_INFO_TOTAL_SIZE / WEDGE_STORAGE_SECTOR_SIZE); k++)
+    {
+        address = (WEDGE_DEVICE_INFO_START_ADDR + k * WEDGE_STORAGE_SECTOR_SIZE) & (~WEDGE_STORAGE_SECTOR_ALIGN_MASK);
+        if (0 != WedgeFlashEraseSector(address))
+        {
+            return 1;
+        }
+    }
+
+    WedgeDeviceInfoAddrSet(WEDGE_DEVICE_INFO_START_ADDR);
+
+    return 0;
+}
+
+uint8_t WedgeDeviceInfoWrite(uint8_t *pDeviceInfo, uint32_t infosize)
+{
+    uint32_t address = 0;
+    WEDGEDeviceInfoHeadTypedef writebuf = {0};
+    char *WedgeDeviceInfoWriteErrStr = "WEDGE Device Info Write";
+
+    if ((pDeviceInfo == NULL) || (infosize == 0))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Param Err",
+                             FmtTimeShow(), WedgeDeviceInfoWriteErrStr);
+        return 0xFE;
+    }
+
+    address = WedgeDeviceInfoAddrGet();
+    writebuf.timestamp = WedgeRtcCurrentSeconds();
+    writebuf.verifydata = WEDGE_DEVICE_INFO_VERIFY;
+
+    if (0 != WedgeFlashWriteData(address, (uint8_t *)&writebuf, sizeof(WEDGEDeviceInfoHeadTypedef)))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err1",
+                             FmtTimeShow(), WedgeDeviceInfoWriteErrStr);
+        return 1;
+    }
+
+    if (0 != WedgeFlashWriteData(address + sizeof(WEDGEDeviceInfoHeadTypedef), pDeviceInfo, infosize))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err2",
+                             FmtTimeShow(), WedgeDeviceInfoWriteErrStr);
+        return 2;
+    }
+
+    return 0;
+}
+
+uint8_t WedgeDeviceInfoRead(uint8_t *pDeviceInfo, uint32_t infosize)
+{
+    uint32_t address = 0;
+    int32_t i = 0, loops = 0;
+    WEDGEDeviceInfoHeadTypedef readbuf = {0};
+    WEDGEDeviceInfoHeadTypedef readbuftmp = {0};
+    char *WedgeDeviceInfoReadErrStr = "WEDGE Device Info Read";
+
+    if ((pDeviceInfo == NULL) || (infosize == 0))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Param Err",
+                             FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+        return 0xFE;
+    }
+
+    loops = WEDGE_DEVICE_INFO_TOTAL_SIZE / WEDGE_DEVICE_INFO_CELL_SIZE_BYTES;
+
+    memset(&readbuftmp, 0, sizeof(readbuftmp));
+    if (0 != WedgeFlashReadData(WEDGE_DEVICE_INFO_START_ADDR + (i * WEDGE_DEVICE_INFO_CELL_SIZE_BYTES)
+        , (uint8_t *)&readbuftmp, sizeof(readbuftmp)))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err1",
+                             FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+        return 1;
+    }
+    address = WEDGE_DEVICE_INFO_START_ADDR + (i * WEDGE_DEVICE_INFO_CELL_SIZE_BYTES);
+    if ((readbuftmp.verifydata == WEDGE_DEVICE_INFO_DEFAULT) && (readbuftmp.timestamp == WEDGE_DEVICE_INFO_DEFAULT))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s No Info",
+                             FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+        WedgeDeviceInfoAddrSet(WEDGE_DEVICE_INFO_START_ADDR);
+        return 0xFF;
+    }
+
+    if ((readbuftmp.verifydata != WEDGE_DEVICE_INFO_VERIFY) && (readbuftmp.verifydata != WEDGE_DEVICE_INFO_DEFAULT))
+    {
+        if (0 != WedgeDeviceInfoEraseTotal())
+        {
+            WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Device Info Section Init Err",
+                                 FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+            return 0xFD;
+        }
+    }
+
+    for (i = 1; i < loops; i++)
+    {
+        memset(&readbuf, 0, sizeof(readbuf));
+        if (0 != WedgeFlashReadData(WEDGE_DEVICE_INFO_START_ADDR + (i * WEDGE_DEVICE_INFO_CELL_SIZE_BYTES)
+            , (uint8_t *)&readbuf, sizeof(readbuf)))
+        {
+            WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err2",
+                                      FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+            return 2;
+        }
+
+        if ((readbuf.verifydata == WEDGE_DEVICE_INFO_DEFAULT) && (readbuf.timestamp == WEDGE_DEVICE_INFO_DEFAULT))
+        {
+            break;
+        }
+        else if (readbuf.verifydata == WEDGE_DEVICE_INFO_VERIFY)
+        {
+            if (readbuftmp.timestamp <= readbuf.timestamp)
+            {
+                readbuftmp = readbuf;
+                address = WEDGE_DEVICE_INFO_START_ADDR + (i * WEDGE_DEVICE_INFO_CELL_SIZE_BYTES);
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+        else
+        {
+            WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err3",
+                                   FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+            if (0 != WedgeDeviceInfoEraseTotal())
+            {
+                WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err4",
+                                   FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+                return 4;
+            }
+            return 3;
+        }
+    }
+
+    if (0 != WedgeFlashReadData(address + sizeof(WEDGEDeviceInfoHeadTypedef), (uint8_t *)pDeviceInfo, infosize))
+    {
+        WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err5",
+                             FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+        return 5;
+    }
+
+    address += WEDGE_DEVICE_INFO_CELL_SIZE_BYTES;
+    
+    if (address >= WEDGE_DEVICE_INFO_END_ADDR)
+    {
+        address = WEDGE_DEVICE_INFO_START_ADDR;
+    }
+
+    if ((address % WEDGE_STORAGE_SECTOR_SIZE) == 0)
+    {
+        if (0 != WedgeFlashEraseSector(address))
+        {
+            WEDGE_DEV_INFO_PRINT(DbgCtl.WedgeDeviceInfoEn, "\r\n[%s] %s Err6",
+                             FmtTimeShow(), WedgeDeviceInfoReadErrStr);
+            return 6;
+        }
+    }
+
+    WedgeDeviceInfoAddrSet(address);
+
+    return 0;
+}
+
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved

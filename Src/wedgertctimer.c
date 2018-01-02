@@ -144,6 +144,17 @@ uint8_t WedgeRtcTimerInit(void *pRTCTimerList)
 	return 1;
 }
 
+void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize)
+{
+    if ((pBuf == NULL) || (pSize == NULL))
+    {
+        return;
+    }
+
+    memcpy(pBuf, &RTCTimerList, sizeof(RTCTimerList));
+    *pSize = sizeof(RTCTimerList);
+}
+
 uint8_t WedgeRtcHwrstPowerLostJudge(void)
 {
 

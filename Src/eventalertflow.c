@@ -11,7 +11,6 @@
 #include "eventalertflow.h"
 #include "eventmsgque_process.h"
 #include "wedgertctimer.h"
-#include "flash.h"
 #include "ublox_driver.h"
 #include "iocontrol.h"
 
@@ -32,6 +31,17 @@ static WEDGESysStateTypeDef WEDGESysState;
 uint8_t WedgeSysStateInit(void)
 {
     return TRUE;
+}
+
+void WedgeSysStateGetTotal(uint8_t *pBuf, uint32_t *pSize)
+{
+    if ((pBuf == NULL) || (pSize == NULL))
+    {
+        return;
+    }
+
+    memcpy(pBuf, &WEDGESysState, sizeof(WEDGESysState));
+    *pSize = sizeof(WEDGESysState);
 }
 
 void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)

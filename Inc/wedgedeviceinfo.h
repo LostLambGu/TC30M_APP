@@ -21,6 +21,18 @@ extern "C" {
 
 /* Defines ------------------------------------------------------------------*/
 
+extern uint8_t WedgeSetPowerLostBeforeReset(void);
+extern uint8_t WedgeIsStartFromPowerLost(void);
+
+typedef struct
+{
+    uint32_t timestamp;
+    uint32_t verifydata;
+} WEDGEDeviceInfoHeadTypedef;
+
+extern uint8_t WedgeDeviceInfoWrite(uint8_t *pDeviceInfo, uint32_t infosize);
+extern uint8_t WedgeDeviceInfoRead(uint8_t *pDeviceInfo, uint32_t infosize);
+
 #ifdef __cplusplus
 }
 #endif

@@ -43,6 +43,17 @@ void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
     
 }
 
+void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize)
+{
+    if ((pBuf == NULL) || (pSize == NULL))
+    {
+        return;
+    }
+
+    memcpy(pBuf, &WEDGECfgRecord, sizeof(WEDGECfgRecord));
+    *pSize = sizeof(WEDGECfgRecord);
+}
+
 void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet)
 {
     switch (CfgGet)

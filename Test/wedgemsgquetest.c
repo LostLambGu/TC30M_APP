@@ -1,6 +1,8 @@
 #include "wedgetest.h"
 #include "wedgemsgque.h"
 
+#if WEDGE_MSG_QUE_TEST
+
 void SFlashMsgQueInitTest(void)
 {
     MQSTATTypeDef MQSTAT = {0};
@@ -118,3 +120,5 @@ void SFlashMsgQueInitTest(void)
         , i, MQSTAT.unsent, MQSTAT.sent, MQSTAT.queinindex, MQSTAT.queoutindex);
     }
 }
+
+#endif

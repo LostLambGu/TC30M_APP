@@ -10,7 +10,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgemsgque.h"
 #include "rtcclock.h"
-#include "flash.h"
 #include "eventalertflow.h"
 #include "eventmsgque_process.h"
 

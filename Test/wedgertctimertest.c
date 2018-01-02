@@ -1,5 +1,7 @@
 #include "wedgetest.h"
 
+#if WEDGE_RTC_TIMER_TEST
+
 void WedgeRtcTimerTest(void)
 {
     RTCTimerListCellTypeDef Cell1;
@@ -80,3 +82,5 @@ void WedgeRtcTimerTest(void)
         }
     }
 }
+
+#endif

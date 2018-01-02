@@ -1,5 +1,6 @@
 #include "wedgetest.h"
-#include "flash.h"
+
+#if WEDGE_POWER_LOST_TEST
 
 void WedgePowerLostTest(void)
 {
@@ -104,3 +105,5 @@ void WedgePowerLostTest(void)
     DebugLog("MCUReset");
     MCUReset();
 }
+
+#endif
