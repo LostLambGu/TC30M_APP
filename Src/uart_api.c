@@ -56,6 +56,7 @@ DebugCtlPrarm DbgCtl =
 		.WedgeDeviceInfoEn = TRUE,
 		.WedgeRtcTimerInfoEn = TRUE,
 		.WedgeEvtAlrtFlwInfoEn = TRUE,
+		.WedgeApplicationInfoEn = TRUE,
 };
 
 /* Function definition -------------------------------------------------------*/

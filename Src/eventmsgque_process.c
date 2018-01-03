@@ -31,6 +31,31 @@ static AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
 static WEDGECfgTypeDef WEDGECfgRecord = {0};
 static WEDGECfgChgStateTypedef WEDGECfgState = {0};
 
+const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
+{
+    .IGNTYPE = {.itype = 0,},
+    .RPTINTVL = {.ionint = 0, .ioffint = 0, .perint = 10080},
+    .IOALRM1 = {.ioen = 0, .iodbnc = 5},
+    .IOALRM2 = {.ioen = 0, .iodbnc = 5},
+    .LVA = {.battlvl = 11.5},
+    .IDLE = {.duration = 0},
+    .SODO = {.meters = 0},
+    .VODO = {.meters = 0},
+    .DIRCHG = {.deg = 0},
+    .TOW = {.enable = 0, .radius = 0},
+    .STPINTVL = {.interval = 0},
+    .GFNC = {0},
+    .RELAY = {.state = 0},
+    .OSPD = {.units = 1, .speed = 0, .debounce = 0},
+    .PLSRLY = {.pw = 0, .ps = 0, .count = 0, .evid = 0},
+    .PWRMGT = {.mode = 0},
+    .HWRST = {.interval = 480},
+    .USRDAT = {.data = ""},
+    .SMS = {.sms_1 = "42818", .sms_2 = "", .sms_3 = ""},
+    .SVRCFG = {.port = 14180, .prot = 1, .reg = 1, .srvr1 = "192.168.10.67", .srvr2 = "", .srvr3 = "", .srvr4 = "", .srvr5 = ""},
+    .FTPCFG = {.reserved = 0},
+    .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""}
+};
 /* Function definition -------------------------------------------------------*/
 
 void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
@@ -43,6 +68,21 @@ void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
     
 }
 
+void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg)
+{
+    memset(&WEDGECfgRecord, 0, sizeof(WEDGECfgTypeDef));
+    if (pWEDGECfg == NULL)
+    {
+        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Init Default");
+        WEDGECfgRecord = WEDGECfgFactoryDefaultOnChip;
+    }
+    else
+    {
+        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Init");
+        WEDGECfgRecord = *pWEDGECfg;
+    }
+}
+
 void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize)
 {
     if ((pBuf == NULL) || (pSize == NULL))
@@ -52,6 +92,34 @@ void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize)
 
     memcpy(pBuf, &WEDGECfgRecord, sizeof(WEDGECfgRecord));
     *pSize = sizeof(WEDGECfgRecord);
+}
+
+void WedgeCfGetDefaultOnChip(uint8_t *pBuf, uint32_t *pSize)
+{
+    if ((pBuf == NULL) || (pSize == NULL))
+    {
+        return;
+    }
+
+    memcpy(pBuf, &WEDGECfgFactoryDefaultOnChip, sizeof(WEDGECfgFactoryDefaultOnChip));
+    *pSize = sizeof(WEDGECfgFactoryDefaultOnChip);
+}
+
+uint16_t WedgeGetGeofenceBitMap(void)
+{
+    uint8_t i = 0;
+    uint16_t bitmap = 0;
+
+    for (i = 0; i < GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX; i++)
+    {
+        if ((WEDGECfgRecord.GFNC[i]).index != 0 
+        && (WEDGECfgRecord.GFNC[i]).index <= GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX)
+        {
+            bitmap |= (0x01 << i);
+        }
+    }
+
+    return bitmap;
 }
 
 void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet)
@@ -284,19 +352,14 @@ uint8_t WedgeCfgChgStateIsChanged(void)
     return WEDGECfgState.CfgChgNum;
 }
 
-uint8_t WedgeCfgChgStateGet(void)
+uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg)
 {
+    if (CfgChg >= CFG_CHG_INVALIAD_MAX)
+    {
+        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Chg Get Param Err");
+    }
 
-
-
-
-
-
-
-
-
-
-	return 0;
+	return WEDGECfgState.CfgChgState[CfgChg];
 }
 
 static void BytesOrderSwap(uint8_t *pBuf, uint16_t num)

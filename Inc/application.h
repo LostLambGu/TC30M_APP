@@ -41,8 +41,14 @@ extern "C" {
 #define APP_LOG DebugLog
 #define APP_PRINT DebugPrintf
 
-extern void ApplicationProcess(void);
+typedef struct
+{
+    WEDGECfgTypeDef WEDGECfg;
+    WEDGESysStateTypeDef WEDGESysState;
+    RTCTimerListTypeDef RTCTimerList;
+} WEDGEDeviceInfoTypeDef;
 
+extern void ApplicationProcess(void);
 
 #ifdef __cplusplus
 }

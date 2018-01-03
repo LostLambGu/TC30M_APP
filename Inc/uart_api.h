@@ -67,6 +67,7 @@ typedef struct
     uint8_t WedgeDeviceInfoEn;
     uint8_t WedgeRtcTimerInfoEn;
     uint8_t WedgeEvtAlrtFlwInfoEn;
+    uint8_t WedgeApplicationInfoEn;
 } DebugCtlPrarm;
 
 extern DebugCtlPrarm DbgCtl;

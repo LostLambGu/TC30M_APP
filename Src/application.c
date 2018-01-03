@@ -10,12 +10,25 @@
 /* Includes ------------------------------------------------------------------*/
 #include "application.h"
 
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
+#endif
+
+static uint8_t WedgeIsPowerLost = FALSE;
 static void WedgeInit(void);
+static void WedgeUdpInit(void);
 static void WedgeIgnitionStateProcess(void);
+static void WedgeCfgChgStateProcess(void);
+static void WedgeMsgQueProcess(void);
 
 void ApplicationProcess(void)
 {
     WedgeInit();
+
     while (1)
     {
         // Debug Info
@@ -30,12 +43,148 @@ void ApplicationProcess(void)
         WedgeIgnitionStateProcess();
         // Wedge Configuration Change Process
         WedgeCfgChgStateProcess();
+        // Wedge Msg Que Process
+        WedgeMsgQueProcess();
     }
+}
+
+void WedgeIsPowerLostSet(uint8_t Status)
+{
+    WedgeIsPowerLost = Status;
+}
+
+uint8_t WedgeIsPowerLostGet(void)
+{
+    return WedgeIsPowerLost;
 }
 
 static void WedgeInit(void)
 {
+    uint8_t ret = FALSE;
+    WEDGEDeviceInfoTypeDef WEDGEDeviceInfo;
+    char *WedgeInitStr = " WEDGE Init ";
 
+    ret = WedgeIsStartFromPowerLost();
+    if (ret != FALSE)
+    {
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sFrom Power Lost",
+                                      FmtTimeShow(), WedgeInitStr);
+        WedgeIsPowerLostSet(TRUE);
+    }
+    else
+    {
+        WedgeIsPowerLostSet(FALSE);
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s",
+                                      FmtTimeShow(), WedgeInitStr);
+    }
+
+    memset(&WEDGEDeviceInfo, 0, sizeof(WEDGEDeviceInfo));
+    if (0 == WedgeDeviceInfoRead((uint8_t *)&WEDGEDeviceInfo, sizeof(WEDGEDeviceInfo)))
+    {
+        // Normal
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDevice Info Read",
+                                      FmtTimeShow(), WedgeInitStr);
+
+        WedgeCfgInit(&(WEDGEDeviceInfo.WEDGECfg));
+
+        WedgeSysStateInit(&(WEDGEDeviceInfo.WEDGESysState));
+
+        WedgeRtcTimerInit(&(WEDGEDeviceInfo.RTCTimerList));
+    }
+    else
+    {
+        // Abnormal
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDevice Info Not Read",
+                                      FmtTimeShow(), WedgeInitStr);
+
+        WedgeCfgInit(NULL);
+
+        WedgeSysStateInit(NULL);
+
+        WedgeRtcTimerInit(NULL);
+    }
+
+    WedgeCfgChgStateInit();
+
+    WedgeMsgQueInit();
+
+    WedgeUdpInit();
+}
+
+static void WedgeUdpInit(void)
+{
+    #define SVRCFG_UDP (1)
+    #define SVRCFG_MAX_UDP_NUM (5)
+    SVRCFGTypeDef SVRCFG;
+    uint8_t i = 0;
+
+    memset(&SVRCFG, 0, sizeof(SVRCFG));
+
+    SVRCFG = *((SVRCFGTypeDef *)WedgeCfgGet(WEDGE_CFG_SVRCFG));
+
+    if (SVRCFG.prot != SVRCFG_UDP)
+    {
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Init Not Udp",
+                                      FmtTimeShow());
+        return;
+    }
+
+    for (i = 0; i < SVRCFG_MAX_UDP_NUM; i++)
+    {
+        WedgeOpenUdpSocket(&SVRCFG, i + 1);
+    }
+}
+
+void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
+{
+    if (pSVRCFG == NULL)
+    {
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err1",
+                  FmtTimeShow());
+    }
+
+    switch(socketnum)
+    {
+    case 1:
+        if (strlen(pSVRCFG->srvr1) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(1, 1111, pSVRCFG->srvr1, pSVRCFG->port);
+        }
+        break;
+
+    case 2:
+        if (strlen(pSVRCFG->srvr2) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(2, 2222, pSVRCFG->srvr2, pSVRCFG->port);
+        }
+        break;
+
+    case 3:
+        if (strlen(pSVRCFG->srvr3) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(3, 3333, pSVRCFG->srvr3, pSVRCFG->port);
+        }
+        break;
+
+    case 4:
+        if (strlen(pSVRCFG->srvr4) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(4, 4444, pSVRCFG->srvr4, pSVRCFG->port);
+        }
+        break;
+
+    case 5:
+        if (strlen(pSVRCFG->srvr5) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(5, 5555, pSVRCFG->srvr5, pSVRCFG->port);
+        }
+        break;
+
+    default:
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err2",
+                  FmtTimeShow());
+        break;
+    }
 }
 
 static void WedgeIgnitionStateProcess(void)
@@ -65,7 +214,12 @@ static void WedgeIgnitionStateProcess(void)
     return;
 }
 
-void WedgeCfgChgStateProcess(void)
+static void WedgeMsgQueProcess(void)
+{
+
+}
+
+static void WedgeCfgChgStateProcess(void)
 {   
     // case SMS_ADDR_CFG_CHG:
     //     break;

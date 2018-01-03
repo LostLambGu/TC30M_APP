@@ -127,21 +127,31 @@ uint32_t WedgeRtcCurrentSeconds(void)
     return currenttimeinseconds;
 }
 
-uint8_t WedgeRtcTimerInit(void *pRTCTimerList)
+uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
 {
+    #define WEDGE_HWREST_TIME_SECONDS (5)
+    uint32_t LastHWRSTRTCTime = 0;
+    TimeTableT timetable = {0};
 
+    memset(&RTCTimerList, 0, sizeof(RTCTimerList));
 
+    if (pRTCTimerList == NULL)
+    {
 
+    }
+    else
+    {
+        RTCTimerList = *pRTCTimerList;
+    }
 
+    LastHWRSTRTCTime = *((uint32_t *)WedgeSysStateGet(WEDGE_LAST_HWRST_RTC_TIME));
+    if (LastHWRSTRTCTime != 0)
+    {
+        timetable = SecondsToTimeTable(LastHWRSTRTCTime + WEDGE_HWREST_TIME_SECONDS);
+        SetRTCDatetime(&timetable);
+    }
 
-
-
-
-
-
-
-
-	return 1;
+	return 0;
 }
 
 void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize)

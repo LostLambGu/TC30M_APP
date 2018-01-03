@@ -78,7 +78,7 @@ typedef enum
     WEDGE_CFG_OPERATE_INVALID_MAX
 } WEDGECfgOperateTypeDef;
 
-extern uint8_t WedgeCfgInit(void);
+extern uint8_t WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg);
 extern void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
 extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
@@ -130,7 +130,7 @@ typedef struct
 extern void WedgeCfgChgStateInit(void);
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
 extern uint8_t WedgeCfgChgStateIsChanged(void);
-extern uint8_t WedgeCfgChgStateGet(void);
+extern uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg);
 extern void WedgeCfgChgStateProcess(void);
 
 extern uint8_t WedgeFlashChipErase(void);

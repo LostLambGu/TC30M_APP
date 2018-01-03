@@ -28,9 +28,84 @@
 
 static WEDGESysStateTypeDef WEDGESysState;
 
-uint8_t WedgeSysStateInit(void)
+uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
 {
-    return TRUE;
+    IGNTYPETypeDef IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
+
+    memset(&WEDGESysState, 0, sizeof(WEDGESysStateTypeDef));
+    if (pWEDGESysState == NULL)
+    {
+        if (IGNTYPE.itype == No_Ignition_detect)
+        {
+            WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_IGNORE_STATE;
+        }
+        else if (IGNTYPE.itype == Virtual_Ignition_Battery_Voltage)
+        {
+            // Reserved
+        }
+        else if (IGNTYPE.itype == Virtual_Ignition_GPS_velocity)
+        {
+            // Reserved
+        }
+        else if (IGNTYPE.itype == Wired_Ignition)
+        {
+            if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
+            {
+                WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_ON_TO_OFF_STATE;
+            }
+            else
+            {
+                WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_OFF_TO_ON_STATE;
+            }
+        }
+        else
+        {
+            // Error
+            EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init Err1");
+            return 1;
+        }
+
+        WEDGESysState.GeofenceDefinedBitMap = WedgeGetGeofenceBitMap();
+    }
+    else
+    {
+        WEDGESysState = *pWEDGESysState;
+
+        if (WEDGESysState.WEDGEIgnitionState == WEDGE_IGN_OFF_STATE)
+        {
+            if (GPIO_PIN_RESET != READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
+            {
+                WEDGESysState.WedgeIgnitionChangeDetected = TRUE;
+            }
+        }
+        else if (WEDGESysState.WEDGEIgnitionState == WEDGE_IGN_ON_STATE)
+        {
+            if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
+            {
+                WEDGESysState.WedgeIgnitionChangeDetected = TRUE;
+            }
+        }
+        else if (WEDGESysState.WEDGEIgnitionState >= WEDGE_IGN_STATE_MAX)
+        {
+            EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init Err2");
+            return 2;
+        }
+
+        WEDGESysState.WedgeIgnOffToOnTimerStart = 0;
+        WEDGESysState.WedgeIgnOnToOffTimerStart = 0;
+        WEDGESysState.GpsVelocity = 0.0;
+        WEDGESysState.Longitude = 0.0;
+        WEDGESysState.Latitude = 0.0;
+        WEDGESysState.IDLEDtectTimerStart = 0;
+        WEDGESysState.OverSpeedTimerStart = 0;
+    }
+
+    if (WedgeIsPowerLostGet() == FALSE)
+    {
+        WEDGESysState.PowerOnOff = 1;
+    }
+
+    return 0;
 }
 
 void WedgeSysStateGetTotal(uint8_t *pBuf, uint32_t *pSize)
