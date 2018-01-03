@@ -303,6 +303,6 @@ void iqInit(IQDesc *qd, void *q, uint16_t numRecords, uint16_t recordSize)
 }
 
 /*******************************************************************************
-     Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                              End Of The File
 *******************************************************************************/

@@ -35,6 +35,6 @@ extern void AppSmsAtProcess(uint8_t * SmsData, uint8_t DataLen);
 #endif /* __TC30M_APPATPROCESS_H__ */
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

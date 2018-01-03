@@ -21,7 +21,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-const uint8_t CompanyInformation[] = "\r\nCopyright (c) 2003-2017 ATEL Corp.";
+const uint8_t CompanyInformation[] = "\r\nCopyright (c) 2003-2018 ATEL Corp.";
 const uint8_t SoftwareInformation[] = "\r\nVERSION: TC30M";
 
 /* Private function prototypes -----------------------------------------------*/
@@ -40,6 +40,6 @@ void ShowSoftVersion(void)
 }
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

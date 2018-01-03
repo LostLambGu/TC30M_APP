@@ -57,6 +57,6 @@ extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell);
 #endif /* WEDGE_MSG_QUE_H_ */
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

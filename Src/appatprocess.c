@@ -32,6 +32,6 @@ void AppSmsAtProcess(uint8_t * SmsData, uint8_t DataLen)
 }
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

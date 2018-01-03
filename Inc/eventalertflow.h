@@ -113,7 +113,6 @@ extern uint8_t WedgeSysStateInit(void);
 extern void WedgeSysStateGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet);
 extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData);
-extern void WedgeIgnitionStateProcess(void);
 
 extern void WedgeServiceOdometerAlert(void);
 
@@ -124,6 +123,6 @@ extern void WedgeServiceOdometerAlert(void);
 #endif /* _EVENT_ALERT_FLOW_ */
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

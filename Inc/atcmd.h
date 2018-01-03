@@ -75,6 +75,6 @@ extern void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int3
 #endif
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

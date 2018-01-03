@@ -275,33 +275,6 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
     return;
 }
 
-void WedgeIgnitionStateProcess(void)
-{
-    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
-    {
-    case WEDGE_IGN_IGNORE_STATE:
-        break;
-
-    case WEDGE_IGN_OFF_STATE:
-        break;
-
-    case WEDGE_IGN_OFF_TO_ON_STATE:
-        break;
-
-    case WEDGE_IGN_ON_STATE:
-        break;
-
-    case WEDGE_IGN_ON_TO_OFF_STATE:
-        break;
-
-    default:
-        EVENT_ALERT_FLOW_LOG("WEDGE IGN STAT: err");
-        break;
-    }
-
-    return;
-}
-
 void WedgeServiceOdometerAlert(void)
 {
     VODOTypeDef VODO = {0};
@@ -1072,6 +1045,6 @@ void WedgePeriodicHardwareResetInit(void)
 }
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/

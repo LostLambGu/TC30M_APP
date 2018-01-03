@@ -216,7 +216,7 @@ FlashStatusT SerialFlashBlocksErase(uint32_t start_block, uint32_t num_blocks)
 
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/
 

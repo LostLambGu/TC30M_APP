@@ -121,11 +121,10 @@ typedef enum
     CFG_CHG_INVALIAD_MAX
 } WEDGECfgChangeTypeDef;
 
-#define WEDGE_CFG_STATE_NUM_MAX (39)
 typedef struct
 {
     uint8_t CfgChgNum;
-    uint8_t CfgChgState[WEDGE_CFG_STATE_NUM_MAX];
+    uint8_t CfgChgState[CFG_CHG_INVALIAD_MAX];
 } WEDGECfgChgStateTypedef;
 
 extern void WedgeCfgChgStateInit(void);
@@ -146,6 +145,6 @@ extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t
 #endif /* __EVENT_MSG_QUEUE_PROCESS_H__ */
 
 /*******************************************************************************
-    Copyrights (C) Asiatelco Technologies Co., 2003-2017. All rights reserved
+    Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
 *******************************************************************************/
