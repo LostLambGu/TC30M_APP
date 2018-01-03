@@ -109,12 +109,13 @@ typedef struct
     uint32_t LastHWRSTRTCTime;
 } WEDGESysStateTypeDef;
 
-extern uint8_t WedgeSysStateInit(void);
+extern uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState);
 extern void WedgeSysStateGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet);
 extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData);
 
 extern void WedgeServiceOdometerAlert(void);
+extern void WedgeLowBatteryAlert(void);
 
 #ifdef __cplusplus
 }

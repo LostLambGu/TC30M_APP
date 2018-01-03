@@ -354,28 +354,24 @@ void WedgeServiceOdometerAlert(void)
 {
     VODOTypeDef VODO = {0};
     SODOTypeDef SODO = {0};
-    uint32_t SerOdoLastReportMileage = 0;
 
     VODO = *((VODOTypeDef *)WedgeCfgGet(WEDGE_CFG_VODO));
 
-    SerOdoLastReportMileage = *((uint32_t *)WedgeSysStateGet(WEDGE_SODO_LASTREPORT_MILEAGE));
-
-    if (SerOdoLastReportMileage > VODO.meters)
+    if (WEDGESysState.SerOdoLastReportMileage > VODO.meters)
     {
         EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Evt Alrt Flw SODO err"
                                 , FmtTimeShow());
-        WedgeSysStateSet(WEDGE_SODO_LASTREPORT_MILEAGE, &(VODO.meters));
-
+        WEDGESysState.SerOdoLastReportMileage = VODO.meters;
         return;
     }
 
     SODO = *((SODOTypeDef *)WedgeCfgGet(WEDGE_CFG_SODO));
-    if ((VODO.meters - SerOdoLastReportMileage) >= SODO.meters)
+    if ((VODO.meters - WEDGESysState.SerOdoLastReportMileage) >= SODO.meters)
     {
         EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
                                 , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Service_Alert);
-        WedgeSysStateSet(WEDGE_SODO_LASTREPORT_MILEAGE, &(VODO.meters));
+        WEDGESysState.SerOdoLastReportMileage = VODO.meters;
         return;
     }
 }
@@ -383,16 +379,28 @@ void WedgeServiceOdometerAlert(void)
 extern double ADCGetVinVoltage(void);
 void WedgeLowBatteryAlert(void)
 {
-    LVATypeDef LVA = {0};
-    float voltage = 0.0;
+    #define WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS (250)
+    static uint32_t SystickRec = 0;
 
-    LVA = *((LVATypeDef *)WedgeCfgGet(WEDGE_CFG_LVA));
-    voltage = (float)ADCGetVinVoltage();
-
-    if (voltage < LVA.battlvl)
+    if (WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS < (HAL_GetTick() - SystickRec))
     {
-        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
         return;
+    }
+    else
+    {
+        LVATypeDef LVA = {0};
+        float voltage = 0.0;
+
+        LVA = *((LVATypeDef *)WedgeCfgGet(WEDGE_CFG_LVA));
+        voltage = (float)ADCGetVinVoltage();
+
+        if (voltage < LVA.battlvl)
+        {
+            WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
+            return;
+        }
+
+        SystickRec = HAL_GetTick();
     }
 }
 
@@ -402,20 +410,17 @@ extern TIMER WedgeIDLETimer;
 
 static void CheckWedgeIDLETimerCallback(uint8_t status)
 {
-    uint8_t IDLEDtectTimerStart = 0;
-
     EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
                                 , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, IDLE_Detect);
 
-    WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+    WEDGESysState.IDLEDtectTimerStart = FALSE;
 }
 
 void WedgeIDLEDetectAlert(void)
 {
     IDLETypeDef IDLE = {0};
     double speedkm = 0.0;
-    uint8_t IDLEDtectTimerStart = 0;
     static uint32_t SystickRec = 0;
 
     // if (UbloxFixStateGet() == FALSE)
@@ -439,19 +444,17 @@ void WedgeIDLEDetectAlert(void)
         return;
     }
 
-    IDLEDtectTimerStart = *((uint32_t *)WedgeSysStateGet(WEDGE_IDLE_DETECT_TIMER_START));
     speedkm = UbloxSpeedKM();
     if (UbloxFixStateGet())
     {
         if (speedkm <= (WEDGE_IDLE_DETECT_SPPED_MILE * MILE_TO_KM_FACTOR))
         {
-            if (IDLEDtectTimerStart == 0)
+            if (WEDGESysState.IDLEDtectTimerStart == 0)
             {
                 SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
                 SoftwareTimerStart(&WedgeIDLETimer);
 
-                IDLEDtectTimerStart = TRUE;
-                WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+                WEDGESysState.IDLEDtectTimerStart = TRUE;
             }
             else
             {
@@ -461,31 +464,29 @@ void WedgeIDLEDetectAlert(void)
         }
         else
         {
-            if (IDLEDtectTimerStart == TRUE)
+            if (WEDGESysState.IDLEDtectTimerStart == TRUE)
             {
                 SoftwareTimerReset(&WedgeIDLETimer, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
                 SoftwareTimerStop(&WedgeIDLETimer);
 
-                IDLEDtectTimerStart = 0;
-                WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
+                WEDGESysState.IDLEDtectTimerStart = FALSE;
             }
         }
     }
     else
     {
-        if (IDLEDtectTimerStart == 0)
-        {
-           SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
-           SoftwareTimerStart(&WedgeIDLETimer);
+        // if (WEDGESysState.IDLEDtectTimerStart == FALSE)
+        // {
+        //    SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
+        //    SoftwareTimerStart(&WedgeIDLETimer);
 
-           IDLEDtectTimerStart = TRUE;
-           WedgeSysStateSet(WEDGE_IDLE_DETECT_TIMER_START, &IDLEDtectTimerStart);
-        }
-        else
-        {
-            // Check Wedge IDLE Detect Timer
-            IsSoftwareTimeOut(&WedgeIDLETimer);
-        }
+        //    WEDGESysState.IDLEDtectTimerStart = TRUE;
+        // }
+        // else
+        // {
+        //     // Check Wedge IDLE Detect Timer
+        //     IsSoftwareTimeOut(&WedgeIDLETimer);
+        // }
     }
 }
 

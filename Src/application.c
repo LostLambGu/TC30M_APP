@@ -48,6 +48,51 @@ void ApplicationProcess(void)
     }
 }
 
+static void WedgeIgnitionStateProcess(void)
+{
+    IGNTYPETypeDef IGNTYPE;
+    memset(&IGNTYPE, 0, sizeof(IGNTYPE));
+
+    IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
+
+    // Service Odometer Alert
+    WedgeServiceOdometerAlert();
+
+    // Low Battery Alert
+    WedgeLowBatteryAlert();
+
+    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
+    {
+    case WEDGE_IGN_IGNORE_STATE:
+        break;
+
+    case WEDGE_IGN_OFF_STATE:
+        break;
+
+    case WEDGE_IGN_OFF_TO_ON_STATE:
+        break;
+
+    case WEDGE_IGN_ON_STATE:
+    {
+        if (IGNTYPE.itype == Wired_Ignition)
+        {
+            WedgeIDLEDetectAlert();
+        }
+        
+    }
+        break;
+
+    case WEDGE_IGN_ON_TO_OFF_STATE:
+        break;
+
+    default:
+        APP_LOG("WEDGE Ign Stat Err");
+        break;
+    }
+
+    return;
+}
+
 void WedgeIsPowerLostSet(uint8_t Status)
 {
     WedgeIsPowerLost = Status;
@@ -185,33 +230,6 @@ void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
                   FmtTimeShow());
         break;
     }
-}
-
-static void WedgeIgnitionStateProcess(void)
-{
-    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
-    {
-    case WEDGE_IGN_IGNORE_STATE:
-        break;
-
-    case WEDGE_IGN_OFF_STATE:
-        break;
-
-    case WEDGE_IGN_OFF_TO_ON_STATE:
-        break;
-
-    case WEDGE_IGN_ON_STATE:
-        break;
-
-    case WEDGE_IGN_ON_TO_OFF_STATE:
-        break;
-
-    default:
-        APP_LOG("WEDGE Ign Stat Err");
-        break;
-    }
-
-    return;
 }
 
 static void WedgeMsgQueProcess(void)
