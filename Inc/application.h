@@ -29,7 +29,14 @@ extern "C" {
 #include "sendatcmd.h"
 #include "ltecatm.h"
 #include "network.h"
-// #include "parseatat.h"
+#include "parseatat.h"
+
+#include "wedgedatadefine.h"
+#include "eventmsgque_process.h"
+#include "eventalertflow.h"
+#include "wedgedeviceinfo.h"
+#include "wedgertctimer.h"
+#include "wedgemsgque.h"
 
 #define APP_LOG DebugLog
 #define APP_PRINT DebugPrintf

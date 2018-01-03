@@ -10,16 +10,26 @@
 /* Includes ------------------------------------------------------------------*/
 #include "application.h"
 
+static void WedgeInit(void);
+
 void ApplicationProcess(void)
 {
-    // Debug Info
-    ATCmdDetection();
-    // LTE Info
-    LteCmdDetection();
-    // Soft Timer
-    SoftwareCheckTimerStatus();
-    // Gsensor Interupt
-    GsensorIntProcess();
+    while (1)
+    {
+        // Debug Info
+        ATCmdDetection();
+        // LTE Info
+        LteCmdDetection();
+        // Soft Timer
+        SoftwareCheckTimerStatus();
+        // Gsensor Interupt
+        GsensorIntProcess();
+    }
+}
+
+static void WedgeInit(void)
+{
+    
 }
 
 /*******************************************************************************
