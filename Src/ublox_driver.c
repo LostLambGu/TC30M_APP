@@ -1141,9 +1141,39 @@ uint8_t UbloxFixStateGet(void)
 	return GpsInfo.validFix;
 }
 
+void UBloxGetGpsPoint(double *pLatitude, double *pLongitude)
+{
+	*pLatitude = GpsInfop.Latitude;
+	*pLongitude = GpsInfop->Longitude;
+}
+
 double UbloxGetHeading(void)
 {
 	return GpsInfo.Heading;
+}
+
+float UBloxGpsPointDistance(double long Latitude1, double long Longitude1, double long Latitude2, double long Longitude2)
+{
+	#define MUL_NUM				1000.0
+	#define PI					3.141592653589793238
+	#define EARTH_ROUND			6371.001
+	double long TempDistance;
+	// Calculate Distance
+	Latitude1 *= (PI * MUL_NUM) /180.0/MUL_NUM;
+	Longitude1 *= (PI * MUL_NUM)/180.0/MUL_NUM;
+	Latitude2 *= ( PI* MUL_NUM) /180.0/MUL_NUM;
+	Longitude2 *= (PI * MUL_NUM)/180.0/MUL_NUM;
+	TempDistance = acos(sin(Latitude1) * sin(Latitude2) + \
+		cos(Latitude1) * cos(Latitude2) * cos(fabs(Longitude1- Longitude2)));
+	TempDistance = TempDistance * 1000.0;
+	TempDistance = TempDistance * EARTH_ROUND;
+	// Print Out
+	// Print Out
+	UbloxPrintf(DbgCtl.UbloxDbgInfoEn,"\r\n[%s] Geo-fence: Diff(%f meters)", \
+		FmtTimeShow(), \
+		TempDistance);
+	// Return Value
+	return TempDistance;
 }
 
 /*******************************************************************************

@@ -147,6 +147,8 @@ uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
     LastHWRSTRTCTime = *((uint32_t *)WedgeSysStateGet(WEDGE_LAST_HWRST_RTC_TIME));
     if (LastHWRSTRTCTime != 0)
     {
+        // RTC Timer Compensation
+        WedgeRtcTimerModifySettime(WEDGE_HWREST_TIME_SECONDS ,WEDGE_RTC_TIMER_MODIFY_INCREASE);
         timetable = SecondsToTimeTable(LastHWRSTRTCTime + WEDGE_HWREST_TIME_SECONDS);
         SetRTCDatetime(&timetable);
     }

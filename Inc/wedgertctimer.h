@@ -64,6 +64,7 @@ typedef enum
     WEDGE_RTC_TIMER_MODIFY_INVALID_MAX
 } WEDGERTCTimerSettimeTypeDef;
 
+extern void WedgeRTCTimerEventProcess(void);
 extern void WedgeSetRTCAlarmStatus(uint8_t Status);
 extern uint8_t WedgeGetRTCAlarmStatus(void);
 extern uint32_t WedgeRtcCurrentSeconds(void);

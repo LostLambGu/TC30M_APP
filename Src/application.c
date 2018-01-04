@@ -29,6 +29,8 @@ void ApplicationProcess(void)
 {
     WedgeInit();
 
+    WedgePeriodicMovingEventInit();
+
     while (1)
     {
         // Debug Info
@@ -39,35 +41,61 @@ void ApplicationProcess(void)
         SoftwareCheckTimerStatus();
         // Gsensor Interupt
         GsensorIntProcess();
+
+        // Wedge Service Odometer Alert
+        WedgeServiceOdometerAlert();
+        // Wedge Low Battery Alert
+        WedgeLowBatteryAlert();
+        // Wedge Geofence Alert
+        WedgeGeofenceAlert();
+        // Wedge Over Speed Alert
+        WedgeOverSpeedAlert();
+        // Wedge Heading Change Detect
+        WedgeHeadingChangeDetect();
         // Wedge Event and Alert Process
         WedgeIgnitionStateProcess();
         // Wedge Configuration Change Process
         WedgeCfgChgStateProcess();
         // Wedge Msg Que Process
         WedgeMsgQueProcess();
+        // Wedge Rtc Timer Event Process
+        WedgeRTCTimerEventProcess();
     }
 }
 
 static void WedgeIgnitionStateProcess(void)
 {
     IGNTYPETypeDef IGNTYPE;
+
     memset(&IGNTYPE, 0, sizeof(IGNTYPE));
-
     IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
+    if (IGNTYPE.itype > Wired_Ignition)
+    {
+        APP_LOG("WEDGE Ign Stat IgnType Err");
+    }
 
-    // Service Odometer Alert
-    WedgeServiceOdometerAlert();
-
-    // Low Battery Alert
-    WedgeLowBatteryAlert();
-
-    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
+    switch (WEDGESysState.WEDGEIgnitionState)
     {
     case WEDGE_IGN_IGNORE_STATE:
         break;
 
     case WEDGE_IGN_OFF_STATE:
-        break;
+    {
+        if (IGNTYPE.itype == Wired_Ignition)
+        {
+            WedgeTowAlert();
+
+            WedgeLocationOfDisabledVehicle();
+        }
+
+        // if (IGNTYPE.itype != No_Ignition_detect)
+        // {
+            WedgeIgnitionOffToOnCheck();
+        // }
+
+        WedgePeriodicOffEvent();
+    }
+    break;
 
     case WEDGE_IGN_OFF_TO_ON_STATE:
         break;
@@ -78,12 +106,25 @@ static void WedgeIgnitionStateProcess(void)
         {
             WedgeIDLEDetectAlert();
         }
-        
+
+        // if (IGNTYPE.itype != No_Ignition_detect)
+        // {
+            WedgeIgnitionOnToOffCheck();
+        // }
     }
-        break;
+    break;
 
     case WEDGE_IGN_ON_TO_OFF_STATE:
-        break;
+    {
+        if (IGNTYPE.itype == Wired_Ignition)
+        {
+            WedgeLocationOfDisabledVehicleOnToOff();
+
+            // When Ignition on, WEDGESysState.StopReportOnetimeRtcTimerAdded need to be reset!
+            WedgeStopReportOnToOff();
+        }
+    }
+    break;
 
     default:
         APP_LOG("WEDGE Ign Stat Err");
@@ -299,6 +340,13 @@ static void WedgeCfgChgStateProcess(void)
     // default:
     //     EVENTMSGQUE_PROCESS_LOG("WEDGE CFG CHG SET: Param err");
     //     break;
+
+    // WEDGE_CFG_SVRCFG_ALL,
+    //     WEDGE_CFG_SVRCFG_1,
+    //     WEDGE_CFG_SVRCFG_2,
+    //     WEDGE_CFG_SVRCFG_3
+    //         WEDGE_CFG_SVRCFG_4,
+    //     WEDGE_CFG_SVRCFG_5,
 }
 
 /*******************************************************************************

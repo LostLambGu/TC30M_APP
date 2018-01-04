@@ -67,6 +67,7 @@ typedef enum
     WEDGE_TOW_ALERTGEOFENCE,
     WEDGE_GEOFENCE_BIT_MAP,
     WEDGE_STARTER_DISABLE_CMD_RECEIVED,
+    WEDGE_STOP_REPORT_ONTIME_RTC_TIMER_ADDED,
     WEDGE_OVER_SPEED_ALERT_TIMER_START,
     WEDGE_HEADING_LASTREPORT_DEG,
     WEDGE_PERIODIC_OFF_EVENT_TIMER_START,
@@ -99,6 +100,7 @@ typedef struct
     TowAlertGeoFenceTypedef TowAlertGeoFence;
     uint16_t GeofenceDefinedBitMap;
     uint8_t StarterDisableCmdRec;
+    uint8_t StopReportOnetimeRtcTimerAdded;
     uint8_t OverSpeedTimerStart;
     float HeadingLastReportDeg;
     uint8_t PeriodicOffEventTimerStart;
@@ -116,6 +118,18 @@ extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void
 
 extern void WedgeServiceOdometerAlert(void);
 extern void WedgeLowBatteryAlert(void);
+extern void WedgeIDLEDetectAlert(void);
+extern void WedgeTowAlert(void);
+extern void WedgeGeofenceAlert(void);
+extern void WedgeLocationOfDisabledVehicleOnToOff(void);
+extern void WedgeLocationOfDisabledVehicle(void);
+extern void WedgeStopReportOnToOff(void);
+extern void WedgeOverSpeedAlert(void);
+extern void WedgeIgnitionOffToOnCheck(void);
+extern void WedgeIgnitionOnToOffCheck(void);
+extern void WedgeHeadingChangeDetect(void);
+extern void WedgePeriodicMovingEventInit(void);
+extern void WedgePeriodicOffEvent(void);
 
 #ifdef __cplusplus
 }

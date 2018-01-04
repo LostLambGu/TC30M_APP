@@ -297,7 +297,9 @@ extern void ReadUbloxData(void);
 extern void UbloxGPSTimerProcess(void);
 extern double UbloxSpeedKM(void);
 extern uint8_t UbloxFixStateGet(void);
+extern void UBloxGetGpsPoint(double *pLatitude, double *pLongitude);
 extern double UbloxGetHeading(void);
+extern float UBloxGpsPointDistance(double long Latitude1, double long Longitude1, double long Latitude2, double long Longitude2);
 
 #endif
 
