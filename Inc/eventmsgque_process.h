@@ -71,19 +71,14 @@ typedef enum
     WEDGE_CFG_HWRST,
     WEDGE_CFG_USRDAT,
     WEDGE_CFG_SMS,
-    WEDGE_CFG_SVRCFG_ALL,
-    WEDGE_CFG_SVRCFG_1,
-    WEDGE_CFG_SVRCFG_2,
-    WEDGE_CFG_SVRCFG_3
-    WEDGE_CFG_SVRCFG_4,
-    WEDGE_CFG_SVRCFG_5,
+    WEDGE_CFG_SVRCFG,
     WEDGE_CFG_FTPCFG,
     WEDGE_CFG_APNCFG,
 
     WEDGE_CFG_OPERATE_INVALID_MAX
 } WEDGECfgOperateTypeDef;
 
-extern uint8_t WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg);
+extern void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg);
 extern void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
 extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
@@ -91,7 +86,12 @@ extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
 typedef enum
 {
     SMS_ADDR_CFG_CHG = 0,
-    SVRCFG_CFG_CHG,
+    SVRCFG_CFG_CHG_ALL,
+    SVRCFG_CFG_CHG_1,
+    SVRCFG_CFG_CHG_2,
+    SVRCFG_CFG_CHG_3,
+    SVRCFG_CFG_CHG_4,
+    SVRCFG_CFG_CHG_5,
     FTPCFG_CFG_CHG,
     APNCFG_CFG_CHG,
     HWRST_CFG_CHG,

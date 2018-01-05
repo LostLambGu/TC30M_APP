@@ -104,7 +104,7 @@ typedef struct
     uint8_t OverSpeedTimerStart;
     float HeadingLastReportDeg;
     uint8_t PeriodicOffEventTimerStart;
-    uint8_t PeriodicHealthEventStart;
+    uint8_t PeriodicHealthEventTimerStart;
     uint8_t PeriodicHardwareResetTimerStart;
     MQSTATTypeDef MQSTAT;
     uint32_t RTCBaseTime;
@@ -130,6 +130,8 @@ extern void WedgeIgnitionOnToOffCheck(void);
 extern void WedgeHeadingChangeDetect(void);
 extern void WedgePeriodicMovingEventInit(void);
 extern void WedgePeriodicOffEvent(void);
+extern void WedgePeriodicHealthEvent(void);
+extern void WedgePeriodicHardwareResetInit(void);
 
 #ifdef __cplusplus
 }

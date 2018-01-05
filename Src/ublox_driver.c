@@ -1094,6 +1094,7 @@ void ParseUbloxData(int length, uint8 *data)
 
 void UbloxGPSTimerProcess(void)
 {
+	static uint8_t firstfix = FALSE;
 	//ParseUbloxData(Datalen, p);
 	if (MsgBuffer.DataLen != 0)
 	{
@@ -1105,20 +1106,24 @@ void UbloxGPSTimerProcess(void)
 	}
 
 	WedgeSysStateSet(WEDGE_GPS_FIX_STATE, &(GpsInfo.validFix));
-	if (GpsInfo.validFix)
+	if (firstfix == FALSE)
 	{
-		uint8_t tmp = 0;
-		WedgeSysStateSet(WEDGE_GPS_LASTFIX_STATE, &(GpsInfo.validFix));
-		WedgeUpdateBinaryMsgGpsRecord();
-
-		tmp = *((uint8_t *)WedgeSysStateGet(WEDGE_POWER_ON_OFF_STATE));
-		if (0 == tmp)
+		if (GpsInfo.validFix)
 		{
-			if (WedgeRtcHwrstPowerLostJudge())
+			uint8_t poweron = FALSE;
+			
+			WedgeSysStateSet(WEDGE_GPS_LASTFIX_STATE, &(GpsInfo.validFix));
+			WedgeUpdateBinaryMsgGpsRecord();
+
+			firstfix = TRUE;
+
+			poweron = *((uint8_t *)WedgeSysStateGet(WEDGE_POWER_ON_OFF_STATE));
+			if (FALSE == poweron)
 			{
-				tmp = 1;
-				WedgeSysStateSet(WEDGE_POWER_ON_OFF_STATE, &tmp);
-				
+				// TRUE means wedge is power on without power lost.
+				poweron = TRUE;
+				WedgeSysStateSet(WEDGE_POWER_ON_OFF_STATE, &poweron);
+
 				WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Modem_powered_up);
 			}
 		}
@@ -1143,8 +1148,8 @@ uint8_t UbloxFixStateGet(void)
 
 void UBloxGetGpsPoint(double *pLatitude, double *pLongitude)
 {
-	*pLatitude = GpsInfop.Latitude;
-	*pLongitude = GpsInfop->Longitude;
+	*pLatitude = GpsInfo.Latitude;
+	*pLongitude = GpsInfo.Longitude;
 }
 
 double UbloxGetHeading(void)
@@ -1152,6 +1157,7 @@ double UbloxGetHeading(void)
 	return GpsInfo.Heading;
 }
 
+#include <math.h>
 float UBloxGpsPointDistance(double long Latitude1, double long Longitude1, double long Latitude2, double long Longitude2)
 {
 	#define MUL_NUM				1000.0

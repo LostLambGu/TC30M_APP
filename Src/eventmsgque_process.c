@@ -70,7 +70,7 @@ void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
 
 void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg)
 {
-    memset(&WEDGECfgRecord, 0, sizeof(WEDGECfgTypeDef));
+    memset((uint8_t *)&WEDGECfgRecord, 0, sizeof(WEDGECfgTypeDef));
     if (pWEDGECfg == NULL)
     {
         EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Init Default");

@@ -29,8 +29,6 @@ void ApplicationProcess(void)
 {
     WedgeInit();
 
-    WedgePeriodicMovingEventInit();
-
     while (1)
     {
         // Debug Info
@@ -74,7 +72,7 @@ static void WedgeIgnitionStateProcess(void)
         APP_LOG("WEDGE Ign Stat IgnType Err");
     }
 
-    switch (WEDGESysState.WEDGEIgnitionState)
+    switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
     {
     case WEDGE_IGN_IGNORE_STATE:
         break;
@@ -94,6 +92,8 @@ static void WedgeIgnitionStateProcess(void)
         // }
 
         WedgePeriodicOffEvent();
+
+        WedgePeriodicHealthEvent();
     }
     break;
 
@@ -195,6 +195,62 @@ static void WedgeInit(void)
     WedgeMsgQueInit();
 
     WedgeUdpInit();
+
+    WedgePeriodicHardwareResetInit();
+
+    WedgePeriodicMovingEventInit();
+}
+
+static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
+{
+    if (pSVRCFG == NULL)
+    {
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err1",
+                  FmtTimeShow());
+    }
+
+    switch(socketnum)
+    {
+    case 1:
+        if (strlen((const char *)pSVRCFG->srvr1) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(1, 1111, (char *)pSVRCFG->srvr1, pSVRCFG->port);
+        }
+        break;
+
+    case 2:
+        if (strlen((const char *)pSVRCFG->srvr2) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(2, 2222, (char *)pSVRCFG->srvr2, pSVRCFG->port);
+        }
+        break;
+
+    case 3:
+        if (strlen((const char *)pSVRCFG->srvr3) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(3, 3333, (char *)pSVRCFG->srvr3, pSVRCFG->port);
+        }
+        break;
+
+    case 4:
+        if (strlen((const char *)pSVRCFG->srvr4) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(4, 4444, (char *)pSVRCFG->srvr4, pSVRCFG->port);
+        }
+        break;
+
+    case 5:
+        if (strlen((const char *)pSVRCFG->srvr5) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(5, 5555, (char *)pSVRCFG->srvr5, pSVRCFG->port);
+        }
+        break;
+
+    default:
+        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err2",
+                  FmtTimeShow());
+        break;
+    }
 }
 
 static void WedgeUdpInit(void)
@@ -218,58 +274,6 @@ static void WedgeUdpInit(void)
     for (i = 0; i < SVRCFG_MAX_UDP_NUM; i++)
     {
         WedgeOpenUdpSocket(&SVRCFG, i + 1);
-    }
-}
-
-void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
-{
-    if (pSVRCFG == NULL)
-    {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err1",
-                  FmtTimeShow());
-    }
-
-    switch(socketnum)
-    {
-    case 1:
-        if (strlen(pSVRCFG->srvr1) > strlen("\"\""))
-        {
-            UdpIpSocketOpen(1, 1111, pSVRCFG->srvr1, pSVRCFG->port);
-        }
-        break;
-
-    case 2:
-        if (strlen(pSVRCFG->srvr2) > strlen("\"\""))
-        {
-            UdpIpSocketOpen(2, 2222, pSVRCFG->srvr2, pSVRCFG->port);
-        }
-        break;
-
-    case 3:
-        if (strlen(pSVRCFG->srvr3) > strlen("\"\""))
-        {
-            UdpIpSocketOpen(3, 3333, pSVRCFG->srvr3, pSVRCFG->port);
-        }
-        break;
-
-    case 4:
-        if (strlen(pSVRCFG->srvr4) > strlen("\"\""))
-        {
-            UdpIpSocketOpen(4, 4444, pSVRCFG->srvr4, pSVRCFG->port);
-        }
-        break;
-
-    case 5:
-        if (strlen(pSVRCFG->srvr5) > strlen("\"\""))
-        {
-            UdpIpSocketOpen(5, 5555, pSVRCFG->srvr5, pSVRCFG->port);
-        }
-        break;
-
-    default:
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err2",
-                  FmtTimeShow());
-        break;
     }
 }
 
