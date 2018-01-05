@@ -592,11 +592,6 @@
               <FilePath>../Src/dma.c</FilePath>
             </File>
             <File>
-              <FileName>appatprocess.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\appatprocess.c</FilePath>
-            </File>
-            <File>
               <FileName>atcmd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\atcmd.c</FilePath>
@@ -610,11 +605,6 @@
               <FileName>deepsleep.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\deepsleep.c</FilePath>
-            </File>
-            <File>
-              <FileName>eventmsgque_process.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\eventmsgque_process.c</FilePath>
             </File>
             <File>
               <FileName>initialization.c</FileName>
@@ -725,6 +715,16 @@
               <FileName>wedgeeventalertflow.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\wedgeeventalertflow.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgecommonapi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgecommonapi.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgeatprocess.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgeatprocess.c</FilePath>
             </File>
           </Files>
         </Group>
