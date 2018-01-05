@@ -33,13 +33,8 @@ extern "C" {
 
 #define EVENTMSGQUE_PROCESS_PRINT DebugPrintf
 
-extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
-extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
-
-extern void WedgeUpdateBinaryMsgGpsRecord(void);
-extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
-extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
-extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern void WedgeIsPowerLostSet(uint8_t Status);
+extern uint8_t WedgeIsPowerLostGet(void);
 
 typedef enum
 {
@@ -122,7 +117,7 @@ typedef enum
     GEOFENCES10_CFG_CHG,
     RELAY_CFG_CHG,
     PLSRLY_CFG_CHG,
-    OPSOD_CFG_CHG,
+    OPSOD_CFG_CHG,/* Over Speed */
     CFG_CHG_INVALIAD_MAX
 } WEDGECfgChangeTypeDef;
 
@@ -136,7 +131,13 @@ extern void WedgeCfgChgStateInit(void);
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
 extern uint8_t WedgeCfgChgStateIsChanged(void);
 extern uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg);
-extern void WedgeCfgChgStateProcess(void);
+extern void WedgeUpdateBinaryMsgGpsRecord(void);
+
+extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
+extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
+extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
+extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 
 extern uint8_t WedgeFlashChipErase(void);
 extern uint8_t WedgeFlashEraseSector(uint32_t address);

@@ -26,10 +26,11 @@
 #endif
 
 /* Variables -----------------------------------------------------------------*/
-static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
-static AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
+static uint8_t WedgeIsPowerLost = FALSE;
 static WEDGECfgTypeDef WEDGECfgRecord = {0};
 static WEDGECfgChgStateTypedef WEDGECfgState = {0};
+static BinaryMsgFormatTypeDef BinaryMsgRecord = {0};
+static AsciiMsgFormatTypedDef AsciiMsgRecord = {0};
 
 const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
 {
@@ -57,15 +58,14 @@ const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
     .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""}
 };
 /* Function definition -------------------------------------------------------*/
-
-void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
+void WedgeIsPowerLostSet(uint8_t Status)
 {
-    
+    WedgeIsPowerLost = Status;
 }
 
-void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
+uint8_t WedgeIsPowerLostGet(void)
 {
-    
+    return WedgeIsPowerLost;
 }
 
 void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg)
@@ -430,6 +430,17 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
     BytesOrderSwap(Buf, 2);
     BinaryMsgRecord.POS_QUAL[0] = Buf[0];
     BinaryMsgRecord.POS_QUAL[1] = Buf[1];
+}
+
+
+void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
+{
+    
+}
+
+void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
+{
+    
 }
 
 void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)

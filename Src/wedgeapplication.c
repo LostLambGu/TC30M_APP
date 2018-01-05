@@ -18,12 +18,15 @@
 #define TRUE 1
 #endif
 
-static uint8_t WedgeIsPowerLost = FALSE;
 static void WedgeInit(void);
 static void WedgeUdpInit(void);
 static void WedgeIgnitionStateProcess(void);
-static void WedgeCfgChgStateProcess(void);
+static void WedgeIGNOnStateReset(void);
+static void WedgeIGNOffStateReset(void);
 static void WedgeMsgQueProcess(void);
+
+static void WedgeCfgChgStateProcess(void);
+static void WedgeDeviceInfoSave(void);
 static void WedgeSMSAddrCfgChg(void);
 static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg);
 static void WedgeAPNCfgChg(void);
@@ -33,6 +36,18 @@ static void WedgeUSRDATCfgChg(void);
 static void WedgeCFGALLCfgChg(void);
 static void WedgeResetDefaultCfgChg(void);
 static void WedgeIGNTYPCfgChg(void);
+static void WedgeRPTINTVLCfgChg(void);
+static void WedgeLVACfgChg(void);
+static void WedgeIDLECfgChg(void);
+static void WedgeSODOCfgChg(void);
+static void WedgeDIRCHGCfgChg(void);
+static void WedgeTOWCfgChg(void);
+static void WedgeSTPINTVLCfgChg(void);
+static void WedgeVODOCfgChg(void);
+static void WedgeGEOFENCESCfgChg(WEDGECfgChangeTypeDef CfgChg);
+static void WedgeRELAYCfgChg(void);
+static void WedgePLSRLYCfgChg(void);
+static void WedgeOSPDCfgChg(void);
 
 void ApplicationProcess(void)
 {
@@ -84,6 +99,11 @@ static void WedgeIgnitionStateProcess(void)
     switch (*((WEDGEIgnitionStateTypeDef *)WedgeSysStateGet(WEDGE_IGNITION_STATE)))
     {
     case WEDGE_IGN_IGNORE_STATE:
+    {
+
+
+        WedgeIGNOnStateReset();
+    }
         break;
 
     case WEDGE_IGN_OFF_STATE:
@@ -107,6 +127,11 @@ static void WedgeIgnitionStateProcess(void)
     break;
 
     case WEDGE_IGN_OFF_TO_ON_STATE:
+    {
+
+
+        WedgeIGNOffStateReset();
+    }
         break;
 
     case WEDGE_IGN_ON_STATE:
@@ -143,14 +168,18 @@ static void WedgeIgnitionStateProcess(void)
     return;
 }
 
-void WedgeIsPowerLostSet(uint8_t Status)
+static void WedgeIGNOnStateReset(void)
 {
-    WedgeIsPowerLost = Status;
+
+
+
 }
 
-uint8_t WedgeIsPowerLostGet(void)
+static void WedgeIGNOffStateReset(void)
 {
-    return WedgeIsPowerLost;
+
+
+
 }
 
 static void WedgeInit(void)
@@ -296,50 +325,6 @@ static void WedgeMsgQueProcess(void)
 
 }
 
-static void WedgeSMSAddrCfgChg(void)
-{
-
-}
-
-static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
-{
-
-}
-
-static void WedgeAPNCfgChg(void)
-{
-
-}
-
-static void WedgeHWRRSTCfgChg(void)
-{
-
-}
-
-static void WedgePWRMGTCfgChg(void)
-{
-
-}
-
-static void WedgeUSRDATCfgChg(void)
-{
-
-}
-static void WedgeCFGALLCfgChg(void)
-{
-
-}
-
-static void WedgeResetDefaultCfgChg(void)
-{
-
-}
-
-static void WedgeIGNTYPCfgChg(void)
-{
-
-}
-
 static void WedgeCfgChgStateProcess(void)
 {
     uint8_t i = 0;
@@ -402,6 +387,69 @@ static void WedgeCfgChgStateProcess(void)
                     WedgeIGNTYPCfgChg();
                     break;
 
+                case RPTINTVL_CFG_CHG:
+                    WedgeRPTINTVLCfgChg();
+                    break;
+
+                case ALARM1_CFG_CHG:
+                case ALARM2_CFG_CHG:
+                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sAlarm Cfg Chg Reserved",
+                                      FmtTimeShow(), WedgeCfgChgStateProcessStr);
+                    break;
+
+                case LVA_CFG_CHG:
+                    WedgeLVACfgChg();
+                    break;
+
+                case IDLE_CFG_CHG:
+                    WedgeIDLECfgChg();
+                    break;
+
+                case SODO_CFG_CHG:
+                    WedgeSODOCfgChg();
+                    break;
+
+                case DIRCHG_CFG_CHG:
+                    WedgeDIRCHGCfgChg();
+                    break;
+
+                case TOW_CFG_CHG:
+                    WedgeTOWCfgChg();
+                    break;
+
+                case STPINTVL_CFG_CHG:
+                    WedgeSTPINTVLCfgChg();
+                    break;
+
+                case VODO_CFG_CHG:
+                    WedgeVODOCfgChg();
+                    break;
+
+                case GEOFENCES1_CFG_CHG:
+                case GEOFENCES2_CFG_CHG:
+                case GEOFENCES3_CFG_CHG:
+                case GEOFENCES4_CFG_CHG:
+                case GEOFENCES5_CFG_CHG:
+                case GEOFENCES6_CFG_CHG:
+                case GEOFENCES7_CFG_CHG:
+                case GEOFENCES8_CFG_CHG:
+                case GEOFENCES9_CFG_CHG:
+                case GEOFENCES10_CFG_CHG:
+                    WedgeGEOFENCESCfgChg((WEDGECfgChangeTypeDef)i);
+                    break;
+
+                case RELAY_CFG_CHG:
+                    WedgeRELAYCfgChg();
+                    break;
+
+                case PLSRLY_CFG_CHG:
+                    WedgePLSRLYCfgChg();
+                    break;
+
+                case OPSOD_CFG_CHG:
+                    WedgeOSPDCfgChg();
+                    break;
+
                 default:
                     APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDefault",
                                       FmtTimeShow(), WedgeCfgChgStateProcessStr);
@@ -411,9 +459,115 @@ static void WedgeCfgChgStateProcess(void)
     }
 
     // Wedge Device Info Save
+    WedgeDeviceInfoSave();
+}
 
+static void WedgeDeviceInfoSave(void)
+{
 
+}
 
+static void WedgeSMSAddrCfgChg(void)
+{
+
+}
+
+static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
+{
+
+}
+
+static void WedgeAPNCfgChg(void)
+{
+
+}
+
+static void WedgeHWRRSTCfgChg(void)
+{
+
+}
+
+static void WedgePWRMGTCfgChg(void)
+{
+
+}
+
+static void WedgeUSRDATCfgChg(void)
+{
+
+}
+static void WedgeCFGALLCfgChg(void)
+{
+
+}
+
+static void WedgeResetDefaultCfgChg(void)
+{
+
+}
+
+static void WedgeIGNTYPCfgChg(void)
+{
+
+}
+
+static void WedgeRPTINTVLCfgChg(void)
+{
+
+}
+
+static void WedgeLVACfgChg(void)
+{
+
+}
+
+static void WedgeIDLECfgChg(void)
+{
+
+}
+
+static void WedgeSODOCfgChg(void)
+{
+
+}
+
+static void WedgeDIRCHGCfgChg(void)
+{
+
+}
+
+static void WedgeTOWCfgChg(void)
+{
+
+}
+
+static void WedgeSTPINTVLCfgChg(void)
+{
+
+}
+
+static void WedgeVODOCfgChg(void)
+{
+
+}
+
+static void WedgeGEOFENCESCfgChg(WEDGECfgChangeTypeDef CfgChg)
+{
+
+}
+
+static void WedgeRELAYCfgChg(void)
+{
+
+}
+
+static void WedgePLSRLYCfgChg(void)
+{
+
+}
+
+static void WedgeOSPDCfgChg(void)
+{
 
 }
 
