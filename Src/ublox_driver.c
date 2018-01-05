@@ -10,8 +10,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ublox_driver.h"
 #include "i2c.h"
-#include "eventalertflow.h"
-#include "eventmsgque_process.h"
+#include "wedgeeventalertflow.h"
+#include "wedgecommonapi.h"
 
 #define UbloxPrintf DebugPrintf
 

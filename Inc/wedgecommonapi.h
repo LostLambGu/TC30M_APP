@@ -1,15 +1,15 @@
 /*******************************************************************************
-* File Name          : eventmsgque_process.h
+* File Name          : wedgecommonapi.h
 * Author             : Yangjie Gu
-* Description        : This file provides all the eventmsgque_process functions.
+* Description        : This file provides all the wedgecommonapi functions.
 
 * History:
-*  10/28/2017 : eventmsgque_process V1.00
+*  10/28/2017 : wedgecommonapi V1.00
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __EVENT_MSG_QUEUE_PROCESS_H__
-#define __EVENT_MSG_QUEUE_PROCESS_H__
+#ifndef WEDGE_COMMON_API_H__
+#define WEDGE_COMMON_API_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -147,7 +147,7 @@ extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t
 }
 #endif
 
-#endif /* __EVENT_MSG_QUEUE_PROCESS_H__ */
+#endif /* WEDGE_COMMON_API_H__ */
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved

@@ -1,15 +1,15 @@
 /*******************************************************************************
-* File Name          : eventalertflow.c
+* File Name          : wedgeeventalertflow.c
 * Author             : Yangjie Gu
-* Description        : This file provides all the eventalertflow functions.
+* Description        : This file provides all the wedgeeventalertflow functions.
 
 * History:
-*  12/14/2017 : eventalertflow V1.00
+*  12/14/2017 : wedgeeventalertflow V1.00
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "eventalertflow.h"
-#include "eventmsgque_process.h"
+#include "wedgeeventalertflow.h"
+#include "wedgecommonapi.h"
 #include "wedgertctimer.h"
 #include "ublox_driver.h"
 #include "iocontrol.h"

@@ -9,7 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "include.h"
-#include "eventmsgque_process.h"
+#include "wedgecommonapi.h"
 #include "network.h"
 #include "sendatcmd.h"
 #include "ltecatm.h"

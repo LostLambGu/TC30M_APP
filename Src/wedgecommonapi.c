@@ -1,20 +1,20 @@
 /*******************************************************************************
-* File Name          : eventmsgque_process.c
+* File Name          : wedgecommonapi.c
 * Author             : Yangjie Gu
-* Description        : This file provides all the eventmsgque_process functions.
+* Description        : This file provides all the wedgecommonapi functions.
 
 * History:
-*  10/28/2017 : eventmsgque_process V1.00
+*  10/28/2017 : wedgecommonapi V1.00
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "eventmsgque_process.h"
+#include "wedgecommonapi.h"
 #include "rtcclock.h"
 #include "usrtimer.h"
 #include "network.h"
 #include "ublox_driver.h"
 #include "flash.h"
-#include "eventalertflow.h"
+#include "wedgeeventalertflow.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE

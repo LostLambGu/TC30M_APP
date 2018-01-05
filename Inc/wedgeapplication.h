@@ -1,10 +1,10 @@
 /*******************************************************************************
-* File Name          : application.h
+* File Name          : wedgeapplication.h
 * Author             : Yangjie Gu
-* Description        : This file provides all the application functions.
+* Description        : This file provides all the wedgeapplication functions.
 
 * History:
-*  12/12/2017 : application V1.00
+*  12/12/2017 : wedgeapplication V1.00
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -32,8 +32,8 @@ extern "C" {
 #include "parseatat.h"
 
 #include "wedgedatadefine.h"
-#include "eventmsgque_process.h"
-#include "eventalertflow.h"
+#include "wedgecommonapi.h"
+#include "wedgeeventalertflow.h"
 #include "wedgedeviceinfo.h"
 #include "wedgertctimer.h"
 #include "wedgemsgque.h"

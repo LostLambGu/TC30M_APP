@@ -1,15 +1,15 @@
 /*******************************************************************************
-* File Name          : appatprocess.c
+* File Name          : wedgeatprocess.c
 * Author             : 
-* Description        : This file provides all the appatprocess functions.
+* Description        : This file provides all the wedgeatprocess functions.
 
 * History:
-*  12/12/2017 : appatprocess V1.00
+*  12/12/2017 : wedgeatprocess V1.00
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "appatprocess.h"
-#include "eventmsgque_process.h"
+#include "wedgeatprocess.h"
+#include "wedgecommonapi.h"
 
 uint8_t *AppAtProcess(uint8_t * Data, uint8_t DataLen)
 {

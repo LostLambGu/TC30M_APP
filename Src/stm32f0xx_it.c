@@ -39,7 +39,7 @@
 #include "usrtimer.h"
 #include "initialization.h"
 #include "ublox_driver.h"
-#include "eventalertflow.h"
+#include "wedgeeventalertflow.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE

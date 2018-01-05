@@ -49,7 +49,7 @@
 #include "gpio.h"
 
 #include "initialization.h"
-#include "application.h"
+#include "wedgeapplication.h"
 
 /* USER CODE BEGIN Includes */
 

@@ -2,9 +2,9 @@
 #define WEDGE_TEST_H
 
 #include "include.h"
-#include "eventmsgque_process.h"
+#include "wedgecommonapi.h"
 #include "flash.h"
-#include "eventalertflow.h"
+#include "wedgeeventalertflow.h"
 #include "wedgertctimer.h"
 #include "wedgedeviceinfo.h"
 

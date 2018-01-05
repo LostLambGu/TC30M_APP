@@ -10,7 +10,7 @@
 #include "parseatat.h"
 #include "ltecatm.h"
 #include "network.h"
-#include "eventmsgque_process.h"
+#include "wedgecommonapi.h"
 
 #define ParseatPrint DebugPrintf
 

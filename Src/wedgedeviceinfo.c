@@ -9,7 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "wedgedeviceinfo.h"
-#include "eventmsgque_process.h"
+#include "wedgecommonapi.h"
 #include "wedgertctimer.h"
 
 /* Defines ------------------------------------------------------------------*/

@@ -597,11 +597,6 @@
               <FilePath>..\Src\appatprocess.c</FilePath>
             </File>
             <File>
-              <FileName>application.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\application.c</FilePath>
-            </File>
-            <File>
               <FileName>atcmd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\atcmd.c</FilePath>
@@ -697,11 +692,6 @@
               <FilePath>..\Src\version.c</FilePath>
             </File>
             <File>
-              <FileName>eventalertflow.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\eventalertflow.c</FilePath>
-            </File>
-            <File>
               <FileName>flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\flash.c</FilePath>
@@ -725,6 +715,16 @@
               <FileName>wedgedeviceinfo.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\wedgedeviceinfo.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgeapplication.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgeapplication.c</FilePath>
+            </File>
+            <File>
+              <FileName>wedgeeventalertflow.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\wedgeeventalertflow.c</FilePath>
             </File>
           </Files>
         </Group>

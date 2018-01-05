@@ -10,8 +10,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgertctimer.h"
 #include "rtcclock.h"
-#include "eventalertflow.h"
-#include "eventmsgque_process.h"
+#include "wedgeeventalertflow.h"
+#include "wedgecommonapi.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE

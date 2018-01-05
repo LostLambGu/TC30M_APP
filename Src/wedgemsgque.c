@@ -10,8 +10,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgemsgque.h"
 #include "rtcclock.h"
-#include "eventalertflow.h"
-#include "eventmsgque_process.h"
+#include "wedgeeventalertflow.h"
+#include "wedgecommonapi.h"
 
 #ifndef FALSE
 #define FALSE 0

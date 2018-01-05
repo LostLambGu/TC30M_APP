@@ -1,15 +1,15 @@
 /*******************************************************************************
-* File Name          : eventalertflow.h
+* File Name          : wedgeeventalertflow.h
 * Author             : Yangjie Gu
-* Description        : This file provides all the eventalertflow functions.
+* Description        : This file provides all the wedgeeventalertflow functions.
 
 * History:
-*  12/14/2017 : eventalertflow V1.00
+*  12/14/2017 : wedgeeventalertflow V1.00
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef _EVENT_ALERT_FLOW_
-#define _EVENT_ALERT_FLOW_
+#ifndef WEDGE_EVENT_ALERT_FLOW_
+#define WEDGE_EVENT_ALERT_FLOW_
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,7 +137,7 @@ extern void WedgePeriodicHardwareResetInit(void);
 }
 #endif
 
-#endif /* _EVENT_ALERT_FLOW_ */
+#endif /* WEDGE_EVENT_ALERT_FLOW_ */
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved

@@ -1,14 +1,14 @@
 /*******************************************************************************
-* File Name          : application.c
+* File Name          : wedgeapplication.c
 * Author             : Yangjie Gu
-* Description        : This file provides all the application functions.
+* Description        : This file provides all the wedgeapplication functions.
 
 * History:
-*  12/12/2017 : application V1.00
+*  12/12/2017 : wedgeapplication V1.00
 *******************************************************************************/
 
 /* Includes ------------------------------------------------------------------*/
-#include "application.h"
+#include "wedgeapplication.h"
 
 #ifndef FALSE
 #define FALSE 0
@@ -24,6 +24,15 @@ static void WedgeUdpInit(void);
 static void WedgeIgnitionStateProcess(void);
 static void WedgeCfgChgStateProcess(void);
 static void WedgeMsgQueProcess(void);
+static void WedgeSMSAddrCfgChg(void);
+static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg);
+static void WedgeAPNCfgChg(void);
+static void WedgeHWRRSTCfgChg(void);
+static void WedgePWRMGTCfgChg(void);
+static void WedgeUSRDATCfgChg(void);
+static void WedgeCFGALLCfgChg(void);
+static void WedgeResetDefaultCfgChg(void);
+static void WedgeIGNTYPCfgChg(void);
 
 void ApplicationProcess(void)
 {
@@ -280,77 +289,132 @@ static void WedgeUdpInit(void)
 static void WedgeMsgQueProcess(void)
 {
 
+
+
+
+
+
+}
+
+static void WedgeSMSAddrCfgChg(void)
+{
+
+}
+
+static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
+{
+
+}
+
+static void WedgeAPNCfgChg(void)
+{
+
+}
+
+static void WedgeHWRRSTCfgChg(void)
+{
+
+}
+
+static void WedgePWRMGTCfgChg(void)
+{
+
+}
+
+static void WedgeUSRDATCfgChg(void)
+{
+
+}
+static void WedgeCFGALLCfgChg(void)
+{
+
+}
+
+static void WedgeResetDefaultCfgChg(void)
+{
+
+}
+
+static void WedgeIGNTYPCfgChg(void)
+{
+
 }
 
 static void WedgeCfgChgStateProcess(void)
-{   
-    // case SMS_ADDR_CFG_CHG:
-    //     break;
-    // case SVRCFG_CFG_CHG:
-    //     break;
-    // case FTPCFG_CFG_CHG:
-    //     break;
-    // case APNCFG_CFG_CHG:
-    //     break;
-    // case HWRST_CFG_CHG:
-    //     break;
-    // case PWRMGT_CFG_CHG:
-    //     break;
-    // case USRDAT_CFG_CHG:
-    //     break;
-    // case CFGALL_CFG_CHG:
-    //     break;
-    // case RESET_DEFAULT_CFG_CHG:
-    //     break;
-    // case IGNTYP_CFG_CHG:
-    //     break;
-    // case RPTINTVL_CFG_CHG:
-    //     break;
-    // case ALARM1_CFG_CHG:
-    //     break;
-    // case ALARM2_CFG_CHG:
-    //     break;
-    // case LVA_CFG_CHG:
-    //     break;
-    // case IDLE_CFG_CHG:
-    //     break;
-    // case SODO_CFG_CHG:
-    //     break;
-    // case DIRCHG_CFG_CHG:
-    //     break;
-    // case TOW_CFG_CHG:
-    //     break;
-    // case STPINTVL_CFG_CHG:
-    //     break;
-    // case VODO_CFG_CHG:
-    //     break;
-    // case GEOFENCES1_CFG_CHG:
-    // case GEOFENCES2_CFG_CHG:
-    // case GEOFENCES3_CFG_CHG:
-    // case GEOFENCES4_CFG_CHG:
-    // case GEOFENCES5_CFG_CHG:
-    // case GEOFENCES6_CFG_CHG:
-    // case GEOFENCES7_CFG_CHG:
-    // case GEOFENCES8_CFG_CHG:
-    // case GEOFENCES9_CFG_CHG:
-    // case GEOFENCES10_CFG_CHG:
-    //     break;
-    // case RELAY_CFG_CHG:
-    //     break;
-    // case PLSRLY_CFG_CHG:
-    //     break;
-    // case OPSOD_CFG_CHG:
-    //     break;
-    // default:
-    //     EVENTMSGQUE_PROCESS_LOG("WEDGE CFG CHG SET: Param err");
-    //     break;
+{
+    uint8_t i = 0;
+    char *WedgeCfgChgStateProcessStr = " WEDGE Cfg Chg State Process ";
 
-    // WEDGE_CFG_SVRCFG_ALL,
-    //     WEDGE_CFG_SVRCFG_1,
-    //     WEDGE_CFG_SVRCFG_2,
-    //     WEDGE_CFG_SVRCFG_3
-    //         WEDGE_CFG_SVRCFG_4,
-    //     WEDGE_CFG_SVRCFG_5,
+    if (WedgeCfgChgStateIsChanged() == 0)
+    {
+        return;
+    }
+
+    for (i = 0; i < CFG_CHG_INVALIAD_MAX; i++)
+    {
+        if (WedgeCfgChgStateGet((WEDGECfgChangeTypeDef)i) != FALSE)
+        {
+            switch ((WEDGECfgChangeTypeDef)i)
+            {
+                case SMS_ADDR_CFG_CHG:
+                    WedgeSMSAddrCfgChg();
+                    break;
+
+                case SVRCFG_CFG_CHG_ALL:
+                case SVRCFG_CFG_CHG_1:
+                case SVRCFG_CFG_CHG_2:
+                case SVRCFG_CFG_CHG_3:
+                case SVRCFG_CFG_CHG_4:
+                case SVRCFG_CFG_CHG_5:
+                    WedgeSVRCFGCfgChg((WEDGECfgChangeTypeDef)i);
+                    break;
+
+                case FTPCFG_CFG_CHG:
+                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sFTPCFG Cfg Chg Reserved",
+                                      FmtTimeShow(), WedgeCfgChgStateProcessStr);
+                    break;
+
+                case APNCFG_CFG_CHG:
+                    WedgeAPNCfgChg();
+                    break;
+
+                case HWRST_CFG_CHG:
+                    WedgeHWRRSTCfgChg();
+                    break;
+
+                case PWRMGT_CFG_CHG:
+                    WedgePWRMGTCfgChg();
+                    break;
+
+                case USRDAT_CFG_CHG:
+                    WedgeUSRDATCfgChg();
+                    break;
+
+                case CFGALL_CFG_CHG:
+                    WedgeCFGALLCfgChg();
+                    break;
+
+                case RESET_DEFAULT_CFG_CHG:
+                    WedgeResetDefaultCfgChg();
+                    break;
+
+                case IGNTYP_CFG_CHG:
+                    WedgeIGNTYPCfgChg();
+                    break;
+
+                default:
+                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDefault",
+                                      FmtTimeShow(), WedgeCfgChgStateProcessStr);
+                    break;
+            }
+        }
+    }
+
+    // Wedge Device Info Save
+
+
+
+
 }
 
 /*******************************************************************************

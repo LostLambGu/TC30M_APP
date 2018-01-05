@@ -1,10 +1,10 @@
 /*******************************************************************************
-* File Name          : appatprocess.h
+* File Name          : wedgeatprocess.h
 * Author             : 
-* Description        : This file provides all the appatprocess functions.
+* Description        : This file provides all the wedgeatprocess functions.
 
 * History:
-*  12/12/2017 : appatprocess V1.00
+*  12/12/2017 : wedgeatprocess V1.00
 *******************************************************************************/
 
 /* Define to prevent recursive inclusion -------------------------------------*/
