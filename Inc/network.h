@@ -126,7 +126,6 @@ extern void SetNetworkReadyStat(u8 Status);
 extern uint8 GetNetworkRssiValue(void);
 extern void SetNetworkRssiValue(uint8 value);
 extern ServiceStatus GetNetServiceStatus(void);
-extern u8 GetSysInitializeStat(void);
 extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);
 extern void CheckNetlorkTimerCallback(u8 Status);

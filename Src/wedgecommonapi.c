@@ -9,6 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "wedgecommonapi.h"
+#include "iocontrol.h"
 #include "rtcclock.h"
 #include "usrtimer.h"
 #include "network.h"
@@ -316,7 +317,7 @@ void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData)
     return;
 }
 
-void WedgeCfgChgStateInit(void)
+void WedgeCfgChgStateResetAll(void)
 {
     memset(&WEDGECfgState, 0, sizeof(WEDGECfgState));
 }
@@ -387,6 +388,11 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
     double speedkm = 0.0;
     double headingdeg = 0.0;
     double pdop = 0.0;
+
+    if (FALSE == UbloxFixStateGet())
+    {
+        return;
+    }
 
     BinaryMsgRecord.GPS_DT[0] = (uint8_t)GpsInfo.Year;
     BinaryMsgRecord.GPS_DT[1] = (uint8_t)GpsInfo.Month;
@@ -479,6 +485,19 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     BinaryMsgRecord.RTC_TS[3] = (uint8_t)timeTable.hour;
     BinaryMsgRecord.RTC_TS[4] = (uint8_t)timeTable.minute;
     BinaryMsgRecord.RTC_TS[5] = (uint8_t)timeTable.second;
+
+    BinaryMsgRecord.IO_STAT[0] = 0;
+    BinaryMsgRecord.IO_STAT[0] |= ((WedgeLteGreenLedStateGet() & 0x01) << 0);
+    BinaryMsgRecord.IO_STAT[0] |= ((WedgeGpsRedLedStateGet() & 0x01) << 1);
+    BinaryMsgRecord.IO_STAT[0] |= ((0 & 0x01) << 2); //ALARM1 input state Reserved
+    BinaryMsgRecord.IO_STAT[0] |= ((0 & 0x01) << 3); //ALARM2 input state Reserved
+    BinaryMsgRecord.IO_STAT[0] |= ((WedgeRelayStateGet() & 0x01) << 4);
+    BinaryMsgRecord.IO_STAT[0] |= ((0 & 0x01) << 5); //Primary power applied state (Battery B/U devices only) Reserved
+    BinaryMsgRecord.IO_STAT[0] |= ((WedgeGpsPowerStateGet() & 0x01) << 6);
+    BinaryMsgRecord.IO_STAT[0] |= ((WedgeIgnitionStateGet() & 0x01) << 7);
+    BinaryMsgRecord.IO_STAT[1] = 0x2C;
+    Buf[0] = (((uint16_t)((ADCGetVinVoltage() + 3.9) * 10)) < 239) ? (uint8_t)((ADCGetVinVoltage() + 3.9) * 10): 239;
+    BinaryMsgRecord.IO_STAT[2] = Buf[0];
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)

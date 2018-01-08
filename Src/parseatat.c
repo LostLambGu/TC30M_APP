@@ -829,13 +829,23 @@ static void MmiCEREG(char *MsgDataP)
 					FmtTimeShow(), CmdP,RegisterStatus);
 			// }
 			// #endif
+			WedgeLteGreenLedBlink(FALSE);
 			if((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
 				SetNetworkReadyStat(TRUE);
+				WedgeLteGreenLedControl(TRUE);
 			}
 			else
 			{
-				SetNetworkReadyStat(FALSE);	
+				SetNetworkReadyStat(FALSE);
+				if (RegisterStatus == 0)
+				{
+					WedgeLteGreenLedControl(FALSE);
+				}
+				else
+				{
+					WedgeLteGreenLedBlink(TRUE);
+				}
 			}
 		}
 		else
@@ -852,13 +862,23 @@ static void MmiCEREG(char *MsgDataP)
 			// }
 			// #endif
 			// +CREG:1
+			WedgeLteGreenLedBlink(FALSE);
 			if((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
 				SetNetworkReadyStat(TRUE);
+				WedgeLteGreenLedControl(TRUE);
 			}
 			else
 			{
-				SetNetworkReadyStat(FALSE);	
+				SetNetworkReadyStat(FALSE);
+				if (RegisterStatus == 0)
+				{
+					WedgeLteGreenLedControl(FALSE);
+				}
+				else
+				{
+					WedgeLteGreenLedBlink(TRUE);
+				}
 			}
 		}
 	}

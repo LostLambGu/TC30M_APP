@@ -1105,6 +1105,15 @@ void UbloxGPSTimerProcess(void)
 	        UbloxPrintf(DbgCtl.UbloxDbgInfoEn,"\r\n[%s] UBlox:FixType[%d]SelectionType[%d]",FmtTimeShow(),gLocMsg.FixType ,gLocMsg.SelectionType); */
 	}
 
+	if (FALSE == GpsInfo.validFix)
+	{
+		WedgeGpsRedLedControl(FALSE);
+	}
+	else
+	{
+		WedgeGpsRedLedControl(TRUE);
+	}
+
 	WedgeSysStateSet(WEDGE_GPS_FIX_STATE, &(GpsInfo.validFix));
 	if (firstfix == FALSE)
 	{

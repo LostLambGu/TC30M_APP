@@ -56,7 +56,7 @@ void InitSoftwareTimers(void)
 
 	// LED Flashing
 	SoftwareTimerCreate(&LEDFlashTimer, 1, CheckLEDFlashTimerCallback, CHECK_LED_FLASH_STAT_TIMEOUT);
-	SoftwareTimerStart(&LEDFlashTimer);
+	// SoftwareTimerStart(&LEDFlashTimer);
 
 	// AT Sent To UART3
 	SoftwareTimerCreate(&AtSentToUart3Timer, 1, AtSendtoUart3TimerCallback, AT_SENDTO_DELAYT_TIMEOUT);

@@ -501,56 +501,58 @@ static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	switch (Param)
 	{
 	case 0:
-		gRedLEDFlashingFlag = FALSE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
-		gGreenLEDFlashingFlag = FALSE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LEDs Off");
+		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_SET);
 		break;
 
 	case 1:
-		gRedLEDFlashingFlag = TRUE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
-		gGreenLEDFlashingFlag = TRUE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
-		break;
-
-	case 2:
-		gRedLEDFlashingFlag = TRUE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
-		break;
-
-	case 3:
-		gRedLEDFlashingFlag = FALSE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
-		break;
-
-	case 4:
-		gGreenLEDFlashingFlag = TRUE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
-		break;
-
-	case 5:
-		gGreenLEDFlashingFlag = FALSE;
-		// Print Out
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
-		break;
-
-	case 6:
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LEDs On");
 		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_RESET);
 		break;
 
-	case 7:
-		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_SET);
-		break;
+		// case 0:
+		// 	gRedLEDFlashingFlag = FALSE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
+		// 	gGreenLEDFlashingFlag = FALSE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
+		// 	break;
+
+		// case 1:
+		// 	gRedLEDFlashingFlag = TRUE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
+		// 	gGreenLEDFlashingFlag = TRUE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
+		// 	break;
+
+		// case 2:
+		// 	gRedLEDFlashingFlag = TRUE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing ON");
+		// 	break;
+
+		// case 3:
+		// 	gRedLEDFlashingFlag = FALSE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LED Flashing OFF");
+		// 	break;
+
+		// case 4:
+		// 	gGreenLEDFlashingFlag = TRUE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing ON");
+		// 	break;
+
+		// case 5:
+		// 	gGreenLEDFlashingFlag = FALSE;
+		// 	// Print Out
+		// 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Green LED Flashing OFF");
+		// 	break;
 
 	default:
 		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: (%s)", "DEBUG_LED_INFO");

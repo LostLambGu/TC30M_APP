@@ -245,7 +245,7 @@ static void WedgeInit(void)
         WedgeRtcTimerInit(NULL);
     }
 
-    WedgeCfgChgStateInit();
+    WedgeCfgChgStateResetAll();
 
     WedgeMsgQueInit();
 
@@ -477,6 +477,7 @@ static void WedgeCfgChgStateProcess(void)
         }
     }
 
+    WedgeCfgChgStateResetAll();
     // Wedge Device Info Save
     WedgeDeviceInfoSave();
 }

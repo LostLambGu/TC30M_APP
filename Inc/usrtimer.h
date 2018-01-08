@@ -22,7 +22,7 @@ extern "C" {
 #define TimeMsec(NumMsec) ((NumMsec)*1000)
 
 #define CHECK_UBLOX_STAT_TIMEOUT 927 //set as 910ms still has divided packet
-#define CHECK_LED_FLASH_STAT_TIMEOUT 200
+#define CHECK_LED_FLASH_STAT_TIMEOUT 500
 #define CHECK_UART3RevCDMATimer_STAT_TIMEOUT 10
 #define CHECK_UART1_REC_TIMEOUT (1 * 5000)
 

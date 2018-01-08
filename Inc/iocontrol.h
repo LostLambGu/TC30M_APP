@@ -17,6 +17,15 @@
 #define READ_IO(port, pin) ((uint8_t)HAL_GPIO_ReadPin(port, pin))
 #define WRITE_IO(port, pin, state) HAL_GPIO_WritePin(port, pin, state)
 
+extern void WedgeGpsRedLedControl(uint8_t state);
+extern uint8_t WedgeGpsRedLedStateGet(void);
+extern void WedgeLteGreenLedControl(uint8_t state);
+extern uint8_t WedgeLteGreenLedStateGet(void);
+extern void WedgeLteGreenLedBlink(uint8_t state);
+extern uint8_t WedgeRelayStateGet(void);
+extern uint8_t WedgeGpsPowerStateGet(void);
+extern uint8_t WedgeIgnitionStateGet(void);
+
 #endif /* __IOCONTROL_H__ */
 
 /*******************************************************************************

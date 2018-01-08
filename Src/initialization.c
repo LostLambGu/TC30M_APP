@@ -43,7 +43,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Public variables ----------------------------------------------------------*/
-uint8_t gRedLEDFlashingFlag = FALSE;
+// uint8_t gRedLEDFlashingFlag = FALSE;
 uint8_t gGreenLEDFlashingFlag = FALSE;
 uint8_t Lis2dhMemsChipID = 0;
 
@@ -199,8 +199,8 @@ void SystemInitialization(void)
 {
 	// Init LED
 	HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_RESET);
-	gRedLEDFlashingFlag = TRUE;
+	HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_SET);
+	// gRedLEDFlashingFlag = TRUE;
 	gGreenLEDFlashingFlag = TRUE;
 
 	// Show Version
@@ -251,10 +251,10 @@ void CheckRegularTimerCallback(uint8_t Status)
 
 void CheckLEDFlashTimerCallback(uint8_t Status)
 {
-	if (gRedLEDFlashingFlag == TRUE)
-	{
-		HAL_GPIO_TogglePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin);
-	}
+	// if (gRedLEDFlashingFlag == TRUE)
+	// {
+	// 	HAL_GPIO_TogglePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin);
+	// }
 
 	if (gGreenLEDFlashingFlag == TRUE)
 	{

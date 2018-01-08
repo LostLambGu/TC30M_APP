@@ -127,7 +127,7 @@ typedef struct
     uint8_t CfgChgState[CFG_CHG_INVALIAD_MAX];
 } WEDGECfgChgStateTypedef;
 
-extern void WedgeCfgChgStateInit(void);
+extern void WedgeCfgChgStateResetAll(void);
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
 extern uint8_t WedgeCfgChgStateIsChanged(void);
 extern uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg);

@@ -37,7 +37,7 @@ extern "C" {
 
 // Variable Declared
 extern uint8_t Lis2dhMemsChipID;
-extern uint8_t gRedLEDFlashingFlag;
+// extern uint8_t gRedLEDFlashingFlag;
 extern uint8_t gGreenLEDFlashingFlag;
 
 //Function Declare
