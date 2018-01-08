@@ -203,6 +203,8 @@ static void WedgeInit(void)
     WEDGEDeviceInfoTypeDef WEDGEDeviceInfo;
     char *WedgeInitStr = " WEDGE Init ";
 
+    WedgeResponseUdpBinaryInit();
+
     ret = WedgeIsStartFromPowerLost();
     if (ret != FALSE)
     {

@@ -435,17 +435,50 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
 
 void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
 {
-    
+    AppSmsAtProcess(MsgBufferP, size);
 }
 
 void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
 {
-    
+    AppUdpAtProcess(MsgBufferP, size);
 }
 
+void WedgeResponseUdpBinaryInit(void)
+{
+    BinaryMsgRecord.EQ_VEN = 0x01; // Vendor is OEM
+    BinaryMsgRecord.PROT = 0x00; // Binary = 0x00; ASCII = 0x01
+    BinaryMsgRecord.PVER = 0x00; // Initial Protocol version
+    BinaryMsgRecord.MCNT = 0x00; // Message try count
+    BinaryMsgRecord.SEQ = 0x00; // Sequence ID, rolling message counter(message rolls from FF to 00)
+
+}
+
+extern char IMEIBuf[32];
 void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
 {
+    // Did not do Param check
+    uint8_t Buf[4] = {0};
+    uint32_t *pTmpu = NULL;
+    TimeTableT = timeTable = {0};
 
+    BinaryMsgRecord.PYLD = PYLDType;
+    memcpy(&BinaryMsgRecord.IDENT, IMEIBuf, sizeof(BinaryMsgRecord.IDENT));
+    BinaryMsgRecord.SEQ--;
+
+    pTmpu = (uint32_t *)Buf;
+    *pTmpu = (uint32_t)(EvID);
+    BytesOrderSwap(Buf, 2);
+    BinaryMsgRecord.POS_SPD[0] = EVID[0];
+    BinaryMsgRecord.POS_SPD[1] = EVID[1];
+
+    // Real-Time Clock timestamp UTC
+    timeTable = GetRTCDatetime();
+    BinaryMsgRecord.RTC_TS[0] = (uint8_t)timeTable.year;
+    BinaryMsgRecord.RTC_TS[1] = (uint8_t)timeTable.month;
+    BinaryMsgRecord.RTC_TS[2] = (uint8_t)timeTable.day;
+    BinaryMsgRecord.RTC_TS[3] = (uint8_t)timeTable.hour;
+    BinaryMsgRecord.RTC_TS[4] = (uint8_t)timeTable.minute;
+    BinaryMsgRecord.RTC_TS[5] = (uint8_t)timeTable.second;
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)

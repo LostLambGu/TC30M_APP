@@ -135,6 +135,7 @@ extern void WedgeUpdateBinaryMsgGpsRecord(void);
 
 extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
 extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
+extern void WedgeResponseUdpBinaryInit(void);
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
 extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
