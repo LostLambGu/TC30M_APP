@@ -19,6 +19,7 @@ extern "C" {
 #include "stm32f0xx_hal.h"
 
 #include "initialization.h"
+#include "iocontrol.h"
 #include "uart_api.h"
 #include "atcmd.h"
 #include "limifsm.h"

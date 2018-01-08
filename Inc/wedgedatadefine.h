@@ -405,6 +405,7 @@ typedef struct
     DIRCHGTypeDef DIRCHG;
     TOWTypeDef TOW;
     STPINTVLTypeDef STPINTVL;
+    /* Caution: In software take index == 0 as GFNC is disable */
     GFNCTypeDef GFNC[WEDGE_GEOFENCES_NUM_MAX];
     RELAYTypeDef RELAY;
     OSPDTypeDef OSPD;

@@ -24,7 +24,8 @@ extern "C" {
 /* Defines -------------------------------------------------------------------*/
 typedef enum
 {
-    WEDGE_IGN_IGNORE_STATE = 0,
+    WEDGE_IGN_TO_IGNORE_STATE = 0,
+    WEDGE_IGN_IGNORE_STATE,
     WEDGE_IGN_OFF_STATE,
     WEDGE_IGN_OFF_TO_ON_STATE,
     WEDGE_IGN_ON_STATE,
@@ -112,25 +113,52 @@ typedef struct
 } WEDGESysStateTypeDef;
 
 extern uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState);
+extern void WedgeIgnitionStateSet(WEDGEIgnitionStateTypeDef IgnitionState);
+extern WEDGEIgnitionStateTypeDef WedgeIgnitionStateGet(void);
 extern void WedgeSysStateGetTotal(uint8_t *pBuf, uint32_t *pSize);
 extern void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet);
 extern void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvData);
 
 extern void WedgeServiceOdometerAlert(void);
+
 extern void WedgeLowBatteryAlert(void);
+
+extern void WedgeIDLEDetectAlertReset(void);
 extern void WedgeIDLEDetectAlert(void);
+
+extern void WedgeTowAlertReset(void);
 extern void WedgeTowAlert(void);
+
 extern void WedgeGeofenceAlert(void);
+
 extern void WedgeLocationOfDisabledVehicleOnToOff(void);
+
+extern void WedgeLocationOfDisabledVehicleReset(void);
 extern void WedgeLocationOfDisabledVehicle(void);
+
+extern void WedgeStopReportOnToOffDisable(void);
 extern void WedgeStopReportOnToOff(void);
+
+extern void WedgeOverSpeedAlertReset(void);
 extern void WedgeOverSpeedAlert(void);
+
+extern void WedgeIgnitionOffToOnCheckReset(void);
 extern void WedgeIgnitionOffToOnCheck(void);
+
+extern void WedgeIgnitionOnToOffCheckReset(void);
 extern void WedgeIgnitionOnToOffCheck(void);
+
 extern void WedgeHeadingChangeDetect(void);
+
 extern void WedgePeriodicMovingEventInit(void);
+
+extern void WedgePeriodicOffEventReset(void);
 extern void WedgePeriodicOffEvent(void);
+
+extern void WedgePeriodicHealthEventReset(void);
 extern void WedgePeriodicHealthEvent(void);
+
+extern void WedgePeriodicHardwareResetReinit(void);
 extern void WedgePeriodicHardwareResetInit(void);
 
 #ifdef __cplusplus

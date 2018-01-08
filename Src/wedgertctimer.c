@@ -167,20 +167,6 @@ void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize)
     *pSize = sizeof(RTCTimerList);
 }
 
-uint8_t WedgeRtcHwrstPowerLostJudge(void)
-{
-
-
-
-
-
-
-
-
-
-    return 0; // HWRST
-}
-
 uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance)
 {
     uint8_t Index = 0, ret = 0;
