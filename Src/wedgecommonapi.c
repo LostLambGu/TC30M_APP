@@ -498,6 +498,50 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     BinaryMsgRecord.IO_STAT[1] = 0x2C;
     Buf[0] = (((uint16_t)((ADCGetVinVoltage() + 3.9) * 10)) < 239) ? (uint8_t)((ADCGetVinVoltage() + 3.9) * 10): 239;
     BinaryMsgRecord.IO_STAT[2] = Buf[0];
+
+    BinaryMsgRecord.GSM_SS[0] = (GetNetworkRssiValue() <= 6) ? 0 : (GetNetworkRssiValue() - 6);
+    BinaryMsgRecord.GSM_RS[0] = GetNetworkRegistrationStat();
+
+
+
+    // Reserved
+    BinaryMsgRecord.GPRS_RS[0] = 0;
+
+    WedgeUpdateBinaryMsgGpsRecord();
+    ///* Status of GPS fix: 0x00 = INVALID FIX, 0x01 = VALID FIX, 0x0A = OLD GPS FIX, 0xFF = Malfunction (no GPS data) */
+    if (FALSE == *((uint8_t *)WedgeSysStateGet(WEDGE_POWER_ON_OFF_STATE)))
+    {
+        BinaryMsgRecord.POS_VAL[0] = 0xFF;
+    }
+    else
+    {
+        if (UbloxFixStateGet() == FALSE)
+        {
+            if (FALSE == *((uint8_t *)WedgeSysStateGet(WEDGE_GPS_LASTFIX_STATE)))
+            {
+                BinaryMsgRecord.POS_VAL[0] = 0x00;
+            }
+            else
+            {
+                BinaryMsgRecord.POS_VAL[0] = 0x0A;
+            }
+        }
+        else
+        {
+            BinaryMsgRecord.POS_VAL[0] = 0x01; 
+        }
+    }
+
+
+
+
+
+    // Not implement yet.
+    BinaryMsgRecord.V_ODOM[0] = 0;      /* Virtual Odometer in meters (integer) */
+    BinaryMsgRecord.USRDAT[0] = 0;     /* User Defined Data */
+    BinaryMsgRecord.FW_VER[0] = 0;     /* Firmware Version */
+    BinaryMsgRecord.SPARE[0] = 0;       /* Spare data bytes */
+       
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
@@ -567,6 +611,276 @@ uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datale
     }
 
     return ret;
+}
+
+static WedgeBufPoolTypedef WedgeBufPool = {0};
+void *WedgeBufPoolCalloc(uint16_t len)
+{
+	uint8_t i;
+
+	if (len >= WEDGE_BUF_CELL_LEN_MAX)
+	{
+		return NULL;
+	}
+
+	for (i = 0; i < WEDGE_BUF_POOL_NUM_MAX; i++)
+	{
+		if (WedgeBufPool.UsedFlag[i] == 0)
+		{
+			break;
+		}
+	}
+
+	if (i < WEDGE_BUF_POOL_NUM_MAX)
+	{
+		uint8_t *tmp = WedgeBufPool.BufPool[i];
+
+		memset(tmp, 0, WEDGE_BUF_CELL_LEN_MAX);
+		WedgeBufPool.UsedFlag[i] = 1;
+
+		return tmp;
+	}
+
+	return NULL;
+}
+
+void WedgeBufPoolFree(void *pBuf)
+{
+	uint32_t offset = 0;
+	uint8_t index = 0;
+
+	if (pBuf == NULL)
+	{
+		return;
+	}
+
+	offset = ((uint32_t)pBuf) - ((uint32_t)WedgeBufPool.BufPool);
+	index = offset / WEDGE_BUF_CELL_LEN_MAX;
+
+	if (index >= WEDGE_BUF_POOL_NUM_MAX)
+	{
+		return;
+	}
+	
+	WedgeBufPool.UsedFlag[index] = 0;
+}
+
+static WedgeUdpSendQueueTypedef WedgeUdpSendQueue = {0};
+
+void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint)
+{
+    if ((pWedgeUdpSendQueue == NULL) || (pWedgeUDPIpSendUint == NULL))
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WedgeUdpSendUnitIn param err", );
+        return;
+    }
+
+    {
+        SystemDisableAllInterrupt();
+        WedgeUdpSendUintTypedef *ptemp = &(pWedgeUdpSendQueue->UDPIpSendUint[pWedgeUdpSendQueue->putindex % WEDGE_UDP_SEND_QUEUE_LENGHT_MAX]);
+        ptemp->datalen = pWedgeUDPIpSendUint->datalen;
+        ptemp->buf = pWedgeUDPIpSendUint->buf;
+
+        pWedgeUdpSendQueue->putindex++;
+        pWedgeUdpSendQueue->numinqueue++;
+        if (pWedgeUdpSendQueue->numinqueue > WEDGE_UDP_SEND_QUEUE_LENGHT_MAX)
+        {
+            pWedgeUdpSendQueue->numinqueue = WEDGE_UDP_SEND_QUEUE_LENGHT_MAX;
+        }
+        SystemEnableAllInterrupt();
+    }
+}
+
+void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint)
+{
+    if ((pWedgeUdpSendQueue == NULL) || (pWedgeUDPIpSendUint == NULL))
+    {
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "WedgeUdpSendUintOut param err");
+        return;
+    }
+
+    if (pWedgeUdpSendQueue->numinqueue > 0)
+    {
+        SystemDisableAllInterrupt();
+        WedgeUdpSendUintTypedef *ptemp = &(pWedgeUdpSendQueue->UDPIpSendUint[pWedgeUdpSendQueue->getindex % WEDGE_UDP_SEND_QUEUE_LENGHT_MAX]);
+        pWedgeUDPIpSendUint->datalen = ptemp->datalen;
+        pWedgeUDPIpSendUint->buf = ptemp->buf;
+
+        pWedgeUdpSendQueue->getindex++;
+        pWedgeUdpSendQueue->numinqueue--;
+        if (pWedgeUdpSendQueue->numinqueue > WEDGE_UDP_SEND_QUEUE_LENGHT_MAX)
+        {
+            pWedgeUdpSendQueue->numinqueue = 0;
+        }
+        SystemEnableAllInterrupt();
+    }
+
+}
+
+static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
+{
+    if (pSVRCFG == NULL)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err1",
+                  FmtTimeShow());
+    }
+
+    switch(socketnum)
+    {
+    case 1:
+        if (strlen((const char *)pSVRCFG->srvr1) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(1, 1111, (char *)pSVRCFG->srvr1, pSVRCFG->port);
+        }
+        break;
+
+    case 2:
+        if (strlen((const char *)pSVRCFG->srvr2) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(2, 2222, (char *)pSVRCFG->srvr2, pSVRCFG->port);
+        }
+        break;
+
+    case 3:
+        if (strlen((const char *)pSVRCFG->srvr3) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(3, 3333, (char *)pSVRCFG->srvr3, pSVRCFG->port);
+        }
+        break;
+
+    case 4:
+        if (strlen((const char *)pSVRCFG->srvr4) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(4, 4444, (char *)pSVRCFG->srvr4, pSVRCFG->port);
+        }
+        break;
+
+    case 5:
+        if (strlen((const char *)pSVRCFG->srvr5) > strlen("\"\""))
+        {
+            UdpIpSocketOpen(5, 5555, (char *)pSVRCFG->srvr5, pSVRCFG->port);
+        }
+        break;
+
+    default:
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err2",
+                  FmtTimeShow());
+        break;
+    }
+}
+
+static void WedgeUdpInit(void)
+{
+    #define SVRCFG_UDP (1)
+    #define SVRCFG_MAX_UDP_NUM (5)
+    SVRCFGTypeDef SVRCFG;
+    uint8_t i = 0;
+
+    memset(&SVRCFG, 0, sizeof(SVRCFG));
+
+    SVRCFG = *((SVRCFGTypeDef *)WedgeCfgGet(WEDGE_CFG_SVRCFG));
+
+    if (SVRCFG.prot != SVRCFG_UDP)
+    {
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Init Not Udp",
+                                      FmtTimeShow());
+        return;
+    }
+
+    for (i = 0; i < SVRCFG_MAX_UDP_NUM; i++)
+    {
+        WedgeOpenUdpSocket(&SVRCFG, i + 1);
+    }
+}
+
+static WedgeUdpSocketManageTypeDef WedgeUdpSocketManage = {0};
+
+void WedgeUdpSocketManageDataComeSet(uint8_t Status)
+{
+    WedgeUdpSocketManage.newdatacome = Status;
+}
+
+void WedgeUdpSocketManageStatSet(WedgeUdpSocketManageStatT Stat)
+{
+    WedgeUdpSocketManage.UdpSocketManageStat = Stat;
+}
+
+void WedgeUdpSocketManageProcess(void)
+{
+    uint8_t newdatacome = WedgeUdpSocketManage.newdatacome;
+    NetworkStatT networkstat = GetNetworkMachineStatus();
+
+    static uint32_t lastProcessTime = 0, deltaProcessTime = 0;
+
+    if (newdatacome == FALSE)
+    {
+        if ((HAL_GetTick() - lastProcessTime) < deltaProcessTime)
+        {
+            return;
+        }
+    }
+
+    lastProcessTime = HAL_GetTick();
+
+    switch (WedgeUdpSocketManage.UdpSocketManageStat)
+    {
+    case WEDGE_UDP_DISCONNECTED_STAT:
+    {
+        if (networkstat == NET_CONNECTED_STAT)
+        {
+            WedgeUdpSocketManageStatSet(WEDGE_UDP_FREE_IDLE_STAT);
+            deltaProcessTime = 10;
+            return;
+        }
+        else
+        {
+            if (newdatacome == TRUE)
+            {
+                // Put in Msg Que
+
+
+
+                deltaProcessTime = 10;
+            }
+            else
+            {
+                deltaProcessTime = 5000;
+            }
+        }
+    }
+    break;
+
+    case WEDGE_UDP_FREE_IDLE_STAT:
+    {
+        if (networkstat != NET_CONNECTED_STAT)
+        {
+            
+        }
+    }
+        break;
+
+    case WEDGE_UDP_NEED_OPEN_STAT:
+        break;
+
+    case WEDGE_UDP_WAIT_OPEN_STAT:
+        break;
+
+    case WEDGE_UDP_OPENED_STAT:
+        break;
+
+    case WEDGE_UDP_CLOSE_STAT:
+        break;
+
+    case WEDGE_WAIT_UDP_DISCONNECTED_STAT:
+        break;
+
+    default:
+        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Socket Process Stat Err",
+                                      FmtTimeShow());
+        break;
+    }
+
+    WedgeUdpSocketManage.newdatacome = FALSE;
 }
 
 /*******************************************************************************

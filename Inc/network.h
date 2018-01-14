@@ -96,15 +96,29 @@ typedef enum
     CME_NET_ENOPROTOOPT            	/*33 the option is unknown at the level indiciated*/
 }TcpIpCmeError;
 
-typedef struct
+#define TC30M_DEFAULT_CID 3
+#define _TC30M_DEFAULT_CID_STR(x) #x
+#define TC30M_DEFAULT_CID_STR(x) _TC30M_DEFAULT_CID_STR(x)
+#define TC30M_DEFAULT_IPV4_MAX_LEN (16)
+typedef struct 
 {
-    u8 SysInitializeStat;
-    u8 ModemATPorStatus;
-    u8 NetworkReadyStat;
-    u8 RssiValue;
-    s8 RssiDbm;
-    u8 Version[MAX_VERSION_LEN + 2];
-} ServerConfigParam;
+    u8 	SysInitializeStat;
+    u8  	ModemATPorStatus;
+    u8  	NetworkReadyStat;
+    u8 	RssiValue;
+    s8		RssiDbm;
+    u8 	Version[MAX_VERSION_LEN+2];
+    u8      stat; //  Indicates the EPS registration status. 1 registered, home network, 5 registered, roaming
+    u8      act; // access technology(ServiceType)
+    u32 	sid; // tac area code 
+    u32 	nid; // ci cell ID 
+    u8  pdpType[8];
+    u8  apn_attach[FDH_MAX_CMD_LEN - 14];
+    u8 defaultcid;
+    u8 defaultcidipgetflag;
+    char defaultcidipstr[MNT91_DEFAULT_IPV4_MAX_LEN];
+    u32 defaultcidipnum;
+}ServerConfigParam;
 
 typedef enum
 {
@@ -125,6 +139,7 @@ extern u8 GetModemATPortStat(void);
 extern void SetNetworkReadyStat(u8 Status);
 extern uint8 GetNetworkRssiValue(void);
 extern void SetNetworkRssiValue(uint8 value);
+extern u8 GetNetworkRegistrationStat(void);
 extern ServiceStatus GetNetServiceStatus(void);
 extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);

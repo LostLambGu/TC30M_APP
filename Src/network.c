@@ -38,7 +38,14 @@ ServerConfigParam gModemParam =
 	FALSE,
 	DEFAULT_RSSI_VALUE,
 	-113,
-	"UNKNOWN",
+	"",
+	0,0,0,0,
+	"",
+	"",
+	MNT91_DEFAULT_CID,
+	FALSE,
+	"",
+	0xfffffffful
 };
 
 static const s8 RssiDbmTable[32] = 
@@ -177,6 +184,11 @@ void SetNetworkRssiValue(uint8 value)
 	// Print Out
 	NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] NET: Rssi dbm(%d)", \
 		FmtTimeShow(), gModemParam.RssiDbm);
+}
+
+u8 GetNetworkRegistrationStat(void)
+{
+	return gModemParam.stat;
 }
 
 ServiceStatus GetNetServiceStatus(void)

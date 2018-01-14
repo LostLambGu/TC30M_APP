@@ -145,6 +145,59 @@ extern uint8_t WedgeFlashEraseSector(uint32_t address);
 extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
+#define WEDGE_BUF_POOL_NUM_MAX (12)
+#define WEDGE_BUF_CELL_LEN_MAX (256)
+typedef struct
+{
+	uint8_t UsedFlag[WEDGE_BUF_POOL_NUM_MAX];
+	uint8_t BufPool[WEDGE_BUF_POOL_NUM_MAX][WEDGE_BUF_CELL_LEN_MAX];
+} WedgeBufPoolTypedef;
+
+void *WedgeBufPoolCalloc(uint16_t len);
+void WedgeBufPoolFree(void *pBuf);
+
+#define WEDGE_UDP_SEND_QUEUE_LENGHT_MAX (6)
+typedef struct
+{
+    uint16_t datalen;
+    char *buf;
+} WedgeUdpSendUintTypedef;
+
+typedef struct
+{
+    uint8_t putindex;
+    uint8_t getindex;
+    uint8_t numinqueue;
+    WedgeUdpSendUintTypedef WedgeUDPIpSendUint[WEDGE_UDP_SEND_QUEUE_LENGHT_MAX];
+} WedgeUdpSendQueueTypedef;
+
+extern void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint);
+
+extern void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint);
+
+typedef enum  
+{
+    WEDGE_UDP_DISCONNECTED_STAT         = 0,
+    WEDGE_UDP_FREE_IDLE_STAT 			= 1,
+    WEDGE_UDP_NEED_OPEN_STAT 			= 2,
+    WEDGE_UDP_WAIT_OPEN_STAT		    = 3,
+    WEDGE_UDP_OPENED_STAT               = 4,
+    WEDGE_UDP_CLOSE_STAT                = 5,
+    WEDGE_WAIT_UDP_DISCONNECTED_STAT    = 6,
+    
+    NET_MAXIMUM_STAT,
+} WedgeUdpSocketManageStatT;
+
+typedef struct
+{
+    uint8_t newdatacome;
+    WedgeUdpSocketManageStatT UdpSocketManageStat;
+} WedgeUdpSocketManageTypeDef;
+
+extern void WedgeUdpSocketManageDataComeSet(uint8_t Status);
+extern void WedgeUdpSocketManageStatSet(WedgeUdpSocketManageStatT Stat);
+extern void WedgeUdpSocketManageProcess(void);
+
 #ifdef __cplusplus
 }
 #endif
