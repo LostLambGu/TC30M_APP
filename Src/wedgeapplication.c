@@ -18,6 +18,9 @@
 #define TRUE 1
 #endif
 
+#define APP_LOG DebugLog
+#define APP_PRINT DebugPrintf
+
 static void WedgeInit(void);
 static void WedgeIgnitionStateProcess(void);
 static void WedgeIGNOnStateReset(void);
@@ -209,14 +212,14 @@ static void WedgeInit(void)
     ret = WedgeIsStartFromPowerLost();
     if (ret != FALSE)
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sFrom Power Lost",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sFrom Power Lost",
                                       FmtTimeShow(), WedgeInitStr);
         WedgeIsPowerLostSet(TRUE);
     }
     else
     {
         WedgeIsPowerLostSet(FALSE);
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s",
                                       FmtTimeShow(), WedgeInitStr);
     }
 
@@ -224,7 +227,7 @@ static void WedgeInit(void)
     if (0 == WedgeDeviceInfoRead((uint8_t *)&WEDGEDeviceInfo, sizeof(WEDGEDeviceInfo)))
     {
         // Normal
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDevice Info Read",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sDevice Info Read",
                                       FmtTimeShow(), WedgeInitStr);
 
         WedgeCfgInit(&(WEDGEDeviceInfo.WEDGECfg));
@@ -236,7 +239,7 @@ static void WedgeInit(void)
     else
     {
         // Abnormal
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDevice Info Not Read",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sDevice Info Not Read",
                                       FmtTimeShow(), WedgeInitStr);
 
         WedgeCfgInit(NULL);
@@ -297,7 +300,7 @@ static void WedgeCfgChgStateProcess(void)
                     break;
 
                 case FTPCFG_CFG_CHG:
-                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sFTPCFG Cfg Chg Reserved",
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sFTPCFG Cfg Chg Reserved",
                                       FmtTimeShow(), WedgeCfgChgStateProcessStr);
                     break;
 
@@ -335,7 +338,7 @@ static void WedgeCfgChgStateProcess(void)
 
                 case ALARM1_CFG_CHG:
                 case ALARM2_CFG_CHG:
-                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sAlarm Cfg Chg Reserved",
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sAlarm Cfg Chg Reserved",
                                       FmtTimeShow(), WedgeCfgChgStateProcessStr);
                     break;
 
@@ -393,7 +396,7 @@ static void WedgeCfgChgStateProcess(void)
                     break;
 
                 default:
-                    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sDefault",
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sDefault",
                                       FmtTimeShow(), WedgeCfgChgStateProcessStr);
                     break;
             }
@@ -420,12 +423,12 @@ static void WedgeDeviceInfoSave(void)
     ret = WedgeDeviceInfoWrite((uint8_t *)&WEDGEDeviceInfo, sizeof(WEDGEDeviceInfo));
     if (0 != ret)
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sErr%d",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sErr%d",
                     FmtTimeShow(), WedgeDeviceInfoSaveStr, ret);
     }
     else
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sOk",
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sOk",
                     FmtTimeShow(), WedgeDeviceInfoSaveStr);
     }
 }
@@ -436,7 +439,7 @@ static void WedgeSMSAddrCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE SMS Addr Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE SMS Addr Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
@@ -444,7 +447,7 @@ static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE SVRCFG Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE SVRCFG Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeAPNCfgChg(void)
@@ -453,12 +456,12 @@ static void WedgeAPNCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE APN Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE APN Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeHWRRSTCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE HWRRST Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE HWRRST Cfg Chg", FmtTimeShow());
     WedgePeriodicHardwareResetReinit();
 }
 
@@ -467,7 +470,7 @@ static void WedgePWRMGTCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeUSRDATCfgChg(void)
@@ -476,7 +479,7 @@ static void WedgeUSRDATCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE USRDAT Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE USRDAT Cfg Chg Reserved", FmtTimeShow());
 }
 static void WedgeCFGALLCfgChg(void)
 {
@@ -484,7 +487,7 @@ static void WedgeCFGALLCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE CFGALL Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE CFGALL Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeResetDefaultCfgChg(void)
@@ -493,7 +496,7 @@ static void WedgeResetDefaultCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Reset Default Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE Reset Default Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeIGNTYPCfgChg(void)
@@ -503,7 +506,7 @@ static void WedgeIGNTYPCfgChg(void)
 
     if (IGNTYPE.itype == No_Ignition_detect)
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s1", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s1", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
         WedgeIgnitionStateSet(WEDGE_IGN_TO_IGNORE_STATE);
     }
     else if (IGNTYPE.itype == Virtual_Ignition_Battery_Voltage)
@@ -511,31 +514,31 @@ static void WedgeIGNTYPCfgChg(void)
 
 
 
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s2", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s2", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
     }
     else if (IGNTYPE.itype == Virtual_Ignition_GPS_velocity)
     {
 
 
 
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s3", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s3", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
     }
     else if (IGNTYPE.itype == Wired_Ignition)
     {
         if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
         {
-            APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s4", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+            APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s4", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
             WedgeIgnitionStateSet(WEDGE_IGN_ON_TO_OFF_STATE);
         }
         else
         {
-            APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s5", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+            APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s5", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
             WedgeIgnitionStateSet(WEDGE_IGN_OFF_TO_ON_STATE);
         }
     }
     else
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%s6", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s6", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
     }
 }
 
@@ -549,11 +552,11 @@ static void WedgeRPTINTVLCfgChg(void)
     if (RPTINTVL.perint == 0)
     {
         ret = WedgeRtcTimerInstanceDel(Periodic_Moving_Event);
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sRet%d", FmtTimeShow(), WedgeRPTINTVLCfgChgStr, ret);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sRet%d", FmtTimeShow(), WedgeRPTINTVLCfgChgStr, ret);
     }
     else
     {
-        APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s]%sPeriodic Moving Event Reinit"
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sPeriodic Moving Event Reinit"
                                 , FmtTimeShow(), WedgeRPTINTVLCfgChgStr);
         WedgePeriodicMovingEventInit();
     }
@@ -564,28 +567,28 @@ static void WedgeRPTINTVLCfgChg(void)
 
 static void WedgeLVACfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE LVA Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE LVA Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeIDLECfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE IDLE Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE IDLE Cfg Chg", FmtTimeShow());
     WedgeIDLEDetectAlertReset();
 }
 
 static void WedgeSODOCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE SODO Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE SODO Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeDIRCHGCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE DIRCHG Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE DIRCHG Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeTOWCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE TOW Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE TOW Cfg Chg", FmtTimeShow());
     WedgeTowAlertReset();
 }
 
@@ -594,7 +597,7 @@ static void WedgeSTPINTVLCfgChg(void)
     WEDGEIgnitionStateTypeDef IgnitionState = WedgeIgnitionStateGet();
     IGNTYPETypeDef IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE TOW Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE TOW Cfg Chg", FmtTimeShow());
     if (IgnitionState == WEDGE_IGN_OFF_STATE)
     {
         if (IGNTYPE.itype == Wired_Ignition)
@@ -608,7 +611,7 @@ static void WedgeSTPINTVLCfgChg(void)
 
 static void WedgeVODOCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE VODO Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE VODO Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeGEOFENCESCfgChg(WEDGECfgChangeTypeDef CfgChg)
@@ -617,7 +620,7 @@ static void WedgeGEOFENCESCfgChg(WEDGECfgChangeTypeDef CfgChg)
                                                             + CfgChg - GEOFENCES1_CFG_CHG)));
     uint16_t GeofenceDefinedBitMap = *((uint16_t *)WedgeSysStateGet(WEDGE_GEOFENCE_BIT_MAP));
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE GEOFENCES Cfg Chg Index%d"
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE GEOFENCES Cfg Chg Index%d"
                                         , FmtTimeShow(), CfgChg - GEOFENCES1_CFG_CHG + 1);
     if (GFNC.index == 0)
     {
@@ -635,7 +638,7 @@ static void WedgeRELAYCfgChg(void)
 {
     RELAYTypeDef RELAY = *((RELAYTypeDef *)WedgeCfgGet(WEDGE_CFG_RELAY));
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE RELAY Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE RELAY Cfg Chg", FmtTimeShow());
     if (RELAY.state == 0)
     {
         WRITE_IO(GPIOA, PA15_MCU_RELAY_Pin, GPIO_PIN_RESET);
@@ -653,12 +656,12 @@ static void WedgePLSRLYCfgChg(void)
 
 
 
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE PLSRLY Cfg Chg Reserved", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PLSRLY Cfg Chg Reserved", FmtTimeShow());
 }
 
 static void WedgeOSPDCfgChg(void)
 {
-    APP_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE OSPD Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE OSPD Cfg Chg", FmtTimeShow());
     WedgeOverSpeedAlertReset();
 }
 

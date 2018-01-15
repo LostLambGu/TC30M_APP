@@ -23,8 +23,8 @@
 #define TRUE 1
 #endif
 
-#define EVENT_ALERT_FLOW_LOG DebugLog
-#define EVENT_ALERT_FLOW_PRINT DebugPrintf
+#define WEDGE_EVENT_ALERT_LOG DebugLog
+#define WEDGE_EVENT_ALERT_PRINT DebugPrintf
 
 static WEDGESysStateTypeDef WEDGESysState;
 
@@ -51,19 +51,19 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         {
             if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
             {
-                EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init WEDGE_IGN_ON_TO_OFF_STATE");
+                WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init WEDGE_IGN_ON_TO_OFF_STATE");
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_ON_TO_OFF_STATE;
             }
             else
             {
-                EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init WEDGE_IGN_OFF_TO_ON_STATE");
+                WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init WEDGE_IGN_OFF_TO_ON_STATE");
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_OFF_TO_ON_STATE;
             }
         }
         else
         {
             // Error
-            EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init Err1");
+            WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Err1");
             return 1;
         }
 
@@ -89,7 +89,7 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         }
         else if (WEDGESysState.WEDGEIgnitionState >= WEDGE_IGN_STATE_MAX)
         {
-            EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init Err2");
+            WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Err2");
             return 2;
         }
 
@@ -246,7 +246,7 @@ void *WedgeSysStateGet(WEDGESysStateOperateTypeDef SysStateGet)
         // break;
 
     default:
-        EVENT_ALERT_FLOW_LOG("WEDGE SYS Get: Param err");
+        WEDGE_EVENT_ALERT_LOG("WEDGE SYS Get: Param err");
         return NULL;
         // break;
     }
@@ -365,7 +365,7 @@ void WedgeSysStateSet(WEDGESysStateOperateTypeDef SysStateSet, const void *pvDat
         break;
 
     default:
-        EVENT_ALERT_FLOW_LOG("WEDGE SYS Set: Param err");
+        WEDGE_EVENT_ALERT_LOG("WEDGE SYS Set: Param err");
         break;
     }
 
@@ -396,7 +396,7 @@ void WedgeServiceOdometerAlert(void)
 
     if (WEDGESysState.SerOdoLastReportMileage > VODO.meters)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Evt Alrt Flw SODO err"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Evt Alrt Flw SODO err"
                                 , FmtTimeShow());
         WEDGESysState.SerOdoLastReportMileage = VODO.meters;
         return;
@@ -405,7 +405,7 @@ void WedgeServiceOdometerAlert(void)
     SODO = *((SODOTypeDef *)WedgeCfgGet(WEDGE_CFG_SODO));
     if ((VODO.meters - WEDGESysState.SerOdoLastReportMileage) > SODO.meters)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
                                 , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Service_Alert);
         WEDGESysState.SerOdoLastReportMileage = VODO.meters;
@@ -437,12 +437,12 @@ void WedgeLowBatteryAlert(void)
         LVA = *((LVATypeDef *)WedgeCfgGet(WEDGE_CFG_LVA));
         voltage = (float)ADCGetVinVoltage() / 1000;// MV To V
 
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt LVA.battlvl (%f) voltage(%f)"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt LVA.battlvl (%f) voltage(%f)"
                                 , FmtTimeShow(), LVA.battlvl, voltage);
 
         if (voltage < LVA.battlvl)
         {
-            EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt"
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt"
                                 , FmtTimeShow());
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
             return;
@@ -456,7 +456,7 @@ extern TIMER WedgeIDLETimer;
 
 static void CheckWedgeIDLETimerCallback(uint8_t status)
 {
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
                                 , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, IDLE_Detect);
 
@@ -549,7 +549,7 @@ static uint8_t WedgeIsOutsideTowGeoFnc(TowAlertGeoFenceTypedef TowAlertGeoFence,
 {
     if (UbloxFixStateGet() == FALSE)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt Gps not Fix"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt Gps not Fix"
                                     , FmtTimeShow());
         return 0;
     }
@@ -618,7 +618,7 @@ void WedgeTowAlert(void)
 
         if (WEDGE_OUT_TOW_GEOFENCE_CONSECUTIVE_MAX_TIMES <= WEDGESysState.OutTowGeoFncCount)
         {
-            EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt"
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt"
                                     , FmtTimeShow());
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Tow_Alert_Exited);
 
@@ -637,7 +637,7 @@ static uint8_t WedgeIsGeofenceViolation(GFNCTypeDef *pGFNC)
 {
     if (UbloxFixStateGet() == FALSE)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Gfnc Violation Gps not Fix"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Gfnc Violation Gps not Fix"
                                     , FmtTimeShow());
         return 0;
     }
@@ -652,7 +652,7 @@ static uint8_t WedgeIsGeofenceViolation(GFNCTypeDef *pGFNC)
         // Enter 2, Exit 1, Enter and Exit 0
         if (pGFNC->dir > 2)
         {
-            EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Gfnc Violtation Param Err", FmtTimeShow());
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Gfnc Violtation Param Err", FmtTimeShow());
             return 0;
         }
 
@@ -725,7 +725,7 @@ void WedgeGeofenceAlert(void)
                 GfncViolationCount[i]++;
                 if (GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX <= GfncViolationCount[i])
                 {
-                    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Geofence Alrt, Index: %d"
+                    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Geofence Alrt, Index: %d"
                                     , FmtTimeShow(), i + 1);
                     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, (WEDGEEVIDTypeDef)(Geofence1_entered + i + (10 * (ViolationType % 2))));
                     GfncViolationCount[i] = 0;
@@ -741,7 +741,7 @@ void WedgeGeofenceAlert(void)
 
 void WedgeLocationOfDisabledVehicleOnToOff(void)
 {
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Ontooff"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Ontooff"
                                     , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
 }
@@ -755,7 +755,7 @@ void WedgeLocationOfDisabledVehicle(void)
 {
     if (FALSE != WEDGESysState.StarterDisableCmdRec)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Starter Command"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Starter Command"
                                     , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
 
@@ -771,7 +771,7 @@ void WedgeStopReportOnToOffDisable(void)
 
     ret = WedgeRtcTimerInstanceDel(Stop_Report_Onetime_Event);
 
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Stop Report Reset Ret%d"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Stop Report Reset Ret%d"
                                     , FmtTimeShow(), ret);
 }
 
@@ -793,12 +793,12 @@ void WedgeStopReportOnToOff(void)
     Instance.settime = WedgeRtcCurrentSeconds() + 60 * STPINTVL.interval;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
                                     , FmtTimeShow(), WedgeStopReportOnToOffStr);
     }
     else
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
                                     , FmtTimeShow(), WedgeStopReportOnToOffStr);
         WEDGESysState.StopReportOnetimeRtcTimerAdded = TRUE;
     }
@@ -810,7 +810,7 @@ static void CheckWedgeOSPDTimerCallback(uint8_t status)
 {
     if (status != 0)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert"
                                     , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Over_Speed_Threshold_Detect);
     }
@@ -820,7 +820,7 @@ static void CheckWedgeOSPDTimerCallback(uint8_t status)
 
 void WedgeOverSpeedAlertReset(void)
 {
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert Reset"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert Reset"
                                     , FmtTimeShow());
     WEDGESysState.OverSpeedTimerStart = FALSE;
     SoftwareTimerStop(&WedgeOSPDTimer);
@@ -843,7 +843,7 @@ void WedgeOverSpeedAlert(void)
 
     if (UbloxFixStateGet() == FALSE)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Gps Not Fix"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Gps Not Fix"
                                     , FmtTimeShow());
         return;
     }
@@ -983,7 +983,7 @@ void WedgeIgnitionOffToOnCheck(void)
                 WEDGESysState.WedgeIgnOffToOnTimerStart = FALSE;
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_OFF_TO_ON_STATE;
 
-                EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition ON Alert"
+                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition ON Alert"
                                     , FmtTimeShow());
                 WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Ignition_ON);
 
@@ -1076,7 +1076,7 @@ void WedgeIgnitionOnToOffCheck(void)
                 WEDGESysState.WedgeIgnOnToOffTimerStart = FALSE;
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_ON_TO_OFF_STATE;
 
-                EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition OFF Alert"
+                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition OFF Alert"
                                     , FmtTimeShow());
                 WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Ignition_OFF);
 
@@ -1104,7 +1104,7 @@ void WedgeHeadingChangeDetect(void)
 
     if (UbloxFixStateGet() == FALSE)
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sGps Not Fix"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sGps Not Fix"
                                     , FmtTimeShow(), WedgeHeadingChangeDetectStr);
         return;
     }
@@ -1122,7 +1122,7 @@ void WedgeHeadingChangeDetect(void)
         return;
     }
 
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
                                     , FmtTimeShow(), WedgeHeadingChangeDetectStr);
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Heading_Change_Detect);
 }
@@ -1145,12 +1145,12 @@ void WedgePeriodicMovingEventInit(void)
     Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * RPTINTVL.perint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
                                     , FmtTimeShow(), WedgePeriodicMovingEventInitStr);
     }
     else
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
                                     , FmtTimeShow(), WedgePeriodicMovingEventInitStr);
     }
 }
@@ -1162,7 +1162,7 @@ void WedgePeriodicOffEventReset(void)
 
     ret = WedgeRtcTimerInstanceDel(Periodic_OFF_Event);
 
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Off Event Reset Ret%d"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Off Event Reset Ret%d"
                                     , FmtTimeShow(), ret);
 }
 
@@ -1188,13 +1188,13 @@ void WedgePeriodicOffEvent(void)
     Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.ioffint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
                                     , FmtTimeShow(), WedgePeriodicOffEventErr);
         WEDGESysState.PeriodicOffEventTimerStart = FALSE;
     }
     else
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
                                     , FmtTimeShow(), WedgePeriodicOffEventErr);
         WEDGESysState.PeriodicOffEventTimerStart = TRUE;
     }
@@ -1208,7 +1208,7 @@ void WedgePeriodicHealthEventReset(void)
 
     ret = WedgeRtcTimerInstanceDel(Periodic_Health_Event);
 
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Health Event Reset Ret%d"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Health Event Reset Ret%d"
                                     , FmtTimeShow(), ret);
 }
 
@@ -1234,13 +1234,13 @@ void WedgePeriodicHealthEvent(void)
     Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.perint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
                                     , FmtTimeShow(), WedgePeriodicHealthEventStr);
         WEDGESysState.PeriodicHealthEventTimerStart = FALSE;
     }
     else
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
                                     , FmtTimeShow(), WedgePeriodicHealthEventStr);
         WEDGESysState.PeriodicHealthEventTimerStart = TRUE;
     }
@@ -1248,7 +1248,7 @@ void WedgePeriodicHealthEvent(void)
 
 void WedgePeriodicHardwareResetReinit(void)
 {
-    EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Hardware Reset Reinit"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Period Hardware Reset Reinit"
                                     , FmtTimeShow());
     WEDGESysState.PeriodicHardwareResetTimerStart = FALSE;
     WedgeRtcTimerInstanceDel(Periodic_Hardware_Reset_Onetime);
@@ -1271,13 +1271,13 @@ void WedgePeriodicHardwareResetInit(void)
     Instance.settime = WedgeRtcCurrentSeconds() + 60 * HWRST.interval;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer err"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer err"
                                     , FmtTimeShow());
         WEDGESysState.PeriodicHardwareResetTimerStart = FALSE;
     }
     else
     {
-        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer ok"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer ok"
                                     , FmtTimeShow());
         WEDGESysState.PeriodicHardwareResetTimerStart = TRUE;
     }

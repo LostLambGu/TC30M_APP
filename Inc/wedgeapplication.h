@@ -39,9 +39,6 @@ extern "C" {
 #include "wedgertctimer.h"
 #include "wedgemsgque.h"
 
-#define APP_LOG DebugLog
-#define APP_PRINT DebugPrintf
-
 typedef struct
 {
     WEDGECfgTypeDef WEDGECfg;

@@ -29,10 +29,6 @@ extern "C" {
 #define TRUE 1
 #endif
 
-#define EVENTMSGQUE_PROCESS_LOG DebugLog
-
-#define EVENTMSGQUE_PROCESS_PRINT DebugPrintf
-
 extern void WedgeIsPowerLostSet(uint8_t Status);
 extern uint8_t WedgeIsPowerLostGet(void);
 

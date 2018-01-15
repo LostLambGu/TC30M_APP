@@ -28,6 +28,9 @@
 #define TRUE 1
 #endif
 
+#define WEDGE_COM_API_LOG DebugLog
+
+#define WEDGE_COM_API_PRINT DebugPrintf
 /* Variables -----------------------------------------------------------------*/
 static uint8_t WedgeIsPowerLost = FALSE;
 static WEDGECfgTypeDef WEDGECfgRecord = {0};
@@ -104,12 +107,12 @@ void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg)
     memset((uint8_t *)&WEDGECfgRecord, 0, sizeof(WEDGECfgTypeDef));
     if (pWEDGECfg == NULL)
     {
-        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Init Default");
+        WEDGE_COM_API_LOG("WEDGE Cfg Init Default");
         WEDGECfgRecord = WEDGECfgFactoryDefaultOnChip;
     }
     else
     {
-        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Init");
+        WEDGE_COM_API_LOG("WEDGE Cfg Init");
         WEDGECfgRecord = *pWEDGECfg;
     }
 }
@@ -233,7 +236,7 @@ void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet)
         return &(WEDGECfgRecord.APNCFG);
 
     default:
-        EVENTMSGQUE_PROCESS_LOG("WEDGE CFG GET: Param err");
+        WEDGE_COM_API_LOG("WEDGE CFG GET: Param err");
         return NULL;
     }
 }
@@ -340,7 +343,7 @@ void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData)
         break;
 
     default:
-        EVENTMSGQUE_PROCESS_LOG("WEDGE CFG SET: Param err");
+        WEDGE_COM_API_LOG("WEDGE CFG SET: Param err");
         break;
     }
 
@@ -356,7 +359,7 @@ void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State)
 {
     if (CfgChg >= CFG_CHG_INVALIAD_MAX)
     {
-        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Chg Set Param Err");
+        WEDGE_COM_API_LOG("WEDGE Cfg Chg Set Param Err");
     }
 
     if (State != FALSE)
@@ -387,7 +390,7 @@ uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg)
 {
     if (CfgChg >= CFG_CHG_INVALIAD_MAX)
     {
-        EVENTMSGQUE_PROCESS_LOG("WEDGE Cfg Chg Get Param Err");
+        WEDGE_COM_API_LOG("WEDGE Cfg Chg Get Param Err");
     }
 
 	return WEDGECfgState.CfgChgState[CfgChg];
@@ -591,7 +594,7 @@ uint8_t WedgeFlashChipErase(void)
     ret = SerialFlashErase(FLASH_ERASE_ALL, 0);
     if (ret != FLASH_STAT_OK)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Chip Erase err: %d",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Flash Chip Erase err: %d",
 				FmtTimeShow(), ret);
     }
 
@@ -606,7 +609,7 @@ uint8_t WedgeFlashEraseSector(uint32_t address)
     
     if (ret != FLASH_STAT_OK)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Sector Erase err: %d",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Flash Sector Erase err: %d",
 				FmtTimeShow(), ret);
     }
 
@@ -621,7 +624,7 @@ uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen
 
     if (ret != FLASH_STAT_OK)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Read err: %d",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Flash Read err: %d",
 				FmtTimeShow(), ret);
     }
 
@@ -636,7 +639,7 @@ uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datale
 
     if (ret != FLASH_STAT_OK)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WEDGE Flash Write err: %d",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Flash Write err: %d",
 				FmtTimeShow(), ret);
     }
 
@@ -701,7 +704,7 @@ void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSe
 {
     if ((pWedgeUdpSendQueue == NULL) || (pWedgeUDPIpSendUint == NULL))
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeEvtMsgQueInfoEn, "\r\n[%s] WedgeUdpSendUnitIn param err", FmtTimeShow());
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WedgeUdpSendUnitIn param err", FmtTimeShow());
         return;
     }
 
@@ -725,7 +728,7 @@ void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpS
 {
     if ((pWedgeUdpSendQueue == NULL) || (pWedgeUDPIpSendUint == NULL))
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WedgeUdpSendUintOut param err", FmtTimeShow());
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WedgeUdpSendUintOut param err", FmtTimeShow());
         return;
     }
 
@@ -751,7 +754,7 @@ static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
 {
     if (pSVRCFG == NULL)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err1",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Parm Err1",
                   FmtTimeShow());
     }
 
@@ -793,7 +796,7 @@ static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
         break;
 
     default:
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Parm Err2",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Parm Err2",
                   FmtTimeShow());
         break;
     }
@@ -812,7 +815,7 @@ static void WedgeUdpSocketOpen(void)
 
     if (SVRCFG.prot != SVRCFG_UDP)
     {
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Init Not Udp",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Init Not Udp",
                                       FmtTimeShow());
         return;
     }
@@ -969,7 +972,7 @@ void WedgeUdpSocketManageProcess(void)
                 {
                     WedgeBufPoolFree(WedgeUDPIpSendUint.buf);
                 }
-                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Stat Data Len err",
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Stat Data Len err",
                                       FmtTimeShow());
             }
             return;
@@ -978,12 +981,12 @@ void WedgeUdpSocketManageProcess(void)
         {
             if (WedgeUDPIpSendUint.buf != NULL)
             {
-                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Open Stat Data Len err2",
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Stat Data Len err2",
                                           FmtTimeShow());
                 WedgeBufPoolFree(WedgeUDPIpSendUint.buf);
             }
 
-            EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Opened Stat No Data",
+            WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Opened Stat No Data",
                                       FmtTimeShow());
 
             udpsmtimeoutcount++;
@@ -1039,7 +1042,7 @@ void WedgeUdpSocketManageProcess(void)
                     memcpy(WEDGEMsgQueCell.data, WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
                         if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
                         {
-                        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Msg Que In err",
+                        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Msg Que In err",
                                                   FmtTimeShow());
                         }
                         if (WedgeUDPIpSendUint.buf != NULL)
@@ -1053,7 +1056,7 @@ void WedgeUdpSocketManageProcess(void)
                     {
                         WedgeBufPoolFree(WedgeUDPIpSendUint.buf);
                     }
-                    EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Data Len err",
+                    WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Data Len err",
                                               FmtTimeShow());
                 }
             }
@@ -1063,7 +1066,7 @@ void WedgeUdpSocketManageProcess(void)
                 {
                     WedgeBufPoolFree(WedgeUDPIpSendUint.buf);
                 }
-                EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Data Len err2",
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Data Len err2",
                                           FmtTimeShow());
             }
 
@@ -1078,7 +1081,7 @@ void WedgeUdpSocketManageProcess(void)
     break;
 
     default:
-        EVENTMSGQUE_PROCESS_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Udp Socket Process Stat Err",
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Socket Process Stat Err",
                                       FmtTimeShow());
     break;
     }

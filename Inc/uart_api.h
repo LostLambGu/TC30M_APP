@@ -58,16 +58,15 @@ typedef struct
     uint8_t ParseatCmdEn;
     uint8_t ParseatResultEn;
     uint8_t SendToModemEn;
-    uint8_t AppDebugInfoEn;
     uint8_t VersionDebugInfoEn;
     uint8_t NetworkDbgInfoEn;
     uint8_t LteRecDbgInfoEn;
-    uint8_t WedgeMsgQueInfoEn;
-    uint8_t WedgeEvtMsgQueInfoEn;
+    uint8_t WedgeAppLogInfoEn;
+    uint8_t WedgeCommonLogInfo;
     uint8_t WedgeDeviceInfoEn;
-    uint8_t WedgeRtcTimerInfoEn;
     uint8_t WedgeEvtAlrtFlwInfoEn;
-    uint8_t WedgeApplicationInfoEn;
+    uint8_t WedgeMsgQueInfoEn;
+    uint8_t WedgeRtcTimerInfoEn;
 } DebugCtlPrarm;
 
 extern DebugCtlPrarm DbgCtl;

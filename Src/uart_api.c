@@ -47,16 +47,15 @@ DebugCtlPrarm DbgCtl =
 		.ParseatCmdEn = TRUE,
 		.ParseatResultEn = TRUE,
 		.SendToModemEn = FALSE,
-		.AppDebugInfoEn = TRUE,
 		.VersionDebugInfoEn = TRUE,
 		.NetworkDbgInfoEn = TRUE,
 		.LteRecDbgInfoEn = FALSE,
-		.WedgeMsgQueInfoEn = TRUE,
-		.WedgeEvtMsgQueInfoEn = TRUE,
+		.WedgeAppLogInfoEn = TRUE,
+		.WedgeCommonLogInfo = TRUE,
 		.WedgeDeviceInfoEn = TRUE,
-		.WedgeRtcTimerInfoEn = TRUE,
 		.WedgeEvtAlrtFlwInfoEn = TRUE,
-		.WedgeApplicationInfoEn = TRUE,
+		.WedgeMsgQueInfoEn = TRUE,
+		.WedgeRtcTimerInfoEn = TRUE,
 };
 
 /* Function definition -------------------------------------------------------*/

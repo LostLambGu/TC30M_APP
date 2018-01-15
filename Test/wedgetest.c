@@ -15,6 +15,7 @@ void WedgeTest(void)
 #endif
 
 #if WEDGE_DEVICE_INFO_TEST
+		extern void WedgeDeviceInfoTest(void);
     WedgeDeviceInfoTest();
 #endif
 }
