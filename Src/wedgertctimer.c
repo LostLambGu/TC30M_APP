@@ -35,8 +35,6 @@ static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void);
 static uint8_t WedgeRtcTimerPeriodOverProcess(RTCTimerListCellTypeDef RTCTimerListCell, uint32_t Period);
 static RTCTimerListCellTypeDef WedgeRTCGetCurrentInstance(void);
 
-// #define WEDGE_MINUTE_TO_SECOND_FACTOR (60)
-#define WEDGE_MINUTE_TO_SECOND_FACTOR (1) /* Just for test! */
 void WedgeRTCTimerEventProcess(void)
 {
     RTCTimerListCellTypeDef currentinstance;

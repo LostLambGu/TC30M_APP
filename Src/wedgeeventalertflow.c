@@ -51,10 +51,12 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         {
             if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
             {
+                EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init WEDGE_IGN_ON_TO_OFF_STATE");
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_ON_TO_OFF_STATE;
             }
             else
             {
+                EVENT_ALERT_FLOW_LOG("WEDGE Sys State Init WEDGE_IGN_OFF_TO_ON_STATE");
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_OFF_TO_ON_STATE;
             }
         }
@@ -374,6 +376,21 @@ void WedgeServiceOdometerAlert(void)
 {
     VODOTypeDef VODO = {0};
     SODOTypeDef SODO = {0};
+    static uint32_t SystickRec = 0;
+
+    // if (UbloxFixStateGet() == FALSE)
+    // {
+    //     return;
+    // }
+
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
 
     VODO = *((VODOTypeDef *)WedgeCfgGet(WEDGE_CFG_VODO));
 
@@ -386,7 +403,7 @@ void WedgeServiceOdometerAlert(void)
     }
 
     SODO = *((SODOTypeDef *)WedgeCfgGet(WEDGE_CFG_SODO));
-    if ((VODO.meters - WEDGESysState.SerOdoLastReportMileage) >= SODO.meters)
+    if ((VODO.meters - WEDGESysState.SerOdoLastReportMileage) > SODO.meters)
     {
         EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
                                 , FmtTimeShow());
@@ -399,10 +416,14 @@ void WedgeServiceOdometerAlert(void)
 extern double ADCGetVinVoltage(void);
 void WedgeLowBatteryAlert(void)
 {
-    #define WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS (600 * 1000) /* 10 minutes */
+#if TC30M_TEST_CONFIG_OFF
+#define WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS (600 * 1000) /* 10 minutes */
+#else
+#define WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS (10 * 1000) /* Just for test */
+#endif
     static uint32_t SystickRec = 0;
 
-    if (WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS < (HAL_GetTick() - SystickRec))
+    if (WEDGE_LOW_VOLTAGE_DETECT_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -411,16 +432,21 @@ void WedgeLowBatteryAlert(void)
         LVATypeDef LVA = {0};
         float voltage = 0.0;
 
+        SystickRec = HAL_GetTick();
+
         LVA = *((LVATypeDef *)WedgeCfgGet(WEDGE_CFG_LVA));
-        voltage = (float)ADCGetVinVoltage();
+        voltage = (float)ADCGetVinVoltage() / 1000;// MV To V
+
+        EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt LVA.battlvl (%f) voltage(%f)"
+                                , FmtTimeShow(), LVA.battlvl, voltage);
 
         if (voltage < LVA.battlvl)
         {
+            EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt"
+                                , FmtTimeShow());
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
             return;
         }
-
-        SystickRec = HAL_GetTick();
     }
 }
 
@@ -455,7 +481,7 @@ void WedgeIDLEDetectAlert(void)
     //     return;
     // }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -564,7 +590,7 @@ void WedgeTowAlert(void)
     //     return;
     // }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -679,7 +705,7 @@ void WedgeGeofenceAlert(void)
         return;
     }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -806,7 +832,7 @@ void WedgeOverSpeedAlert(void)
     double speedkm = 0.0;
     static uint32_t SystickRec = 0;
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -1067,7 +1093,7 @@ void WedgeHeadingChangeDetect(void)
     static uint32_t SystickRec = 0;
     char * WedgeHeadingChangeDetectStr= " WEDGE Heading Change Detect ";
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) < (HAL_GetTick() - SystickRec))
+    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -1116,7 +1142,7 @@ void WedgePeriodicMovingEventInit(void)
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Instance.RTCTimerInstance = Periodic_Moving_Event;
-    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.perint;
+    Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * RPTINTVL.perint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
         EVENT_ALERT_FLOW_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"

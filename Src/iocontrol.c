@@ -23,7 +23,7 @@ void WedgeGpsRedLedControl(uint8_t state)
 {
     state++;
     state &= 0x01;
-    WRITE_IO(GPIOC, PC9_LED_R_Pin, state);
+    WRITE_IO(GPIOC, PC9_LED_R_Pin, (GPIO_PinState)state);
 }
 
 uint8_t WedgeGpsRedLedStateGet(void)
@@ -35,7 +35,7 @@ void WedgeLteGreenLedControl(uint8_t state)
 {
     state++;
     state &= 0x01;
-    WRITE_IO(GPIOC, PC8_LED_G_Pin, state);
+    WRITE_IO(GPIOC, PC8_LED_G_Pin, (GPIO_PinState)state);
 }
 
 uint8_t WedgeLteGreenLedStateGet(void)
@@ -65,7 +65,7 @@ uint8_t WedgeGpsPowerStateGet(void)
     return READ_IO(GPIOB, PB5_GPS_PWR_EN_Pin);
 }
 
-uint8_t WedgeIgnitionStateGet(void)
+uint8_t WedgeIgnitionPinStateGet(void)
 {
     return READ_IO(GPIOC, PC10_MCU_IGN_Pin);
 }

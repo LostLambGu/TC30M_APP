@@ -42,7 +42,7 @@ ServerConfigParam gModemParam =
 	0,0,0,0,
 	"",
 	"",
-	MNT91_DEFAULT_CID,
+	TC30M_DEFAULT_CID,
 	FALSE,
 	"",
 	0xfffffffful
@@ -363,8 +363,11 @@ void UdpIpSocketClose(uint8_t Socket_Num)
             return;
         }
 
-        UDPIPSocket[Socket_Num - 1].operation = SOCKETCLOSE;
+		UDPIPSocket[Socket_Num - 1].operation = SOCKETCLOSE;
         UDPIPSocket[Socket_Num - 1].status = SOCKET_CLOSE;
+        UDPIPSocket[Socket_Num - 1].LocalPort = 0xffff;
+        UDPIPSocket[Socket_Num - 1].PortNum = 0xffff;
+        memset(&(UDPIPSocket[Socket_Num - 1].DestAddrP), 0, MAX_IP_ADDR_LEN);
         
 		UdpSocketCloseIndicateFlag |= (0x01 << (Socket_Num - 1));
     }
@@ -388,29 +391,18 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
                 return;
             }
 
-            char *tmp = BufPoolCalloc(len);
+			UDPIpSendUint.datalen = len;
+			UDPIpSendUint.socketnum = 0;
+			UDPIpSendUint.buf = buffer;
+			UdpSendUnitIn(&UdpSendQueue, &UDPIpSendUint);
 
-            if (tmp == NULL)
-            {
-                NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send malloc fail");
-                return;
-            }
-            else
-            {
-                memcpy(tmp , buffer, len);
-                UDPIpSendUint.datalen = len;
-                UDPIpSendUint.socketnum = 0;
-                UDPIpSendUint.buf = tmp;
-                UdpSendUnitIn(&UdpSendQueue, &UDPIpSendUint);
-
-				if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
-				{
-					// Reset Network Timer
-					SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
-					SoftwareTimerStart(&NetworkCheckTimer);
-				}
+			if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
+			{
+				// Reset Network Timer
+				SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
+				SoftwareTimerStart(&NetworkCheckTimer);
 			}
-        }
+		}
         else
         {
             NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send soket closed");

@@ -17,9 +17,6 @@
 
 #define SendatPrintf DebugPrintf
 
-#define FDH_MAX_CMD_LEN  	64
-#define FDH_MAX_CMD_NUM 	15
-
 extern DebugCtlPrarm DbgCtl;
 
  typedef struct

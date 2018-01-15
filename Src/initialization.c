@@ -315,7 +315,7 @@ void ModemATInitTimerCallback(uint8_t Status)
 			// Clear counter
 			CheckSimCardCount = 0;
 			// Enable network registration state unsolicited
-			SendATCmd(GSM_CMD_CEREG, GSM_CMD_TYPE_EVALUATE, "1");
+			SendATCmd(GSM_CMD_CEREG, GSM_CMD_TYPE_EVALUATE, "2");
 			// Message format -- (1 text mode)
 			SendATCmd(GSM_CMD_CMGF, GSM_CMD_TYPE_EVALUATE , "1");
 			// New message indications -- (3,1,0,0,1 --> 2,1,0,0,1)
@@ -346,6 +346,13 @@ void ModemATInitTimerCallback(uint8_t Status)
 			SendATCmd(GSM_CMD_CSQ, GSM_CMD_TYPE_EXECUTE, NULL);
 			// Extended signal quality
 			// SendATCmd(GSM_CMD_CESQ, GSM_CMD_TYPE_EXECUTE, NULL);
+
+			HAL_Delay(1000);
+			// Get time zone	
+			SendATCmd(GSM_CMD_CTZR, GSM_CMD_TYPE_QUERY, NULL);
+			// Get the current system time
+			SendATCmd(GSM_CMD_CCLK, GSM_CMD_TYPE_QUERY, NULL);
+			
 
 			// // Print Out
 			// InitPrintf(NRCMD,"\r\n[%s] INIT: LTE INIT BT(%d) Qos(%d) PPP(%d %d)", \

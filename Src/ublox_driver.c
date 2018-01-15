@@ -10,6 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ublox_driver.h"
 #include "i2c.h"
+#include "iocontrol.h"
 #include "wedgeeventalertflow.h"
 #include "wedgecommonapi.h"
 

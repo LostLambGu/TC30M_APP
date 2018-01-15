@@ -79,6 +79,8 @@ void ApplicationProcess(void)
         WedgeCfgChgStateProcess();
         // Wedge Msg Que Process
         WedgeMsgQueProcess();
+        // Wedge Socket Manage Process
+        WedgeUdpSocketManageProcess();
         // Wedge Rtc Timer Event Process
         WedgeRTCTimerEventProcess();
     }

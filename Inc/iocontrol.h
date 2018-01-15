@@ -24,7 +24,7 @@ extern uint8_t WedgeLteGreenLedStateGet(void);
 extern void WedgeLteGreenLedBlink(uint8_t state);
 extern uint8_t WedgeRelayStateGet(void);
 extern uint8_t WedgeGpsPowerStateGet(void);
-extern uint8_t WedgeIgnitionStateGet(void);
+extern uint8_t WedgeIgnitionPinStateGet(void);
 
 #endif /* __IOCONTROL_H__ */
 

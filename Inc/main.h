@@ -127,6 +127,14 @@
 #define MODEM_PWR_ON_PORT PB1_SW_LOAD_EN_GPIO_Port
 #define MODEM_PWR_ON_PIN PB1_SW_LOAD_EN_Pin
 
+#define TC30M_TEST_CONFIG_OFF (0)
+
+#if TC30M_TEST_CONFIG_OFF
+#define WEDGE_MINUTE_TO_SECOND_FACTOR (60)
+#else
+#define WEDGE_MINUTE_TO_SECOND_FACTOR (1) /* Just for test! */
+#endif /* TC30M_TEST_CONFIG_OFF */
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

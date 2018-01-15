@@ -17,6 +17,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "include.h"
+#include "sendatcmd.h"
 
 /* Defines  ------------------------------------------------------------------*/
 #define DEFAULT_RSSI_VALUE			0
@@ -116,7 +117,7 @@ typedef struct
     u8  apn_attach[FDH_MAX_CMD_LEN - 14];
     u8 defaultcid;
     u8 defaultcidipgetflag;
-    char defaultcidipstr[MNT91_DEFAULT_IPV4_MAX_LEN];
+    char defaultcidipstr[TC30M_DEFAULT_IPV4_MAX_LEN];
     u32 defaultcidipnum;
 }ServerConfigParam;
 

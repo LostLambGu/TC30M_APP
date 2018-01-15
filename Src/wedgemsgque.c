@@ -57,7 +57,8 @@ uint8_t WedgeMsgQueInit(void)
 
             for (i = 0; i < delta; i++)
             {
-                address = WEDGE_MSG_QUE_START_ADDR + ((inindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+                address = WEDGE_MSG_QUE_START_ADDR + 
+                (((inindex - 1) > WEDGE_MSG_QUE_TOTAL_NUM) ? WEDGE_MSG_QUE_TOTAL_NUM : (inindex - 1)) * sizeof(WEDGEMsgQueCellTypeDef);
                 if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
                 {
                     WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s2",
@@ -95,7 +96,8 @@ uint8_t WedgeMsgQueInit(void)
         }
         else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_SENT)
         {
-            address = WEDGE_MSG_QUE_START_ADDR + ((inindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            address = WEDGE_MSG_QUE_START_ADDR + 
+            (((inindex - 1) > WEDGE_MSG_QUE_TOTAL_NUM) ? WEDGE_MSG_QUE_TOTAL_NUM : (inindex - 1)) * sizeof(WEDGEMsgQueCellTypeDef);
             if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
             {
                 WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s3",
@@ -153,7 +155,8 @@ uint8_t WedgeMsgQueInit(void)
 
         if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type == WEDGE_MSG_QUE_EMPTY_TYPE))
         {
-            address = WEDGE_MSG_QUE_START_ADDR + ((outindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            address = WEDGE_MSG_QUE_START_ADDR + 
+            (((outindex - 1) > WEDGE_MSG_QUE_TOTAL_NUM) ? WEDGE_MSG_QUE_TOTAL_NUM : (outindex - 1)) * sizeof(WEDGEMsgQueCellTypeDef);
             if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
             {
                 WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s6",
@@ -184,7 +187,8 @@ uint8_t WedgeMsgQueInit(void)
         }
         else if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
         {
-            address = WEDGE_MSG_QUE_START_ADDR + ((outindex - 1) % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
+            address = WEDGE_MSG_QUE_START_ADDR + 
+            (((outindex - 1) > WEDGE_MSG_QUE_TOTAL_NUM) ? WEDGE_MSG_QUE_TOTAL_NUM : (outindex - 1))  * sizeof(WEDGEMsgQueCellTypeDef);
             if (0 != WedgeFlashReadData(address, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
             {
                 WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s7",

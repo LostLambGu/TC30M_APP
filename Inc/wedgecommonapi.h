@@ -185,7 +185,7 @@ typedef enum
     WEDGE_UDP_CLOSE_STAT                = 5,
     WEDGE_WAIT_UDP_DISCONNECTED_STAT    = 6,
     
-    NET_MAXIMUM_STAT,
+    WEDGE_UDP_MAXIMUM_STAT,
 } WedgeUdpSocketManageStatT;
 
 typedef struct
@@ -196,6 +196,8 @@ typedef struct
 
 extern void WedgeUdpSocketManageDataComeSet(uint8_t Status);
 extern void WedgeUdpSocketManageStatSet(WedgeUdpSocketManageStatT Stat);
+extern void WedgeUdpSocketManageProcess(void);
+
 extern void WedgeUdpSocketManageProcess(void);
 
 #ifdef __cplusplus

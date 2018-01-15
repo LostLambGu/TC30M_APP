@@ -11,6 +11,10 @@
  /* Includes */
 #include "include.h"
 
+
+#define FDH_MAX_CMD_LEN  	64
+#define FDH_MAX_CMD_NUM 	15
+
 typedef enum
 {
 	// LTE

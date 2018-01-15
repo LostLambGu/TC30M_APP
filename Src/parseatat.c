@@ -11,6 +11,7 @@
 #include "ltecatm.h"
 #include "network.h"
 #include "wedgecommonapi.h"
+#include "iocontrol.h"
 
 #define ParseatPrint DebugPrintf
 
@@ -33,7 +34,9 @@ char StrBody[AT_MAX_AT_CMD_LEN];
 
 char ICCIDBuf[32] = {0};
 char IMEIBuf[32] = {0};
-uint16_t timeZone = 0;
+uint16_t ModemtimeZoneGet = 0;
+uint32_t ModemTimeInSeconds = 0;
+TimeTableT ModemTimetalbeGet = {0};
 
 const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] = 
 {
@@ -1205,6 +1208,8 @@ static void MmiCCLK (ATRspParmT* MsgDataP)
 		timeTable.minute 	= MsgDataP[4].Num;
 		timeTable.second 	= MsgDataP[5].Num;
 		SetRTCDatetime(&timeTable);
+		ModemTimetalbeGet = timeTable;
+		ModemTimeInSeconds = TimeTableToSeconds(timeTable);
 	}
 	else
 	{
@@ -1225,7 +1230,7 @@ static void MmiCTZR(ATRspParmT* MsgDataP)
 			FmtTimeShow(),MsgDataP[0].Num);
 	// #endif
 
-	timeZone = MsgDataP[0].Num;
+	ModemtimeZoneGet = MsgDataP[0].Num;
 }
 
 static void MmiCOPN(ATRspParmT* MsgDataP)

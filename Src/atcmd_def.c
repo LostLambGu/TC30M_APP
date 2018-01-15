@@ -51,6 +51,7 @@ static void ATCmdModemFactoryTest(void);
 static void ATCmdGsensorFactoryTest(void);
 static void ATCmdDefAdcFactoryTest(void);
 static void ATCmdDefFlashFactoryTest(void);
+static void ATCmdDefFlashChipEraseFactoryTest(void);
 static void ATCmdDefRtcFactoryTest(void);
 static void ATCmdIoFactoryTest(void);
 
@@ -109,6 +110,10 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 		case AT_CMD_DEF_FLASH:
 			ATCmdDefFlashFactoryTest();
+			break;
+
+		case AT_CMD_DEF_FLASH_CHIP_ERASE:
+			ATCmdDefFlashChipEraseFactoryTest();
 			break;
 
 		case AT_CMD_DEF_RTC:
@@ -347,6 +352,14 @@ static void ATCmdDefFlashFactoryTest(void)
 		}
 	}
 
+	ATCmdPrintf(TRUE, "\r\nOK\r\n");
+}
+
+static void ATCmdDefFlashChipEraseFactoryTest(void)
+{
+	ATCmdPrintf(TRUE, "\r\nSFlash Chip Erase factory test start!");
+	SerialFlashInit();
+	SerialFlashErase(FLASH_ERASE_ALL, 0);
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 

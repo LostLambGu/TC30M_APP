@@ -162,8 +162,6 @@ void RTC_IRQHandler(void)
 void EXTI4_15_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_15_IRQn 0 */
-  extern void WedgeSetRTCAlarmStatus(uint8_t Status);
-  WedgeSetRTCAlarmStatus(TRUE);
   /* USER CODE END EXTI4_15_IRQn 0 */
   if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_4) != RESET)
   {
