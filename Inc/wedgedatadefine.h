@@ -454,6 +454,8 @@ typedef struct
 #define WEDGE_MSG_QUE_TOTAL_NUM (WEDGE_MSG_QUE_TOTAL_SIZE / sizeof(WEDGEMsgQueCellTypeDef))
 #define WEDGE_MSG_QUE_END_ADDR (WEDGE_MSG_QUE_START_ADDR + WEDGE_MSG_QUE_TOTAL_SIZE - 1)
 
+#define WEDGE_GPS_DATA_PERIOD_MS (1000)
+
 #ifdef __cplusplus
 }
 #endif

@@ -292,9 +292,7 @@ void USART1_IRQHandler(void)
   }
 }
 
-/**
-* @brief This function handles USART2 global interrupt / USART2 wake-up interrupt through EXTI line 26.
-*/
+#if TC30M_TEST_CONFIG_OFF
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
@@ -305,6 +303,26 @@ void USART2_IRQHandler(void)
 
   /* USER CODE END USART2_IRQn 1 */
 }
+#else
+void USART2_IRQHandler(void)
+{
+  UART_HandleTypeDef *huart = &huart2;
+
+  UARTx_IRQ_Com_Handler(huart);
+
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE) != RESET)
+  {
+    extern void UART2_RxCpltCallback(uint8_t Data);
+    UART2_RxCpltCallback((uint8_t)(huart->Instance->RDR & (uint8_t)0x00FF));
+
+    // Reset Timer
+    // SoftwareTimerReset(&RegularTimer, CheckRegularTimerCallback, UbloxCheckStatTimeout);
+    // SoftwareTimerStart(&RegularTimer);
+
+    __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+  }
+}
+#endif /* TC30M_TEST_CONFIG_OFF */
 
 /**
 * @brief This function handles USART3 to USART8 global interrupts / USART3 wake-up interrupt through EXTI line 28.

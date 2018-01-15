@@ -229,15 +229,19 @@ void SystemInitialization(void)
 	ModemPowerEnControl(ENABLE);
 
 	// Close GPS
-	UbloxPowerEnControl(DISABLE);
+	UbloxGPSStart();
 
 	// Sensor init
     GSensorI2cInit();
 }
 
 extern uint8_t ATUbloxTestFlag;
+#if (TC30M_TEST_CONFIG_OFF == 0)
+uint16_t LastNmeaDataLen = 0;
+#endif
 void CheckRegularTimerCallback(uint8_t Status)
 {
+#if TC30M_TEST_CONFIG_OFF
 	if (ATUbloxTestFlag == TRUE)
 	{
 		ReadUbloxData();
@@ -247,6 +251,42 @@ void CheckRegularTimerCallback(uint8_t Status)
 		SoftwareTimerReset(&RegularTimer, CheckRegularTimerCallback, UbloxCheckStatTimeout);
 		SoftwareTimerStart(&RegularTimer);
 	}
+#else
+	if (ATUbloxTestFlag == TRUE)
+	{
+		uint16_t size = 0;
+
+		size = MsgBuffer.DataLen;
+		if (size == 0)
+		{
+			// Reset Timer
+			SoftwareTimerReset(&RegularTimer, CheckRegularTimerCallback, UbloxCheckStatTimeout);
+			SoftwareTimerStart(&RegularTimer);
+			return;
+		}
+		else
+		{
+			if (LastNmeaDataLen != size)
+			{
+				LastNmeaDataLen = size;
+				// Reset Timer
+				SoftwareTimerReset(&RegularTimer, CheckRegularTimerCallback, UbloxCheckStatTimeout);
+				SoftwareTimerStart(&RegularTimer);
+				return;
+			}
+		}
+
+		InitPrintf(NRCMD,"\r\n[%s] Regular Timer Call Back, UbloxGPSTimerProcess", FmtTimeShow());
+		UbloxGPSTimerProcess();
+
+		memset((void *)&MsgBuffer, 0, sizeof(MsgBuffer));
+		LastNmeaDataLen = 0;
+
+		// Reset Timer
+		SoftwareTimerReset(&RegularTimer, CheckRegularTimerCallback, UbloxCheckStatTimeout);
+		SoftwareTimerStart(&RegularTimer);
+	}
+#endif /* TC30M_TEST_CONFIG_OFF */
 }
 
 void CheckLEDFlashTimerCallback(uint8_t Status)

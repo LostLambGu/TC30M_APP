@@ -383,7 +383,7 @@ void WedgeServiceOdometerAlert(void)
     //     return;
     // }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -481,7 +481,7 @@ void WedgeIDLEDetectAlert(void)
     //     return;
     // }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -590,7 +590,7 @@ void WedgeTowAlert(void)
     //     return;
     // }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -705,7 +705,7 @@ void WedgeGeofenceAlert(void)
         return;
     }
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -832,7 +832,7 @@ void WedgeOverSpeedAlert(void)
     double speedkm = 0.0;
     static uint32_t SystickRec = 0;
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -1093,7 +1093,7 @@ void WedgeHeadingChangeDetect(void)
     static uint32_t SystickRec = 0;
     char * WedgeHeadingChangeDetectStr= " WEDGE Heading Change Detect ";
 
-    if ((CHECK_UBLOX_STAT_TIMEOUT + 100) > (HAL_GetTick() - SystickRec))
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
     }

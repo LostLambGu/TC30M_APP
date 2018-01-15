@@ -64,6 +64,7 @@ void UbloxI2cInit(void)
 	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: Hardware Init", FmtTimeShow());
 }
 
+#if TC30M_TEST_CONFIG_OFF
 void ReadUbloxData(void)
 {
 	u8 LoopCount = 0;
@@ -152,6 +153,22 @@ void ReadUbloxData(void)
 		}
 	}
 }
+#else
+void UART2_RxCpltCallback(uint8_t Data)
+{
+	if (MsgBuffer.DataLen < DATA_SIZE_MAX)
+	{
+		MsgBuffer.Data[MsgBuffer.DataLen] = Data;
+		MsgBuffer.DataLen++;
+	}
+	else
+	{
+		MsgBuffer.DataLen = 0;
+		MsgBuffer.Data[0] = Data;
+		MsgBuffer.DataLen++;
+	}
+}
+#endif
 
 double ChangetoRadian(int value)
 {

@@ -127,8 +127,9 @@ uint32_t WedgeRtcCurrentSeconds(void)
 
 uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
 {
+    // Wedge Power/Start up time compensation
     #define WEDGE_HWREST_TIME_SECONDS (5)
-    uint32_t LastHWRSTRTCTime = 0;
+    uint32_t LastHWRSTRTCTime = 0, RTCTimeBase = 0;
     TimeTableT timetable = {0};
 
     memset(&RTCTimerList, 0, sizeof(RTCTimerList));
@@ -151,7 +152,11 @@ uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
         SetRTCDatetime(&timetable);
     }
 
-	return 0;
+    // The RTC set should before lte time get
+    RTCTimeBase = WedgeRtcCurrentSeconds();
+    WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &RTCTimeBase);
+
+		return 0;
 }
 
 void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize)

@@ -202,6 +202,7 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 static void ATCmdDefGPSFactoryTest(void)
 {
+	#if TC30M_TEST_CONFIG_OFF
 	const uint8_t temp = DbgCtl.UbloxDbgInfoEn;
 
 	UbloxPowerEnControl(ENABLE);
@@ -219,6 +220,7 @@ static void ATCmdDefGPSFactoryTest(void)
 
 	DbgCtl.UbloxDbgInfoEn = temp;
 	UbloxPowerEnControl(DISABLE);
+	#endif /* TC30M_TEST_CONFIG_OFF */
 }
 
 static void ATCmdModemFactoryTest(void)
