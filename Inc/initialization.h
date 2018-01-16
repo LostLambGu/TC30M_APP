@@ -33,8 +33,11 @@ extern "C" {
 
 #define FunStates FunctionalState
 
+#if TC30M_TEST_CONFIG_OFF
 #define LTE_AT_PORT_READY()	(HAL_GPIO_ReadPin(PB13_MCU_CTS3_GPIO_Port, PB13_MCU_CTS3_Pin) == GPIO_PIN_RESET)
-
+#else
+#define LTE_AT_PORT_READY() 1
+#endif /* TC30M_TEST_CONFIG_OFF */
 // Variable Declared
 extern uint8_t Lis2dhMemsChipID;
 // extern uint8_t gRedLEDFlashingFlag;

@@ -1185,7 +1185,7 @@ void WedgePeriodicOffEvent(void)
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Instance.RTCTimerInstance = Periodic_OFF_Event;
-    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.ioffint;
+    Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * RPTINTVL.ioffint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
         WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
@@ -1231,7 +1231,7 @@ void WedgePeriodicHealthEvent(void)
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Instance.RTCTimerInstance = Periodic_Health_Event;
-    Instance.settime = WedgeRtcCurrentSeconds() + 60 * RPTINTVL.perint;
+    Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * RPTINTVL.perint;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
         WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"

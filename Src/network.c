@@ -157,6 +157,11 @@ void SetNetworkReadyStat(u8 Status)
 	gModemParam.NetworkReadyStat = Status;
 }
 
+u8 GetNetworkReadyStat(void)
+{
+	return gModemParam.NetworkReadyStat;
+}
+
 uint8 GetNetworkRssiValue(void)
 {
 	return gModemParam.RssiValue;
@@ -441,6 +446,17 @@ void SendMessage(char *Num, char *buf)
         if ((SmsSendUint.number == NULL) || (SmsSendUint.buf == NULL))
         {
             NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send calloc fail");
+
+			if (SmsSendUint.number != NULL)
+            {
+                BufPoolFree(SmsSendUint.number);
+            }
+
+            if (SmsSendUint.buf != NULL)
+            {
+                BufPoolFree(SmsSendUint.buf);
+            }
+
             return;
         }
         else
@@ -494,7 +510,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 				uint8_t ListenSting[128];
 
 				memset(ListenSting, 0, sizeof(ListenSting));
-				sprintf((char *)ListenSting, "%d,3,480,90,600,50", i + 1);
+				sprintf((char *)ListenSting, "%d,%d,480,90,600,50", i + 1, TC30M_DEFAULT_CID);
 				// Create socket
 				SendATCmd(GSM_CMD_SQNSCFG, GSM_CMD_TYPE_EVALUATE, ListenSting);
 
@@ -548,6 +564,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if ((UdpSendQueue.numinqueue != 0) && (udpsendoverflag == 1))
 	{
+		memset(&UDPIpSendUint, 0, sizeof(UDPIpSendUint));
 		UdpSendUintOut(&UdpSendQueue, &UDPIpSendUint);
 
 		if ((UDPIpSendUint.buf != NULL) && (UDPIpSendUint.datalen != 0))
@@ -625,6 +642,8 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if ((SmsSendQueue.numinqueue != 0) && (smssendoverflag == 1))
 	{
+		DebugLog("--->>> SmsSendQueue.numinqueue (%d)", SmsSendQueue.numinqueue);
+		memset(&SMSSendUint, 0, sizeof(SMSSendUint));
 		SmsSendUintOut(&SmsSendQueue, &SMSSendUint);
 
 		if ((SMSSendUint.buf != NULL) && (SMSSendUint.number != NULL))
@@ -661,6 +680,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 void CheckNetlorkTimerCallback(u8 Status)
 {
 	u32 Timeout = CHECK_NETWORK_TIMEOUT;
+	static u8 noservicecount = 0;
 	// Check
 	if(Status == 1)
 	{
@@ -731,10 +751,22 @@ void CheckNetlorkTimerCallback(u8 Status)
 					// Check Status
 					if(GetNetServiceStatus() == NO_SERVICE)
 					{
-						SetNetworkMachineStatus(NET_DISCONNECT_STAT);
+						noservicecount++;
+						if (noservicecount >= 10)
+						{
+							SetNetworkMachineStatus(NET_DISCONNECT_STAT);
+						}
+						else
+						{
+							NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_CONNECTED_STAT Update System Signal");
+							UpdateSystemSignalStatus(7);
+							Timeout = TimeMsec(5);
+						}
 					}
 					else
 					{
+						// NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_CONNECTED_STAT NetReadySocketProcess");
+						noservicecount = 0;
 						NetReadySocketProcess(&Timeout);
 					}
 					
@@ -765,6 +797,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 								UdpSocketCloseIndicateFlag &= ~(0x01 << j);
 								UdpSocketListenIndicateFlag &= ~(0x01 << j);
+								UDPIPSocket[j].status = SOCKET_CLOSE;
 							}
 						}
 					}
@@ -780,6 +813,12 @@ void CheckNetlorkTimerCallback(u8 Status)
 				case NET_WAITT_DISCONNECTED_STAT:
 				{
 					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_WAITT_DISCONNECTED_STAT");
+
+					if (GetNetworkReadyStat() != FALSE)
+					{
+						SetNetworkMachineStatus(NET_FREE_IDLE_STAT);
+					}
+
 					// After timeout go to next status
 					SetNetworkMachineStatus(NET_DISCONNECTED_STAT);
 					// Set timeout
@@ -789,6 +828,10 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 				case NET_DISCONNECTED_STAT:
 				{
+					if (GetNetworkReadyStat() != FALSE)
+					{
+						SetNetworkMachineStatus(NET_FREE_IDLE_STAT);
+					}
 
 					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_DISCONNECTED_STAT");
 					Timeout = TimeMsec(10 /*5*/);
@@ -802,6 +845,8 @@ void CheckNetlorkTimerCallback(u8 Status)
 		else
 		{
 			Timeout = TimeMsec(5);
+
+			// If AT port is not ok, for a long while, should restart it
 
 			NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] NET: WATING(%d) Sys(%d) AT(%d)", \
 			FmtTimeShow(), \

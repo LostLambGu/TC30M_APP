@@ -47,6 +47,8 @@ const ARCA_ATCMDStruct gsm_at_cmd[GSM_CMD_LAST] =
 	{GSM_CMD_CEREG,			"+CEREG"},		// get network register state
 	{GSM_CMD_CCLK,			"+CCLK"},		// Get Date: +CCLK:2015/7/13,16:49:58+32
 	{GSM_CMD_CTZR,			"+CTZR"},		// Time Zone Reporting
+	{GSM_CMD_CGDCONT,       "+CGDCONT"},     // The set command specifies PDP context parameter values for a PDP context
+	{GSM_CMD_CGCONTRDP,     "+CGCONTRDP"},  // The execution command returns the relevant information for an active non secondary PDP context with the context identifier <cid>
 	{GSM_CMD_CRSM,			"+CRSM"},		// get ICCID
 	{GSM_CMD_CSQ,			"+CSQ"},			// Query Received Signal Quality
 	{GSM_CMD_CESQ,			"+CESQ"},		// Extended Signal Quality
@@ -118,6 +120,7 @@ u8 GetFwpIsTimerStatus(void)
 
 void SetFwpIsTimerStatus(u8 Status)
 {
+	// SendatPrintf(DbgCtl.SendToModemEn,"\r\n[%s] SAT: SetFwpIsTimerStatus %d", FmtTimeShow(), Status);
 	SendTimerStart = Status;
 }
 
@@ -368,6 +371,7 @@ static void FwpSendData(GSM_ATCMDINDEX CmdIndex, char* cmdsring, u16 slen)
 	// Check status
 	if(GetFwpIsTimerStatus() == FALSE)
 	{
+		// SendatPrintf(NRCMD,"\r\n[%s] SAT: Fwp Timer Status == FALSE", FmtTimeShow());
 		// Cmd sending
 		ATCommandSending();
 	}

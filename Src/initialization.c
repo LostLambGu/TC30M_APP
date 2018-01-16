@@ -111,18 +111,22 @@ void ModemPowerEnControl(FunStates Status)
 {
 	if (Status == ENABLE)
 	{
+		#if TC30M_TEST_CONFIG_OFF
 		// Active
 		HAL_GPIO_WritePin(LTE_PWR_PORT, LTE_PWR_PIN, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(LTE_RST_PORT, LTE_RST_PIN, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_SET);
+		#endif /* TC30M_TEST_CONFIG_OFF */
 		ModemPowerOnFlag = TRUE;
 	}
 	else if (Status == DISABLE)
 	{
+		#if TC30M_TEST_CONFIG_OFF
 		// Inactivation
 		HAL_GPIO_WritePin(LTE_PWR_PORT, LTE_PWR_PIN, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(LTE_RST_PORT, LTE_RST_PIN, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_RESET);
+		#endif /* TC30M_TEST_CONFIG_OFF */
 		// Clear Flag
 		ModemPowerOnFlag = FALSE;
 		// Clear Status

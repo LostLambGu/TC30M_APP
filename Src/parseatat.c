@@ -29,6 +29,8 @@ static ATDHParms ATDH_parms;
 const UINT8 StrHead[HEAD_LENGTH] 	= {0x0D, 0x0A};
 const UINT8 StrTail[TAIL_LENGTH] 	= {0x0D, 0x0A};
 
+uint16_t smsindex = 0;
+
 uint16 smsLength = 0;
 char StrBody[AT_MAX_AT_CMD_LEN];
 
@@ -53,6 +55,8 @@ const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] =
 	{GSM_FB_CCLK,      				"+CCLK:"},
 	{GSM_FB_CTZR,      				"+CTZR:"},
 	{GSM_FB_COPN,      			"+COPN:"},
+	{GSM_FB_CGDCONT,            "+CGDCONT:"},
+	{GSM_FB_CGCONTRDP,          "+CGCONTRDP:"},
 	{GSM_FB_CRSM,				"+CRSM:"},
 	{GSM_FB_CMGS,				"+CMGS:"},		// +CMGS: <mr>[,<scts>]
 	{GSM_FB_CMTI,				"+CMTI:"},		// +CMTI:"RAM",0
@@ -60,6 +64,7 @@ const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] =
 	{GSM_FB_CPIN,				"+CPIN:"},
 	{GSM_FB_SQNSI,				"+SQNSI:"},		// Socket Information
 	{GSM_FB_SQNSS,				"+SQNSS:"},		// Socket Status
+	{GSM_FB_SQNSH,				"+SQNSH:"},		// Socket Status
 	{GSM_FB_SQNSRECV,			"+SQNSRECV:"},
 	{GSM_FB_SQNSRING,			"+SQNSRING:"},
 	{GSM_FB_SQNHTTPRING,			"+SQNHTTPRING:"},
@@ -94,13 +99,16 @@ const ATRspParmFmtT ATParmFmt[GSM_FB_LAST_GSM_FB] =
 	/*GSM_FB_CCLK,*/				{6, 		{NUM_TYPE,NUM_TYPE,NUM_TYPE,NUM_TYPE,NUM_TYPE,NUM_TYPE}},
 	/*GSM_FB_CTZR*/				{2, 		{NUM_TYPE}},
 	/*GSM_FB_COPN*/				{2,		{STR_WITH_QUOTE_TYPE,STR_TYPE}},
+	/*GSM_FB_CGDCONT*/          {11,		{NUM_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, TYPE_NUM, TYPE_NUM, TYPE_NUM, NUM_TYPE, NUM_TYPE, NUM_TYPE, NUM_TYPE, NUM_TYPE}},
+	/*GSM_FB_CGCONTRDP*/		{9, 		{NUM_TYPE, NUM_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE, STR_WITH_QUOTE_TYPE}},
 	/*GSM_FB_CRSM*/				{3,		{NUM_TYPE,NUM_TYPE,STR_TYPE}},
 	/*GSM_FB_CMGS*/			{1,		{NUM_TYPE}},		
 	/*GSM_FB_CMTI,*/				{2, 		{STR_WITH_QUOTE_TYPE,NUM_TYPE}},
 	/*GSM_FB_CMGR*/			{4,		{STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE}},				
 	/*GSM_FB_CPIN*/				{1,		{STR_TYPE}},	
 	/*GSM_FB_SQNSI*/			{6,		{NUM_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE}},	
-	/*GSM_FB_SQNSS*/			{6,		{NUM_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE}},	
+	/*GSM_FB_SQNSS*/			{6,		{NUM_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE}},
+	/*GSM_FB_SQNSH*/			{1, 		{NUM_TYPE}},
 	/*GSM_FB_SQNSRECV*/			{2,		{NUM_TYPE,NUM_TYPE}},	
 	/*GSM_FB_SQNSRING*/			{0, 		{NUM_TYPE}},	
 	/*GSM_FB_SQNHTTPRING*/		{4,		{NUM_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE}},
@@ -207,6 +215,8 @@ static void MmiCGSN (ATRspParmT* MsgDataP);
 static void MmiCCLK (ATRspParmT* MsgDataP);
 static void MmiCTZR(ATRspParmT* MsgDataP);
 static void MmiCOPN(ATRspParmT* MsgDataP);
+static void MmiCGDCONT(ATRspParmT* MsgDataP);
+static void MmiCGCONTRDP(ATRspParmT* MsgDataP);
 static void MmiCRSM(ATRspParmT* MsgDataP);
 static void MmiCMGS(ATRspParmT* MsgDataP);
 static void MmiCMTI(ATRspParmT* MsgDataP);
@@ -214,6 +224,7 @@ static void MmiCMGR(ATRspParmT* MsgDataP);
 static void MmiCPIN(ATRspParmT* MsgDataP);
 // static void MmiSQNSI(char* MsgDataP);
 static void MmiSQNSS(ATRspParmT* MsgDataP);
+static void MmiSQNSH(ATRspParmT* MsgDataP);
 // static void MmiSQNSRECV(ATRspParmT* MsgDataP);
 static void MmiSQNSRING(char* MsgDataP);
 static void MmiSQNHTTPRING(ATRspParmT* MsgDataP);
@@ -551,6 +562,12 @@ void ValATRspProcess(GSM_FB_CMD RspCmdType, ATRspParmT* pRspData, char *pOrigina
 		case GSM_FB_COPN:
 			MmiCOPN(pRspData);
 			break;
+		case GSM_FB_CGDCONT:
+			MmiCGDCONT(pRspData);
+			break;
+		case GSM_FB_CGCONTRDP:
+			MmiCGCONTRDP(pRspData);
+			break;
 		case GSM_FB_CRSM:
 			MmiCRSM(pRspData);
 			break;				
@@ -571,6 +588,9 @@ void ValATRspProcess(GSM_FB_CMD RspCmdType, ATRspParmT* pRspData, char *pOrigina
 		// 	break;
 		case GSM_FB_SQNSS:
 			MmiSQNSS(pRspData);
+			break;
+		case GSM_FB_SQNSH:
+			MmiSQNSH(pRspData);
 			break;
 		// case GSM_FB_SQNSRECV:
 		// 	MmiSQNSRECV(pRspData);
@@ -801,42 +821,62 @@ static void MmiCEREG(char *MsgDataP)
 	//<stat>[,[<tac>],[<ci>],[<AcT>]]    eg: +CEREG: 1,28FF,0FA0CC01,7
 	//+CEREG: <stat> 	eg: +CEREG: 0
 	//+CEREG: <n>,<stat>	eg: +CEREG: 1,2
-	char	 *NumP;
-	char	 *CmdP;
+	char *NumP;
+	char *CmdP;
 	u8 RegisterStatus;
 
 	// #ifdef ATRSP_RESULT
 	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:%s", \
-			FmtTimeShow(), MsgDataP);
+	ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:%s",
+				 FmtTimeShow(), MsgDataP);
 	// #endif
-		
-	NumP = strstr((char*)MsgDataP,(char*)"+CEREG:");
-	if( NumP != NULL)
+
+	NumP = strstr((char *)MsgDataP, (char *)"+CEREG:");
+	if (NumP != NULL)
 	{
 		NumP += 7;
-		CmdP = strstr((char*)MsgDataP,(char*)",");
-		if( CmdP != NULL)
+		CmdP = strstr((char *)MsgDataP, (char *)",\"");
+		if (CmdP == NULL)
+		{
+			CmdP = strstr((char *)MsgDataP, (char *)",");
+		}
+		if (CmdP != NULL)
 		{
 			// +CREG:1,5
-			CmdP += 1;
-			if(CmdP[0] == ' ')
+			if (CmdP[1] == '\"')
+			{
+				CmdP -= 1;
+			}
+			else
+			{
+				CmdP += 1;
+			}
+
+			if (CmdP[0] == ' ')
 				RegisterStatus = CmdP[1];
 			else
 				RegisterStatus = CmdP[0];
 
-			// #ifdef ATRSP_RESULT
-			// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-			// {
-				ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+CEREG check(%s 0x%X)", \
-					FmtTimeShow(), CmdP,RegisterStatus);
-			// }
-			// #endif
+			gModemParam.stat = RegisterStatus - '0';
+
 			WedgeLteGreenLedBlink(FALSE);
-			if((RegisterStatus == '1') || (RegisterStatus == '5'))
+			if ((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
 				SetNetworkReadyStat(TRUE);
 				WedgeLteGreenLedControl(TRUE);
+				NumP = strstr((char *)MsgDataP, (char *)"\",");
+				if (NumP != NULL)
+				{
+					NumP += 2;
+					NumP = strstr((char *)NumP, (char *)"\",");
+					if (NumP != NULL)
+					{
+						NumP += 2;
+						gModemParam.act = NumP[0] - '0';
+						ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:+CEREG check(stat 0x%X act 0x%X)",
+									 FmtTimeShow(), RegisterStatus, NumP[0]);
+					}
+				}
 			}
 			else
 			{
@@ -850,23 +890,28 @@ static void MmiCEREG(char *MsgDataP)
 					WedgeLteGreenLedBlink(TRUE);
 				}
 			}
+
+			ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:+CEREG check(stat 0x%X)",
+						 FmtTimeShow(), RegisterStatus);
 		}
 		else
 		{
-			if(NumP[0] == ' ')
+			if (NumP[0] == ' ')
 				RegisterStatus = NumP[1];
 			else
 				RegisterStatus = NumP[0];
 			// #ifdef ATRSP_RESULT
 			// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
 			// {
-				ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+CREG unsolicited(%s 0x%X)", \
-					FmtTimeShow(), NumP,RegisterStatus);
+			ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:+CREG unsolicited(%s 0x%X)",
+						 FmtTimeShow(), NumP, RegisterStatus);
 			// }
 			// #endif
 			// +CREG:1
+			gModemParam.stat = RegisterStatus - '0';
+
 			WedgeLteGreenLedBlink(FALSE);
-			if((RegisterStatus == '1') || (RegisterStatus == '5'))
+			if ((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
 				SetNetworkReadyStat(TRUE);
 				WedgeLteGreenLedControl(TRUE);
@@ -1242,6 +1287,66 @@ static void MmiCOPN(ATRspParmT* MsgDataP)
 	// #endif
 }
 
+static void MmiCGDCONT(ATRspParmT* MsgDataP)
+{
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:PDP context parameter values (%d) (%s) (%s)",\
+			FmtTimeShow( ), MsgDataP[0].Num, MsgDataP[1].Str, MsgDataP[2].Str);
+	if (MsgDataP[0].Num == TC30M_DEFAULT_CID)
+	{
+		memset(gModemParam.pdpType, 0, sizeof(gModemParam.pdpType));
+		memset(gModemParam.apn_attach, 0, sizeof(gModemParam.apn_attach));
+		memcpy(&(gModemParam.pdpType), MsgDataP[1].Str, strlen(MsgDataP[1].Str));
+		memcpy(&(gModemParam.apn_attach), MsgDataP[2].Str, strlen(MsgDataP[2].Str));
+	}
+}
+
+static void MmiCGCONTRDP(ATRspParmT* MsgDataP)
+{
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:CGCONTRDP cid(%d) local_addr.subnet_mask(%s)", FmtTimeShow( ), MsgDataP[0].Num, MsgDataP[3].Str);
+
+	// if (MsgDataP[0].Num == TC30M_DEFAULT_CID)
+	// {
+	// 	uint8_t dotcount = 0, i = 0, j = 0;
+	// 	char *ptmp = MsgDataP[3].Str;
+	// 	uint8_t ipstrlen = strlen(MsgDataP[3].Str);
+
+	// 	for (j = 0; j < ipstrlen; j++)
+	// 	{
+	// 		if (*ptmp == '.')
+	// 		{
+	// 			dotcount++;
+	// 			if (dotcount >= 7)
+	// 			{
+	// 				// Not ipv4
+	// 				return;
+	// 			}
+	// 		}
+	// 	}
+
+	// 	dotcount = 0;
+	// 	memset(gModemParam.defaultcidipstr, 0, TC30M_DEFAULT_IPV4_MAX_LEN);
+	// 	gModemParam.defaultcidipgetflag = FALSE;
+	// 	gModemParam.defaultcidipnum = 0xfffffffful;
+	// 	for (i = 0; i < TC30M_DEFAULT_IPV4_MAX_LEN; i++)
+	// 	{
+	// 		if (*ptmp == '.')
+	// 		{
+	// 			dotcount++;
+	// 			if (dotcount == 4)
+	// 			{
+	// 				break;
+	// 			}
+	// 		}
+	// 		gModemParam.defaultcidipstr[i] = *ptmp;
+	// 		ptmp++;
+	// 	}
+	// 	gModemParam.defaultcidipnum = ipaddr_addr((char *)gModemParam.defaultcidipstr);
+	// 	gModemParam.defaultcidipgetflag = TRUE;
+	// 	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:CGCONTRDP Defaultcidipnum(0x%X)", FmtTimeShow( ), gModemParam.defaultcidipnum);
+	// }
+}
+
+
 static void MmiCRSM(ATRspParmT* MsgDataP)
 {	
 	char *pstr = MsgDataP[2].Str;
@@ -1293,10 +1398,12 @@ static void MmiCMTI(ATRspParmT* MsgDataP)
 	// +CMTI:"RAM",0
 	memset(IdxSting,0, sizeof(IdxSting));
 	sprintf((char *)IdxSting, "%d",MsgDataP[1].Num);
+	smsindex = 0;
+	smsindex = MsgDataP[1].Num;
 
 	// #ifdef ATRSP_RESULT
 	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+CMTI(%s %d) idx(%d)", \
+		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+CMTI(%s %d) idx(%s)", \
 			FmtTimeShow(),MsgDataP[0].Str,MsgDataP[1].Num, IdxSting);
 	// #endif
 
@@ -1310,6 +1417,7 @@ static void MmiCMGR(ATRspParmT* MsgDataP)
 	SmsRecFlag = 1;
 	memset(&SmsReceiveBuf, 0, sizeof(SmsReceiveBuf));
 
+	SmsReceiveBuf.smsindex = smsindex;
 	strcpy(SmsReceiveBuf.smsstat, (char *)MsgDataP[0].Str);
 	strcpy(SmsReceiveBuf.smsnumber, (char *)MsgDataP[1].Str);
 	strcpy(SmsReceiveBuf.smsdatetime, (char *)MsgDataP[3].Str);
@@ -1554,6 +1662,18 @@ static void MmiSQNSS(ATRspParmT* MsgDataP)
 
 }
 
+static void MmiSQNSH(ATRspParmT* MsgDataP)
+{
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+SQNSH(%d)",\
+		FmtTimeShow( ), MsgDataP[0].Num);
+
+
+	if((0x01 << (MsgDataP[0].Num - 1)) & UdpSocketListenIndicateFlag)
+	{
+		UDPIPSocket[MsgDataP[0].Num - 1].status = 0;
+	}
+}
+
 // static void MmiSQNSRECV(ATRspParmT* MsgDataP)
 // {
 // 	// #ifdef ATRSP_RESULT
@@ -1719,7 +1839,7 @@ static void MmiSQNHTTPRING(ATRspParmT* MsgDataP)
 	//+SQNHTTPRING: 1,200,"text/html; charset=iso-8859-1",5223
 	// #ifdef ATRSP_RESULT
 	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+SQNSRECV(%d %d %s %d)",\
+		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+SQNHTTPRING(%d %d %s %d)",\
 			FmtTimeShow( ),MsgDataP[0].Num,MsgDataP[1].Num,MsgDataP[2].Str,MsgDataP[3].Num);
 	// #endif		
 
@@ -2179,7 +2299,7 @@ static void MmiATDefault (GSM_FB_CMD FB_CMD,char* MsgDataP)
 {
 	// u16 Strlen = 0;
 	// Strlen = strlen((char*)MsgDataP);
-	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n MmiATDefault",FmtTimeShow());
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] MmiATDefault , SmsRecFlag(%d)",FmtTimeShow(), SmsRecFlag);
 	
 	if (SmsRecFlag)
 	{

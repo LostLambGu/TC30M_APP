@@ -156,7 +156,7 @@ void WedgeBufPoolFree(void *pBuf);
 typedef struct
 {
     uint16_t datalen;
-    char *buf;
+    uint8_t *buf;
 } WedgeUdpSendUintTypedef;
 
 typedef struct
@@ -190,11 +190,14 @@ typedef struct
     WedgeUdpSocketManageStatT UdpSocketManageStat;
 } WedgeUdpSocketManageTypeDef;
 
+extern void *WedgeBufPoolCalloc(uint16_t len);
+extern void WedgeBufPoolFree(void *pBuf);
+extern void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint);
+extern void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSendUintTypedef *pWedgeUDPIpSendUint);
 extern void WedgeUdpSocketManageDataComeSet(uint8_t Status);
 extern void WedgeUdpSocketManageStatSet(WedgeUdpSocketManageStatT Stat);
 extern void WedgeUdpSocketManageProcess(void);
 
-extern void WedgeUdpSocketManageProcess(void);
 
 #ifdef __cplusplus
 }

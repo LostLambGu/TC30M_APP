@@ -225,6 +225,7 @@ extern void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypede
 #define SMS_RECEIVE_TEXT_DATA_MAX_LEN (128)
 typedef struct
 {
+    uint16_t smsindex;
     char smsstat[SMS_RECEIVE_SMS_STAT_MAX_LEN];
     char smsnumber[SMS_RECEIVE_NUMBER_MAX_LEN];
     char smsdatetime[SMS_RECEIVE_DATE_TIME_MAX_LEN];
