@@ -571,7 +571,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		{
 			if (UdpSocketListenIndicateFlag)
 			{
-				uint8_t k = 0;
+				int8_t k = 0;
 
 				memset(SocketQue, 0, sizeof(SocketQue));
 
@@ -590,7 +590,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 			if (OpenStatSocketNum > 0)
 			{
-				SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum] - 1]);
+				SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
 				OpenStatSocketNum--;
 				udpsendoverflag = 0;
 				*pTimeout = 10;
@@ -625,14 +625,14 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 		if (OpenStatSocketNum > 0)
 		{
-			SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum] - 1]);
+			SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
 			OpenStatSocketNum--;
 			*pTimeout = 10;
 		}
 		else
 		{
 			if (UDPIpSendUint.buf != NULL)
-				BufPoolFree(UDPIpSendUint.buf);
+				WedgeBufPoolFree(UDPIpSendUint.buf);
 			udpsendoverflag = 1;
 			SetUDPDataCanSendStat(FALSE);
 		}

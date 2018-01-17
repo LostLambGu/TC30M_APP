@@ -594,6 +594,8 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
             WedgeUdpSendUint.datalen = sizeof(BinaryMsgRecord);
             WedgeUdpSendUint.buf = ptmp;
 
+            memcpy(WedgeUdpSendUint.buf, &BinaryMsgRecord, sizeof(BinaryMsgRecord));
+
             WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
 
             WedgeUdpSocketManageDataComeSet(TRUE);
@@ -990,6 +992,8 @@ void WedgeUdpSocketManageProcess(void)
         {
             if (WedgeUDPIpSendUint.datalen <= WEDGE_MSG_QUE_DATA_LEN_MAX)
             {
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Opened UdpIpSocketSendData",
+                                      FmtTimeShow());
                 UdpIpSocketSendData(WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
                 udpsmtimeoutcount = 0;
                 WedgeUdpSocketManage.newdatacome = FALSE;
