@@ -71,67 +71,7 @@ uint8_t SmsRecFlag = 0;
 uint8_t OpenStatSocketNum = 0;
 uint8_t SocketQue[UDPIP_SOCKET_MAX_NUM] = {0};
 
-#define NETWORK_BUF_POOL_NUM_MAX (12)
-#define NETWORK_BUF_CELL_LEN_MAX (256)
-typedef struct
-{
-	uint8_t UsedFlag[NETWORK_BUF_POOL_NUM_MAX];
-	uint8_t BufPool[NETWORK_BUF_POOL_NUM_MAX][NETWORK_BUF_CELL_LEN_MAX];
-} NetowrkBufPoolTypedef;
-
-NetowrkBufPoolTypedef NetowrkBufPool = {0};
 /* Function definition -------------------------------------------------------*/
-static void *BufPoolCalloc(uint16_t len)
-{
-	uint8_t i;
-
-	if (len >= NETWORK_BUF_CELL_LEN_MAX)
-	{
-		return NULL;
-	}
-
-	for (i = 0; i < NETWORK_BUF_POOL_NUM_MAX; i++)
-	{
-		if (NetowrkBufPool.UsedFlag[i] == 0)
-		{
-			break;
-		}
-	}
-
-	if (i < NETWORK_BUF_POOL_NUM_MAX)
-	{
-		uint8_t *tmp = NetowrkBufPool.BufPool[i];
-
-		memset(tmp, 0, NETWORK_BUF_CELL_LEN_MAX);
-		NetowrkBufPool.UsedFlag[i] = 1;
-
-		return tmp;
-	}
-
-	return NULL;
-}
-
-static void BufPoolFree(void *pBuf)
-{
-	uint32_t offset = 0;
-	uint8_t index = 0;
-
-	if (pBuf == NULL)
-	{
-		return;
-	}
-
-	offset = ((uint32_t)pBuf) - ((uint32_t)NetowrkBufPool.BufPool);
-	index = offset / NETWORK_BUF_CELL_LEN_MAX;
-
-	if (index >= NETWORK_BUF_POOL_NUM_MAX)
-	{
-		return;
-	}
-	
-	NetowrkBufPool.UsedFlag[index] = 0;
-}
-
 void SetSysInitializeStat(u8 Status)
 {
 	gModemParam.SysInitializeStat = Status;
@@ -229,7 +169,7 @@ void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPI
     }
 
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         UdpSendUintTypedef *ptemp = &(pUdpSendQueue->UDPIpSendUint[pUdpSendQueue->putindex % UDP_SEND_QUEUE_LENGHT_MAX]);
         ptemp->datalen = pUDPIpSendUint->datalen;
         ptemp->socketnum = pUDPIpSendUint->socketnum;
@@ -241,7 +181,7 @@ void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPI
         {
             pUdpSendQueue->numinqueue = UDP_SEND_QUEUE_LENGHT_MAX;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 }
 
@@ -255,7 +195,7 @@ void UdpSendUintOut(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDP
 
     if (pUdpSendQueue->numinqueue > 0)
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         UdpSendUintTypedef *ptemp = &(pUdpSendQueue->UDPIpSendUint[pUdpSendQueue->getindex % UDP_SEND_QUEUE_LENGHT_MAX]);
         pUDPIpSendUint->datalen = ptemp->datalen;
         pUDPIpSendUint->socketnum = ptemp->socketnum;
@@ -267,7 +207,7 @@ void UdpSendUintOut(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDP
         {
             pUdpSendQueue->numinqueue = 0;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 
 }
@@ -281,7 +221,7 @@ void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSS
     }
 
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         SmsSendUintTypedef *ptemp = &(pSmsSendQueue->SMSSendUint[pSmsSendQueue->putindex % SMS_SEND_QUEUE_LENGHT_MAX]);
         ptemp->number = pSMSSendUint->number;
         ptemp->buf = pSMSSendUint->buf;
@@ -292,7 +232,7 @@ void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSS
         {
             pSmsSendQueue->numinqueue = SMS_SEND_QUEUE_LENGHT_MAX;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 }
 
@@ -306,7 +246,7 @@ void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMS
 
     if (pSmsSendQueue->numinqueue > 0)
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         SmsSendUintTypedef *ptemp = &(pSmsSendQueue->SMSSendUint[pSmsSendQueue->getindex % SMS_SEND_QUEUE_LENGHT_MAX]);
         pSMSSendUint->number = ptemp->number;
         pSMSSendUint->buf = ptemp->buf;
@@ -317,7 +257,7 @@ void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMS
         {
             pSmsSendQueue->numinqueue = 0;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 }
 
@@ -375,6 +315,13 @@ void UdpIpSocketClose(uint8_t Socket_Num)
         memset(&(UDPIPSocket[Socket_Num - 1].DestAddrP), 0, MAX_IP_ADDR_LEN);
         
 		UdpSocketCloseIndicateFlag |= (0x01 << (Socket_Num - 1));
+
+		if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
+		{
+			// Reset Network Timer
+			SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
+			SoftwareTimerStart(&NetworkCheckTimer);
+		}
     }
     else
     {
@@ -397,6 +344,7 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
             }
 
 			UDPIpSendUint.datalen = len;
+			// Default send to the socketnum which is opend
 			UDPIpSendUint.socketnum = 0;
 			UDPIpSendUint.buf = buffer;
 			UdpSendUnitIn(&UdpSendQueue, &UDPIpSendUint);
@@ -415,6 +363,11 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
     }
     else
     {
+		if (buffer != NULL)
+		{
+			WedgeBufPoolFree(buffer);
+		}
+
         NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send param err");
     }
 }
@@ -422,63 +375,56 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
 // message
 void SendMessage(char *Num, char *buf)
 {
-    if ((NULL != Num) && (NULL != buf))
-    {
-        uint16_t numlen = strlen(Num);
-        uint16_t buflen = strlen(buf);
-        SmsSendUintTypedef SmsSendUint = {0};
+	if ((NULL != Num) && (NULL != buf))
+	{
+		uint16_t numlen = strlen(Num);
+		uint16_t buflen = strlen(buf);
+		SmsSendUintTypedef SmsSendUint = {0};
 
-        if (SmsSendQueue.numinqueue >= SMS_SEND_QUEUE_LENGHT_MAX)
-        {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send queue full");
-            return;
-        }
-
-        if ((0 == numlen) || (0 == buflen))
-        {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send len err");
-            return;
-        }
-
-        SmsSendUint.number = BufPoolCalloc(numlen);
-        SmsSendUint.buf = BufPoolCalloc(buflen);
-
-        if ((SmsSendUint.number == NULL) || (SmsSendUint.buf == NULL))
-        {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send calloc fail");
-
-			if (SmsSendUint.number != NULL)
-            {
-                BufPoolFree(SmsSendUint.number);
-            }
-
-            if (SmsSendUint.buf != NULL)
-            {
-                BufPoolFree(SmsSendUint.buf);
-            }
-
-            return;
-        }
-        else
-        {
-            memcpy(SmsSendUint.number, Num, numlen);
-            memcpy(SmsSendUint.buf, buf, buflen);
-
-            SmsSendUnitIn(&SmsSendQueue, &SmsSendUint);
-
-			if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
-			{
-				// Reset Network Timer
-				SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
-				SoftwareTimerStart(&NetworkCheckTimer);
-			}
+		if (SmsSendQueue.numinqueue >= SMS_SEND_QUEUE_LENGHT_MAX)
+		{
+			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send queue full");
+			return;
 		}
-    }
-    else
-    {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send param err");
-        return;
-    }
+
+		if ((0 == numlen) || (0 == buflen))
+		{
+			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send len err");
+
+			WedgeBufPoolFree(Num);
+			WedgeBufPoolFree(buf)
+
+			return;
+		}
+
+		SmsSendUint.number = Num;
+		SmsSendUint.buf = buf;
+
+		SmsSendUnitIn(&SmsSendQueue, &SmsSendUint);
+
+		if (GetNetworkMachineStatus() == NET_CONNECTED_STAT)
+		{
+			// Reset Network Timer
+			SoftwareTimerReset(&NetworkCheckTimer, CheckNetlorkTimerCallback, 10);
+			SoftwareTimerStart(&NetworkCheckTimer);
+		}
+	}
+	else
+	{
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send param err");
+
+		if (Num != NULL)
+		{
+			WedgeBufPoolFree(Num);
+		}
+
+		if (buf != NULL)
+		{
+			WedgeBufPoolFree(buf);
+		}
+
+		return;
+	}
 }
 
 void DeleteAllSMS(void)
@@ -494,10 +440,14 @@ static void UART3SendHexData(char *string, uint16_t slen)
 	DebugPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nLTE: SEND Hex Data Len: (%d)", slen);
 }
 
+#define SMS_SEND_OVER_TIME_MS (10000)
+#define UDP_SEND_OVER_TIME_MS (10000)
 void NetReadySocketProcess(uint32_t *pTimeout)
 {
 	static UdpSendUintTypedef UDPIpSendUint = {0};
 	static SmsSendUintTypedef SMSSendUint = {0};
+	static uint32_t udpsendovertime = 0;
+	static uint32_t smsdendovertime = 0;
 
 	if (UdpSocketOpenIndicateFlag)
 	{
@@ -593,11 +543,26 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 				SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
 				OpenStatSocketNum--;
 				udpsendoverflag = 0;
+				udpsendovertime = HAL_GetTick();
 				*pTimeout = 10;
 			}
 		}
 
 		return;
+	}
+
+	if (udpsendoverflag == 0)
+	{
+		if (UDP_SEND_OVER_TIME_MS < (HAL_GetTick() - udpsendovertime))
+		{
+			DebugLog("--->>>Network: Udp send data overtime");
+			udpsendoverflag = 1;
+
+			if (UDPIpSendUint.buf != NULL)
+				WedgeBufPoolFree(UDPIpSendUint.buf);
+			*pTimeout = 10;
+			return;
+		}
 	}
 
 	if (GetUDPDataCanSendStat() == TRUE)
@@ -651,11 +616,28 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 			SendATCmd(GSM_CMD_CMGS, GSM_CMD_TYPE_EVALUATE, (uint8_t *)SMSSendUint.number);
 
 			smssendoverflag = 0;
+			smsdendovertime = HAL_GetTick();
 
 			*pTimeout = 10;
 		}
 
 		return;
+	}
+
+	if (smssendoverflag == 0)
+	{
+		if (SMS_SEND_OVER_TIME_MS < (HAL_GetTick() - smsdendovertime))
+		{
+			DebugLog("--->>>Network: Sms send data overtime");
+			smssendoverflag = 1;
+			if (SMSSendUint.buf != NULL)
+				WedgeBufPoolFree(SMSSendUint.buf);
+
+			if (SMSSendUint.number != NULL)
+				WedgeBufPoolFree(SMSSendUint.number);
+			*pTimeout = 10;
+			return;
+		}
 	}
 
 	if (GetSMSDataCanSendStat() == TRUE)
@@ -665,10 +647,10 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		UART3SendHexData("\x1a", 1);
 
 		if (SMSSendUint.buf != NULL)
-			BufPoolFree(SMSSendUint.buf);
+			WedgeBufPoolFree(SMSSendUint.buf);
 
 		if (SMSSendUint.number != NULL)
-			BufPoolFree(SMSSendUint.number);
+			WedgeBufPoolFree(SMSSendUint.number);
 
 		smssendoverflag = 1;
 		SetSMSDataCanSendStat(FALSE);

@@ -29,6 +29,8 @@ extern "C" {
 
 #define MAX_VERSION_LEN             (22)
 
+#define TC30M_UDP_SEND_DATA_MAX_LEN (1500)
+
 typedef enum  
 {
     NET_FREE_IDLE_STAT 				= 0,
@@ -138,6 +140,7 @@ extern u8 GetSysInitializeStat(void);
 extern void SetModemATPortStat(u8 Status);
 extern u8 GetModemATPortStat(void);
 extern void SetNetworkReadyStat(u8 Status);
+extern u8 GetNetworkReadyStat(void);
 extern uint8 GetNetworkRssiValue(void);
 extern void SetNetworkRssiValue(uint8 value);
 extern u8 GetNetworkRegistrationStat(void);
@@ -150,7 +153,7 @@ extern void CheckNetlorkTimerCallback(u8 Status);
 #define UDPIP_SOCKET_MIN_NUM (1)
 #define UDPIP_SOCKET_MAX_NUM (5)
 #define UDP_SEND_QUEUE_LENGHT_MAX (6)
-#define SMS_SEND_QUEUE_LENGHT_MAX (3)
+#define SMS_SEND_QUEUE_LENGHT_MAX (6)
 
 typedef enum
 {

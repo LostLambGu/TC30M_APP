@@ -1268,7 +1268,7 @@ void WedgePeriodicHardwareResetInit(void)
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_ONETIME;
     Instance.RTCTimerInstance = Periodic_Hardware_Reset_Onetime;
-    Instance.settime = WedgeRtcCurrentSeconds() + 60 * HWRST.interval;
+    Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * HWRST.interval;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
         WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Periodic HWRST Add Timer err"

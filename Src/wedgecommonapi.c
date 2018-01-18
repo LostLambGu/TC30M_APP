@@ -733,7 +733,7 @@ void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSe
     }
 
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         WedgeUdpSendUintTypedef *ptemp = &(pWedgeUdpSendQueue->WedgeUDPIpSendUint[pWedgeUdpSendQueue->putindex % WEDGE_UDP_SEND_QUEUE_LENGHT_MAX]);
         ptemp->datalen = pWedgeUDPIpSendUint->datalen;
         ptemp->buf = pWedgeUDPIpSendUint->buf;
@@ -744,7 +744,7 @@ void WedgeUdpSendUnitIn(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpSe
         {
             pWedgeUdpSendQueue->numinqueue = WEDGE_UDP_SEND_QUEUE_LENGHT_MAX;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 }
 
@@ -758,7 +758,7 @@ void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpS
 
     if (pWedgeUdpSendQueue->numinqueue > 0)
     {
-        SystemDisableAllInterrupt();
+        // SystemDisableAllInterrupt();
         WedgeUdpSendUintTypedef *ptemp = &(pWedgeUdpSendQueue->WedgeUDPIpSendUint[pWedgeUdpSendQueue->getindex % WEDGE_UDP_SEND_QUEUE_LENGHT_MAX]);
         pWedgeUDPIpSendUint->datalen = ptemp->datalen;
         pWedgeUDPIpSendUint->buf = ptemp->buf;
@@ -769,7 +769,7 @@ void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpS
         {
             pWedgeUdpSendQueue->numinqueue = 0;
         }
-        SystemEnableAllInterrupt();
+        // SystemEnableAllInterrupt();
     }
 
 }
