@@ -28,6 +28,10 @@ extern void SetUDPDataCanSendStat(u8 Status);
 extern u8 GetUDPDataCanSendStat(void);
 extern void SetSMSDataCanSendStat(u8 Status);
 extern u8 GetSMSDataCanSendStat(void);
+extern void SetSMSNeedResponseStat(u8 Status);
+extern u8 GetSMSNeedResponseStat(void);
+extern void SetSMSNeedReleaseStat(u8 Status);
+extern u8 GetSMSNeedReleaseStat(void);
 
 extern void LteCmdDetection(void);
 

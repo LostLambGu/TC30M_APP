@@ -62,6 +62,7 @@ const ARCA_ATCMDStruct gsm_at_cmd[GSM_CMD_LAST] =
 	{GSM_CMD_SQNSDIAL,		"+SQNSD"},		// UDP Socket Create(Socket Dial)
 	{GSM_CMD_SQNSLUDP,		"+SQNSLUDP"},	// UDP Listen
 	{GSM_CMD_SQNSSEND,     	"+SQNSSEND"},	// Send Socket Data In Command Mode
+	{GSM_CMD_SQNSSENDEXT,	"+SQNSSENDEXT"},// Send Socket Data with length
 	{GSM_CMD_SQNHEXDAT,  	""},				// Send Socket Data
 	{GSM_CMD_SQNSRECV,		"+SQNSRECV"},	// Receive Socket Data in Command Mode
 	{GSM_CMD_SQNSH,			"+SQNSH"},		// Socket Shutdown
@@ -253,12 +254,12 @@ void ATCommandSending(void)
  	}
 }
 
+extern uint8_t resetFSM;
 //DualFwpCmdSendTimerProcess
 void AtSendtoUart3TimerCallback(u8 Status)
 {
-	if((GetUDPDataCanSendStat() == FALSE) && \
-		(GetFwpCurrentIndex() == GSM_CMD_CMGS || \
-		GetFwpCurrentIndex() == GSM_CMD_SQNSSEND))
+	SendatPrintf(NRCMD,"\r\n[%s] SAT:timerout", FmtTimeShow());
+	if((GetUDPDataCanSendStat() == FALSE) /*&& (GetFwpCurrentIndex() == GSM_CMD_CMGS || GetFwpCurrentIndex() == GSM_CMD_SQNSSEND)*/)
 	{
 		// #ifdef ATRSP_RESULT
 		//if(gDeviceConfig.DbgCtl.SendToModemEn == TRUE)
@@ -273,6 +274,8 @@ void AtSendtoUart3TimerCallback(u8 Status)
 	{
 		// Cmd sending
 		// ATCommandSending();
+		resetFSM = TRUE;
+		SendatPrintf(NRCMD,"\r\n[%s] SAT: atcmd timer callback set resetFSM TRUE", FmtTimeShow());
 	}
 	// Reset timer
 	FwpSendAtTimerOn();
@@ -476,7 +479,7 @@ void SendATCmd(GSM_ATCMDINDEX CmdIndex, ARCA_GSM_COMAND_TYPE cmd_type,uint8* ext
 		{
 			if(CmdIndex == GSM_CMD_CMGS)
 				sprintf(atstring, "AT%s%s\"%s\"\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
-			else if(CmdIndex == GSM_CMD_SQNSSEND)
+			else if((CmdIndex == GSM_CMD_SQNSSEND) || (CmdIndex == GSM_CMD_SQNSSENDEXT))
 				sprintf(atstring, "AT%s%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 			else
 				sprintf(atstring, "AT%s%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);

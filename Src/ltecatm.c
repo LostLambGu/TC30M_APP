@@ -10,6 +10,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ltecatm.h"
 #include "parseatat.h"
+#include "wedgecommonapi.h"
 
 /* Private define ------------------------------------------------------------*/
 #undef NRCMD
@@ -27,6 +28,8 @@ static u8 ModemNeedInitFlag = FALSE;
 static u8 SimCardReadyFlag = FALSE;
 static u8 UDPDataCanSendFlag = FALSE;
 static u8 SMSDataCanSendFlag = FALSE;
+static u8 SMSNeedResponseFlag = FALSE;
+static u8 SMSNeedReleaseFlag = FALSE;
 uint8_t ModemPowerOnFlag = FALSE;
 
 extern void OemMsgQueUdpRec(void *MsgBufferP, uint32_t size);
@@ -77,6 +80,26 @@ u8 GetSMSDataCanSendStat(void)
 	return SMSDataCanSendFlag;
 }
 
+void SetSMSNeedResponseStat(u8 Status)
+{
+	SMSNeedResponseFlag = Status;
+}
+
+u8 GetSMSNeedResponseStat(void)
+{
+	return SMSNeedResponseFlag;
+}
+
+void SetSMSNeedReleaseStat(u8 Status)
+{
+	SMSNeedReleaseFlag = Status;
+}
+
+u8 GetSMSNeedReleaseStat(void)
+{
+	return SMSNeedReleaseFlag;
+}
+
 void LteCmdDetection(void)
 {
 	if(UART3_RX_NUM == TRUE)
@@ -102,37 +125,58 @@ void LteCmdDetection(void)
 		if ((tmp = strstr((const char *)AtBuffer.buf,"+SQNSRECV:")) != NULL)
 		{
 			// uint8_t socketnum = 0;
-			uint16_t socketlen = 0;
+			uint32_t socketlen = 0;
 			uint8_t lenstr[4] = {0};
 			uint8_t i = 0 , j = 0;
-			tmp = strstr((const char *)AtBuffer.buf, ",");
-			// socketnum = *(tmp - 1) - '0';
-			
-			for (i = 0; i < 4; i++)
+
+			tmp = strstr(tmp, ",");
+			if (tmp == NULL)
 			{
-				if ((*(tmp + i + 1) >= '0') && (*(tmp + i + 1) <= '9'))
-				{
-					lenstr[i] = *(tmp + i + 1) - '0';
-				}
-				else
-				{
-					break;
-				}
+				CBPCmdPrintf(NRCMD,"LteCmdDetection +SQNSRECV: Err");
+				AtBuffer.buf = "ERROR\r\n";
+				AtBuffer.len = 7;
 			}
-
-			j = i;
-			tmp--;
-
-			for (i = 0; i < j; i++)
+			else
 			{
-				socketlen = socketlen * 10 + lenstr[i];
+				// socketnum = *(tmp - 1) - '0';
+
+				for (i = 0; i < 4; i++)
+				{
+					if ((*(tmp + i + 1) >= '0') && (*(tmp + i + 1) <= '9'))
+					{
+						lenstr[i] = *(tmp + i + 1) - '0';
+					}
+					else
+					{
+						break;
+					}
+				}
+
+				j = i;
+				tmp += j;
+				tmp++;
+				if (*tmp == '\r')
+				{
+					tmp++;
+				}
+
+				if (*tmp == '\n')
+				{
+					tmp++;
+				}
+
+				for (i = 0; i < j; i++)
+				{
+					socketlen = socketlen * 10 + lenstr[i];
+				}
+
+				CBPCmdPrintf(DbgCtl.LteRecDbgInfoEn, "\r\n[%s] socket rec len: %d\r\n", FmtTimeShow(), socketlen);
+				CBPCmdPrintf(DbgCtl.LteRecDbgInfoEn, "Pass to OemMsgQueUdpRec(max print 80) (%.80s)", tmp);
+				UdpReceivedHandle(tmp, socketlen);
+
+				AtBuffer.buf = "OK\r\n";
+				AtBuffer.len = 4;
 			}
-
-			UdpReceivedHandle(tmp, socketlen + 4 + j);
-
-			AtBuffer.buf = "OK\r\n";
-			AtBuffer.len = 4;
-
 			// memset((char *)Uart3ParseBuffer,0,sizeof(Uart3ParseBuffer));
 		}
 
@@ -215,6 +259,8 @@ void LteCmdDetection(void)
 		}
 		else if(AtBuffer.len > 0)
 		{
+			//CBPCmdPrintf(NRCMD,"\r\n[%s] LTE: ResetFSM(%d) AtBuffer.buf(80 max)(%.80s)",FmtTimeShow(),resetFSM, AtBuffer.buf);
+			
 			if(resetFSM)
 			{
 				CBPCmdPrintf(NRCMD,"\r\n[%s] LTE: ResetFSM(%d)",FmtTimeShow(),resetFSM);

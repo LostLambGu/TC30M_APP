@@ -392,7 +392,7 @@ void SendMessage(char *Num, char *buf)
 			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send len err");
 
 			WedgeBufPoolFree(Num);
-			WedgeBufPoolFree(buf)
+			WedgeBufPoolFree(buf);
 
 			return;
 		}
@@ -440,7 +440,7 @@ static void UART3SendHexData(char *string, uint16_t slen)
 	DebugPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nLTE: SEND Hex Data Len: (%d)", slen);
 }
 
-#define SMS_SEND_OVER_TIME_MS (10000)
+#define SMS_SEND_OVER_TIME_MS (60000)
 #define UDP_SEND_OVER_TIME_MS (10000)
 void NetReadySocketProcess(uint32_t *pTimeout)
 {
@@ -559,7 +559,10 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 			udpsendoverflag = 1;
 
 			if (UDPIpSendUint.buf != NULL)
+			{
 				WedgeBufPoolFree(UDPIpSendUint.buf);
+				UDPIpSendUint.buf = NULL;
+			}
 			*pTimeout = 10;
 			return;
 		}
@@ -597,7 +600,10 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		else
 		{
 			if (UDPIpSendUint.buf != NULL)
+			{
 				WedgeBufPoolFree(UDPIpSendUint.buf);
+				UDPIpSendUint.buf = NULL;
+			}
 			udpsendoverflag = 1;
 			SetUDPDataCanSendStat(FALSE);
 		}
@@ -605,14 +611,16 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		return;
 	}
 
-	if ((SmsSendQueue.numinqueue != 0) && (smssendoverflag == 1))
+	if ((SmsSendQueue.numinqueue != 0) && (smssendoverflag == 1) && (GetSMSNeedResponseStat() == FALSE))
 	{
-		DebugLog("--->>> SmsSendQueue.numinqueue (%d)", SmsSendQueue.numinqueue);
+		// Did not do SMS length Check
+		DebugLog("--->>>Network: Sms send  SmsSendQueue.numinqueue (%d)", SmsSendQueue.numinqueue);
 		memset(&SMSSendUint, 0, sizeof(SMSSendUint));
 		SmsSendUintOut(&SmsSendQueue, &SMSSendUint);
 
 		if ((SMSSendUint.buf != NULL) && (SMSSendUint.number != NULL))
 		{
+			DebugLog("--->>>Network: Sms send SMSSendUint.number (%s)", SMSSendUint.number);
 			SendATCmd(GSM_CMD_CMGS, GSM_CMD_TYPE_EVALUATE, (uint8_t *)SMSSendUint.number);
 
 			smssendoverflag = 0;
@@ -626,35 +634,52 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if (smssendoverflag == 0)
 	{
-		if (SMS_SEND_OVER_TIME_MS < (HAL_GetTick() - smsdendovertime))
+		if ((SMS_SEND_OVER_TIME_MS < (HAL_GetTick() - smsdendovertime))  || (GetSMSNeedReleaseStat() == TRUE))
 		{
 			DebugLog("--->>>Network: Sms send data overtime");
 			smssendoverflag = 1;
 			if (SMSSendUint.buf != NULL)
+			{
 				WedgeBufPoolFree(SMSSendUint.buf);
+				SMSSendUint.buf = NULL;
+			}
 
 			if (SMSSendUint.number != NULL)
+			{
 				WedgeBufPoolFree(SMSSendUint.number);
+				SMSSendUint.number = NULL;
+			}
+
 			*pTimeout = 10;
+			SetSMSNeedResponseStat(FALSE);
+			SetSMSNeedReleaseStat(FALSE);
 			return;
 		}
 	}
 
 	if (GetSMSDataCanSendStat() == TRUE)
 	{
+		DebugLog("--->>>Network: Sms send SMSSendUint.buf.80(%.80s)", SMSSendUint.buf);
 		UART3SendHexData(SMSSendUint.buf, strlen(SMSSendUint.buf));
 
 		UART3SendHexData("\x1a", 1);
 
 		if (SMSSendUint.buf != NULL)
+		{
 			WedgeBufPoolFree(SMSSendUint.buf);
+			SMSSendUint.buf = NULL;
+		}
 
 		if (SMSSendUint.number != NULL)
+		{
 			WedgeBufPoolFree(SMSSendUint.number);
+			SMSSendUint.number = NULL;
+		}
 
 		smssendoverflag = 1;
 		SetSMSDataCanSendStat(FALSE);
-
+		SetSMSNeedResponseStat(TRUE);
+		
 		return;
 	}
 }

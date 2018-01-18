@@ -1068,11 +1068,14 @@ static void MmiOK (ATRspParmT* MsgDataP)
 
 static void MmiERROR (ATRspParmT* MsgDataP)
 {
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(NRCMD,"\r\n[%s] PAT:FB ERROR", FmtTimeShow());
-	// #endif
-	// Set AT Port Ready
+	ParseatPrint(NRCMD,"\r\n[%s] PAT:FB ERROR CurrentIndex(%d)", FmtTimeShow(), GetFwpCurrentIndex());
+
+	if (GetFwpCurrentIndex() == GSM_CMD_CMGS)
+	{
+		SetSMSNeedReleaseStat(TRUE);
+		ParseatPrint(NRCMD,"\r\n[%s] PAT:FB ERROR GSM_CMD_CMGS", FmtTimeShow());
+	}
+
 	SetModemATPortStat(TRUE);
 	// Cmd sending
 	ATCommandSending();
@@ -1382,13 +1385,11 @@ static void MmiCRSM(ATRspParmT* MsgDataP)
 	memcpy(ICCIDBuf,pstr,21);
 }
 
-static void MmiCMGS(ATRspParmT* MsgDataP)
+static void MmiCMGS(ATRspParmT *MsgDataP)
 {
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+CMGS(%d) send sms result",\
-			FmtTimeShow( ),MsgDataP[0].Num);
-	// #endif
+	ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:+CMGS(%d) send sms result",
+				 FmtTimeShow(), MsgDataP[0].Num);
+	SetSMSNeedResponseStat(FALSE);
 }
 
 static void MmiCMTI(ATRspParmT* MsgDataP)
@@ -1848,21 +1849,16 @@ static void MmiSQNHTTPRING(ATRspParmT* MsgDataP)
 
 static void MmiCMSERROR(ATRspParmT* MsgDataP)
 {
-	// +CMS ERROR:513 
+	// +CMS ERROR:513
 	// lower layer error
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(NRCMD,"\r\n[%s] PAT:+CMS ERROR(%d)", \
-			FmtTimeShow(),MsgDataP[0].Num);
-	// #endif
-	if(MsgDataP[0].Num == 513)
+	ParseatPrint(NRCMD, "\r\n[%s] PAT:+CMS ERROR(%d)",
+				 FmtTimeShow(), MsgDataP[0].Num);
+	if (MsgDataP[0].Num == 513)
 	{
-		// #ifdef ATRSP_RESULT
-		// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-			ParseatPrint(NRCMD,"\r\n[%s] PAT:SMS lower layer error", \
-				FmtTimeShow());
-		// #endif
+		ParseatPrint(NRCMD, "\r\n[%s] PAT:SMS lower layer error",
+					 FmtTimeShow());
 	}
+	SetSMSNeedResponseStat(FALSE);
 }
 
 static void MmiCMEERROR (ATRspParmT* MsgDataP)
@@ -1964,9 +1960,7 @@ static void MmiCMEERROR (ATRspParmT* MsgDataP)
 		break;
 	}
 
-	if((GetUDPDataCanSendStat() == FALSE) && \
-		(GetFwpCurrentIndex() == GSM_CMD_CMGS || \
-		GetFwpCurrentIndex() == GSM_CMD_SQNSSEND))
+	if((GetUDPDataCanSendStat() == FALSE) /*&& (GetFwpCurrentIndex() == GSM_CMD_CMGS || GetFwpCurrentIndex() == GSM_CMD_SQNSSEND)*/)
 	{
 		// #ifdef ATRSP_RESULT
 		// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
@@ -2303,8 +2297,8 @@ static void MmiATDefault (GSM_FB_CMD FB_CMD,char* MsgDataP)
 	
 	if (SmsRecFlag)
 	{
+		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] MmiATDefault , SmsRec(%s)",FmtTimeShow(), MsgDataP);
 		strcpy(SmsReceiveBuf.smstextdata, MsgDataP);
-		
 		SmsReceivedHandle(&SmsReceiveBuf, sizeof(SmsReceiveBuf));
 
 		SmsRecFlag = 0;
