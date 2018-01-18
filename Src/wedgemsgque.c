@@ -40,6 +40,8 @@ uint8_t WedgeMsgQueInit(void)
     sent = MQSTAT.sent;
     unsent = MQSTAT.unsent;
 
+    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init Begin", FmtTimeShow());
+
     do
     {
         inaddr = WEDGE_MSG_QUE_START_ADDR + (inindex % WEDGE_MSG_QUE_TOTAL_NUM) * sizeof(WEDGEMsgQueCellTypeDef);
@@ -282,6 +284,9 @@ uint8_t WedgeMsgQueInit(void)
 
         WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
     }
+
+    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init End MQSTAT.sent(%d) MQSTAT.unsent(%d)", FmtTimeShow(), MQSTAT.sent, MQSTAT.unsent);
+
 
     return 0;
 }

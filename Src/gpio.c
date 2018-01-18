@@ -159,11 +159,24 @@ void MX_GPIO_Init(void)
   // GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   // HAL_GPIO_Init(PB13_MCU_CTS3_GPIO_Port, &GPIO_InitStruct);
 
+#if TC30M_TEST_CONFIG_OFF
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = PC10_MCU_IGN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(PC10_MCU_IGN_GPIO_Port, &GPIO_InitStruct);
+#else
+#if 1/* 1 Ignition On, 0 Off */
+HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_SET);
+#else
+HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_RESET);
+#endif
+  GPIO_InitStruct.Pin = PC10_MCU_IGN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PC10_MCU_IGN_GPIO_Port, &GPIO_InitStruct);
+#endif /* Just for test */
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = PD2_MCU_IO_Pin;

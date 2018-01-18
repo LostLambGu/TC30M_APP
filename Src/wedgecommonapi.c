@@ -73,7 +73,7 @@ const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
     .IOALRM1 = {.ioen = 0, .iodbnc = 5},
     .IOALRM2 = {.ioen = 0, .iodbnc = 5},
     .LVA = {.battlvl = 9.5},
-    .IDLE = {.duration = 0},
+    .IDLE = {.duration = 10},
     .SODO = {.meters = 0},
     .VODO = {.meters = 0},
     .DIRCHG = {.deg = 0},
@@ -873,7 +873,7 @@ void WedgeUdpSocketManageProcess(void)
     static uint32_t lastProcessTime = 0, deltaProcessTime = 0;
     static uint32_t udpsmtimeoutcount = 0;
 
-    if (newdatacome == FALSE)
+    if ((newdatacome == FALSE) || (WedgeUdpSocketManage.UdpSocketManageStat == WEDGE_UDP_WAIT_OPEN_STAT))
     {
         if ((HAL_GetTick() - lastProcessTime) < deltaProcessTime)
         {
@@ -950,8 +950,8 @@ void WedgeUdpSocketManageProcess(void)
 
     case WEDGE_UDP_WAIT_OPEN_STAT:
     {
-        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Stat Wait Open",
-                                      FmtTimeShow());
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Stat Wait Open udpsmtimeoutcount(%d)",
+                                      FmtTimeShow(), udpsmtimeoutcount);
         for (i= 0; i < UDPIP_SOCKET_MAX_NUM; i++)
         {
             if ((UDPIPSocket[i].status != SOCKET_CLOSE) && (UDPIPSocket[i].operation == SOCKETOPEN))
@@ -973,6 +973,8 @@ void WedgeUdpSocketManageProcess(void)
 
         udpsmtimeoutcount++;
         deltaProcessTime = 1000;
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Stat Wait Open deltaProcessTime(%d)",
+                                      FmtTimeShow(), deltaProcessTime);
 
         return;
     }
@@ -1059,7 +1061,8 @@ void WedgeUdpSocketManageProcess(void)
         // Get Msg Que elements out and put in msg que
         WedgeUdpSendUintTypedef WedgeUDPIpSendUint;
         WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
-
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnect Stat",
+                                            FmtTimeShow());
         do
         {
             memset(&WedgeUDPIpSendUint, 0, sizeof(WedgeUDPIpSendUint));
@@ -1074,15 +1077,15 @@ void WedgeUdpSocketManageProcess(void)
                     WEDGEMsgQueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
                     WEDGEMsgQueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
                     memcpy(WEDGEMsgQueCell.data, WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
-                        if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
-                        {
+                    if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
+                    {
                         WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnect Stat Msg Que In err",
-                                                  FmtTimeShow());
-                        }
-                        if (WedgeUDPIpSendUint.buf != NULL)
-                        {
+                                            FmtTimeShow());
+                    }
+                    if (WedgeUDPIpSendUint.buf != NULL)
+                    {
                         WedgeBufPoolFree(WedgeUDPIpSendUint.buf);
-                        }
+                    }
                 }
                 else
                 {

@@ -700,7 +700,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 				{
 					SetNetworkMachineStatus(NET_CHECK_NETWORK_STATUS);
 
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_FREE_IDLE_STAT");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_FREE_IDLE_STAT", FmtTimeShow());
 					Timeout = 300;
 					// Update Signal
 					UpdateSystemSignalStatus(6);
@@ -711,7 +711,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 				case NET_IDLE_AIRPLANE_STAT:
 				{
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_IDLE_AIRPLANE_STAT");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_IDLE_AIRPLANE_STAT", FmtTimeShow());
 					SetNetworkMachineStatus(NET_FREE_IDLE_STAT);
 					Timeout = 10;
 				}
@@ -719,21 +719,21 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 				case NET_CHECK_NETWORK_STATUS:
 				{
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_CHECK_NETWORK_STATUS");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_CHECK_NETWORK_STATUS", FmtTimeShow());
 
 					// SoftwareTimerReset(&CheckRssiTimer, CheckRssiTimerCallback, CHECK_RSSI_TIMEOUT);
 					// SoftwareTimerStart(&CheckRssiTimer);
 
 					if (GetNetServiceStatus() == IN_SERVICE)
 					{
-						NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nIN_SERVICE");
+						NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] IN_SERVICE", FmtTimeShow());
 						// Go next
 						SetNetworkMachineStatus(NET_CONNECTED_STAT);
 						Timeout = 10;
 					}
 					else
 					{
-						NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNO_SERVICE");
+						NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NO_SERVICE", FmtTimeShow());
 						// Update Signal
 						UpdateSystemSignalStatus(7);
 						Timeout = TimeMsec(5);
@@ -765,7 +765,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 						}
 						else
 						{
-							NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_CONNECTED_STAT Update System Signal");
+							NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_CONNECTED_STAT Update System Signal", FmtTimeShow());
 							UpdateSystemSignalStatus(7);
 							Timeout = TimeMsec(5);
 						}
@@ -786,7 +786,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 				{
 					// SoftwareTimerStop(&CheckRssiTimer);
 
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_DISCONNECT_STAT");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_DISCONNECT_STAT", FmtTimeShow());
 					// Close UDP Sokcet
 					if (UdpSocketListenIndicateFlag)
 					{
@@ -819,7 +819,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 				case NET_WAITT_DISCONNECTED_STAT:
 				{
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_WAITT_DISCONNECTED_STAT");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_WAITT_DISCONNECTED_STAT", FmtTimeShow());
 
 					if (GetNetworkReadyStat() != FALSE)
 					{
@@ -840,7 +840,7 @@ void CheckNetlorkTimerCallback(u8 Status)
 						SetNetworkMachineStatus(NET_FREE_IDLE_STAT);
 					}
 
-					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nNET_DISCONNECTED_STAT");
+					NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] NET_DISCONNECTED_STAT", FmtTimeShow());
 					Timeout = TimeMsec(10 /*5*/);
 				}
 				break;

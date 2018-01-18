@@ -405,7 +405,7 @@ void WedgeServiceOdometerAlert(void)
     SODO = *((SODOTypeDef *)WedgeCfgGet(WEDGE_CFG_SODO));
     if ((VODO.meters - WEDGESysState.SerOdoLastReportMileage) > SODO.meters)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ser Odo Alrt -->(UdpBinary)"
                                 , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Service_Alert);
         WEDGESysState.SerOdoLastReportMileage = VODO.meters;
@@ -442,7 +442,7 @@ void WedgeLowBatteryAlert(void)
 
         if (voltage < LVA.battlvl)
         {
-            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt"
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE LVA Alrt-->(UdpBinary)"
                                 , FmtTimeShow());
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Low_Battery_Alert);
             return;
@@ -456,7 +456,7 @@ extern TIMER WedgeIDLETimer;
 
 static void CheckWedgeIDLETimerCallback(uint8_t status)
 {
-    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE(CallBack) Alrt-->(UdpBinary)"
                                 , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, IDLE_Detect);
 
@@ -476,11 +476,6 @@ void WedgeIDLEDetectAlert(void)
     double speedkm = 0.0;
     static uint32_t SystickRec = 0;
 
-    // if (UbloxFixStateGet() == FALSE)
-    // {
-    //     return;
-    // }
-
     if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
@@ -492,6 +487,8 @@ void WedgeIDLEDetectAlert(void)
 
     IDLE = *((IDLETypeDef *)WedgeCfgGet(WEDGE_CFG_IDLE));
 
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt IDLE.duration(%d)"
+                                , FmtTimeShow(), IDLE.duration);
     if (IDLE.duration == 0)
     {
         return;
@@ -528,6 +525,8 @@ void WedgeIDLEDetectAlert(void)
     }
     else
     {
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt Gps No Fix"
+                                , FmtTimeShow());
         // if (WEDGESysState.IDLEDtectTimerStart == FALSE)
         // {
         //    SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
@@ -618,7 +617,7 @@ void WedgeTowAlert(void)
 
         if (WEDGE_OUT_TOW_GEOFENCE_CONSECUTIVE_MAX_TIMES <= WEDGESysState.OutTowGeoFncCount)
         {
-            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt"
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Tow Alrt-->(UdpBinary)"
                                     , FmtTimeShow());
             WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Tow_Alert_Exited);
 
@@ -725,7 +724,7 @@ void WedgeGeofenceAlert(void)
                 GfncViolationCount[i]++;
                 if (GFNC_CONSECUTIVE_VIOLATION_TIMES_MAX <= GfncViolationCount[i])
                 {
-                    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Geofence Alrt, Index: %d"
+                    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Geofence Alrt, Index: %d-->(UdpBinary)"
                                     , FmtTimeShow(), i + 1);
                     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, (WEDGEEVIDTypeDef)(Geofence1_entered + i + (10 * (ViolationType % 2))));
                     GfncViolationCount[i] = 0;
@@ -741,7 +740,7 @@ void WedgeGeofenceAlert(void)
 
 void WedgeLocationOfDisabledVehicleOnToOff(void)
 {
-    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Ontooff"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Ontooff-->(UdpBinary)"
                                     , FmtTimeShow());
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
 }
@@ -755,7 +754,7 @@ void WedgeLocationOfDisabledVehicle(void)
 {
     if (FALSE != WEDGESysState.StarterDisableCmdRec)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Starter Command"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Location of Disabled Vehicle Starter Command-->(UdpBinary)"
                                     , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Location_of_Disabled_Vehicle);
 
@@ -810,7 +809,7 @@ static void CheckWedgeOSPDTimerCallback(uint8_t status)
 {
     if (status != 0)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert"
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Alert-->(UdpBinary)"
                                     , FmtTimeShow());
         WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Over_Speed_Threshold_Detect);
     }
@@ -983,7 +982,7 @@ void WedgeIgnitionOffToOnCheck(void)
                 WEDGESysState.WedgeIgnOffToOnTimerStart = FALSE;
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_OFF_TO_ON_STATE;
 
-                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition ON Alert"
+                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition ON Alert-->(UdpBinary)"
                                     , FmtTimeShow());
                 WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Ignition_ON);
 
@@ -1076,7 +1075,7 @@ void WedgeIgnitionOnToOffCheck(void)
                 WEDGESysState.WedgeIgnOnToOffTimerStart = FALSE;
                 WEDGESysState.WEDGEIgnitionState = WEDGE_IGN_ON_TO_OFF_STATE;
 
-                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition OFF Alert"
+                WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Ignition OFF Alert-->(UdpBinary)"
                                     , FmtTimeShow());
                 WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Ignition_OFF);
 
@@ -1122,7 +1121,7 @@ void WedgeHeadingChangeDetect(void)
         return;
     }
 
-    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk"
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sOk-->(UdpBinary)"
                                     , FmtTimeShow(), WedgeHeadingChangeDetectStr);
     WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Heading_Change_Detect);
 }
