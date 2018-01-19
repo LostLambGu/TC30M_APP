@@ -608,7 +608,7 @@ static void WedgeSTPINTVLCfgChg(void)
     WEDGEIgnitionStateTypeDef IgnitionState = WedgeIgnitionStateGet();
     IGNTYPETypeDef IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
 
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE TOW Cfg Chg", FmtTimeShow());
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE STPINTVL Cfg Chg", FmtTimeShow());
     if (IgnitionState == WEDGE_IGN_OFF_STATE)
     {
         if (IGNTYPE.itype == Wired_Ignition)

@@ -23,6 +23,7 @@
 #include "deepsleep.h"
 #include "flash.h"
 #include "wedgedatadefine.h"
+#include "wedgeeventalertflow.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
@@ -70,6 +71,9 @@ static void ATCmdDefGPIOWRITE(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefWatchDog(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefDbgCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefReadIMEI(uint8_t Len, int32_t Param);
+#if (TC30M_TEST_CONFIG_OFF == 0)
+static void ATCmdDefIgnitionChg(uint8_t Len, int32_t Param);
+#endif /* TC30M_TEST_CONFIG_OFF */
 
 static void ATCmdDefDefault(void);
 
@@ -193,6 +197,12 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 		case AT_CMD_DEF_READ_IMEI:
 			ATCmdDefReadIMEI(Len, Param);
 			break;
+
+#if (TC30M_TEST_CONFIG_OFF == 0)
+		case AT_CMD_DEF_IGNCHG:
+			ATCmdDefIgnitionChg(Len, Param);
+			break;
+#endif
 
 		default:
 			ATCmdDefDefault();
@@ -360,12 +370,26 @@ static void ATCmdDefFlashFactoryTest(void)
 
 static void ATCmdDefFlashChipEraseFactoryTest(void)
 {
+	MQSTATTypeDef MQSTAT = {0};
 	ATCmdPrintf(TRUE, "\r\nSFlash Chip Erase factory test start!");
 	SerialFlashInit();
-	SerialFlashErase(FLASH_ERASE_ALL, 0);
+	if (FLASH_STAT_OK != SerialFlashErase(FLASH_ERASE_ALL, 0))
+	{
+		ATCmdPrintf(TRUE, "\r\nSFlash Chip Erase factory test err!");
+		return;
+	}
 
 	extern void WedgeDeviceInfoAddrSet(uint32_t address);
 	WedgeDeviceInfoAddrSet(WEDGE_DEVICE_INFO_START_ADDR);
+	extern void WedgeDeviceInfoStampSet(uint32_t InfoStamp);
+	WedgeDeviceInfoStampSet(0);
+	MQSTAT.unsent = 0;
+	MQSTAT.sent = 0;
+	MQSTAT.queoutindex = 0;
+	MQSTAT.queinindex = 0;
+
+	WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+	WedgeIsStartFromPowerLost();
 
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
@@ -859,6 +883,38 @@ static void ATCmdDefReadIMEI(uint8_t Len, int32_t Param)
 	}
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
 }
+
+#if (TC30M_TEST_CONFIG_OFF == 0)
+static void ATCmdDefIgnitionChg(uint8_t Len, int32_t Param)
+{
+	if (Len == 0)
+	{
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
+		return;
+	}
+	else
+	{
+		switch (Param)
+		{
+		case 0:
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nWEDGE Ignition = Low");
+			HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_RESET);
+			break;
+
+		case 1:
+		{
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nWEDGE Ignition = High");
+			HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_SET);
+		}
+		break;
+
+		default:
+			break;
+		}
+	}
+	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+}
+#endif
 
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved

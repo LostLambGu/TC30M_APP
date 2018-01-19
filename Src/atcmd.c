@@ -49,6 +49,9 @@ const ATCompareTable_t ATCmdTypeTable[AT_CMD_DEF_LAST] =
 		{"AT*ATELWDT", AT_CMD_DEF_WATCHDOG, TRUE},
 		{"AT*ATELDBGCTL", AT_CMD_DEF_DBGCTL, TRUE},
 		{"AT*ATELRIMEI", AT_CMD_DEF_READ_IMEI, TRUE},
+#if (TC30M_TEST_CONFIG_OFF == 0)
+		{"AT*ATELIGNCHG", AT_CMD_DEF_IGNCHG, TRUE},
+#endif
 };
 
 /* Static function declarations ----------------------------------------------*/
