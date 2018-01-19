@@ -222,16 +222,23 @@ extern void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef
 
 extern void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSSendUint);
 
+
 #define SMS_RECEIVE_SMS_STAT_MAX_LEN (32)
 #define SMS_RECEIVE_NUMBER_MAX_LEN (32)
 #define SMS_RECEIVE_DATE_TIME_MAX_LEN (32)
-#define SMS_RECEIVE_TEXT_DATA_MAX_LEN (128)
+#define SMS_RECEIVE_TEXT_DATA_MAX_LEN (250 - SMS_RECEIVE_NUMBER_MAX_LEN) // WEDGE_MSG_QUE_DATA_LEN_MAX
+typedef struct
+{
+    char smsnumber[SMS_RECEIVE_NUMBER_MAX_LEN];
+    char smstextdata[SMS_RECEIVE_TEXT_DATA_MAX_LEN];
+} SmsReceiveBufProcessTypedef;
+
 typedef struct
 {
     uint16_t smsindex;
     char smsstat[SMS_RECEIVE_SMS_STAT_MAX_LEN];
-    char smsnumber[SMS_RECEIVE_NUMBER_MAX_LEN];
     char smsdatetime[SMS_RECEIVE_DATE_TIME_MAX_LEN];
+    char smsnumber[SMS_RECEIVE_NUMBER_MAX_LEN];
     char smstextdata[SMS_RECEIVE_TEXT_DATA_MAX_LEN];
 } SmsReceiveBufTypedef;
 

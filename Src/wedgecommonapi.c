@@ -475,7 +475,25 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
 
 void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
 {
-    AppSmsAtProcess(MsgBufferP, size);
+    char IdxString[8];
+    SmsReceiveBufTypedef *pSmsRecTmp = (SmsReceiveBufTypedef *)MsgBufferP;
+    SmsReceiveBufProcessTypedef *pSmsRecProTmp = (SmsReceiveBufProcessTypedef *)(pSmsRecTmp->smsnumber);
+
+    if ((pSmsRecProTmp->smstextdata != NULL) && (pSmsRecProTmp->smsnumber != NULL))
+    {
+        WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle At Process Num(%s) Data.80(%.80s)", pSmsRecProTmp->smsnumber, pSmsRecProTmp->smstextdata);
+        AppSmsAtProcess((uint8_t *)pSmsRecProTmp, sizeof(SmsReceiveBufProcessTypedef));
+    }
+    else
+    {
+        WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle Parma Err");
+    }
+
+    // Delete the read sms
+    WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle Delete Read Sms");
+    memset(IdxString,0, sizeof(IdxString));
+    sprintf((char *)IdxString, "%d", pSmsRecTmp->smsindex);
+    SendATCmd(GSM_CMD_CMGD, GSM_CMD_TYPE_EVALUATE , (uint8_t *)IdxString);
 }
 
 void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
