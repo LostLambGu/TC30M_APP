@@ -40,7 +40,7 @@ uint8_t WedgeMsgQueInit(void)
     sent = MQSTAT.sent;
     unsent = MQSTAT.unsent;
 
-    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init Begin", FmtTimeShow());
+    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init Begin MsgCellSize(%d)", FmtTimeShow(), sizeof(WEDGEMsgQueCellTypeDef));
 
     do
     {
@@ -272,21 +272,48 @@ uint8_t WedgeMsgQueInit(void)
     if (outindex <= inindex)
     {
         // this is not ok
-        MQSTAT.unsent = inindex - outindex;
+        MQSTAT.unsent = (inindex - outindex) % WEDGE_MSG_QUE_TOTAL_NUM;
         MQSTAT.sent = outindex;
-
-        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
     }
     else
     {
-        MQSTAT.sent = outindex - inindex - (numinsector - inindex % numinsector);
-        MQSTAT.unsent = WEDGE_MSG_QUE_TOTAL_NUM - (outindex - inindex);
-
-        WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+        MQSTAT.sent = (outindex - inindex - (numinsector - inindex % numinsector)) % WEDGE_MSG_QUE_TOTAL_NUM;
+        MQSTAT.unsent = (WEDGE_MSG_QUE_TOTAL_NUM - (outindex - inindex)) % WEDGE_MSG_QUE_TOTAL_NUM;
     }
 
-    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init End MQSTAT.sent(%d) MQSTAT.unsent(%d)", FmtTimeShow(), MQSTAT.sent, MQSTAT.unsent);
+    if ((MQSTAT.sent + MQSTAT.unsent) > WEDGE_MSG_QUE_TOTAL_NUM)
+    {
+        uint32_t readallcount = 0, addr = 0;
+        MQSTAT.sent = 0;
+        MQSTAT.unsent = 0;
+        WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s10",
+                                              FmtTimeShow(), WedgeMsgQueInitErrStr);
+        for (readallcount = 0; readallcount < WEDGE_MSG_QUE_TOTAL_NUM; readallcount++)
+        {
+            addr = WEDGE_MSG_QUE_START_ADDR + readallcount * sizeof(WEDGEMsgQueCellTypeDef);
+            if (0 != WedgeFlashReadData(addr, (uint8_t *)&MsgQueCell, WEDGE_MSG_QUE_HEAD_SZIE_BYTES))
+            {
+                WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] %s11",
+                                   FmtTimeShow(), WedgeMsgQueInitErrStr);
+                return 11;
+            }
+            else
+            {
+                if ((MsgQueCell.sentstate == WEDGE_MSG_QUE_UNSENT) && (MsgQueCell.type != WEDGE_MSG_QUE_EMPTY_TYPE))
+                {
+                    MQSTAT.unsent++;
+                }
+                else if (MsgQueCell.sentstate == WEDGE_MSG_QUE_SENT)
+                {
+                    MQSTAT.sent++;
+                }
+            }
+        }
+    }
 
+    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    WEDGE_MSGQUE_PRINT(DbgCtl.WedgeMsgQueInfoEn, "\r\n[%s] WEDGE Msg Que Init End MQSTAT.sent(%d) MQSTAT.unsent(%d)"
+    "MQSTAT.queinindex(%d) MQSTAT.queoutindex(%d)", FmtTimeShow(), MQSTAT.sent, MQSTAT.unsent, MQSTAT.queinindex, MQSTAT.queoutindex);
 
     return 0;
 }

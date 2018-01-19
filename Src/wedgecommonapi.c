@@ -78,7 +78,7 @@ const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
     .VODO = {.meters = 0},
     .DIRCHG = {.deg = 0},
     .TOW = {.enable = 0, .radius = 0},
-    .STPINTVL = {.interval = 0},
+    .STPINTVL = {.interval = 10},
     .GFNC = {0},
     .RELAY = {.state = 0},
     .OSPD = {.units = 1, .speed = 0, .debounce = 0},
@@ -1158,6 +1158,8 @@ void WedgeUdpSocketManageProcess(void)
                         WEDGEMsgQueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
                         WEDGEMsgQueCell.size = WedgeUDPIpSendUint.datalen;
                         memcpy(WEDGEMsgQueCell.data, WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
+                        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnected Stat Msg Que In",
+                                                FmtTimeShow());
                         if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
                         {
                             WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Wait Disconnected Stat Msg Que In err",

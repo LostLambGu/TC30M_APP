@@ -156,7 +156,7 @@ uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
     RTCTimeBase = WedgeRtcCurrentSeconds();
     WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &RTCTimeBase);
 
-		return 0;
+    return 0;
 }
 
 void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize)

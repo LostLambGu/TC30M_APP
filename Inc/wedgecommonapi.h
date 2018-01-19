@@ -143,7 +143,7 @@ extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t 
 extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
 #define WEDGE_BUF_POOL_NUM_MAX (12)
-#define WEDGE_BUF_CELL_LEN_MAX (256) // sizeof(WEDGEMsgQueCellTypeDef)
+#define WEDGE_BUF_CELL_LEN_MAX (256) // sizeof(WEDGEMsgQueCellTypeDef), WEDGE_MSG_QUE_DATA_LEN_MAX + head + size
 typedef struct
 {
 	uint8_t UsedFlag[WEDGE_BUF_POOL_NUM_MAX];

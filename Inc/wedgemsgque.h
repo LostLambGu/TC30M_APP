@@ -33,7 +33,6 @@ enum
     WEDGE_MSG_QUE_EMPTY_TYPE = 0xFF
 };
 
-#define WEDGE_MSG_QUE_DATA_LEN_MAX (250)
 typedef struct
 {
     uint8_t sentstate;

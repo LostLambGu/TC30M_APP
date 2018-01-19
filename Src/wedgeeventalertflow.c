@@ -77,6 +77,7 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         {
             if (GPIO_PIN_RESET != READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
             {
+                WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Off State Change Detected");
                 WEDGESysState.WedgeIgnitionChangeDetected = TRUE;
             }
         }
@@ -84,6 +85,7 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         {
             if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
             {
+                WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init On State Change Detected");
                 WEDGESysState.WedgeIgnitionChangeDetected = TRUE;
             }
         }
@@ -789,7 +791,7 @@ void WedgeStopReportOnToOff(void)
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_ONETIME;
     Instance.RTCTimerInstance = Stop_Report_Onetime_Event;
-    Instance.settime = WedgeRtcCurrentSeconds() + 60 * STPINTVL.interval;
+    Instance.settime = WedgeRtcCurrentSeconds() + WEDGE_MINUTE_TO_SECOND_FACTOR * STPINTVL.interval;
     if (0 != WedgeRtcTimerInstanceAdd(Instance))
     {
         WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sErr"
@@ -923,7 +925,7 @@ void WedgeIgnitionOffToOnCheck(void)
 
     IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
 
-    if (WEDGESysState.WedgeIgnitionChangeDetected == FALSE)
+    if ((WEDGESysState.WedgeIgnitionChangeDetected == FALSE) && (WedgeIgnitionPinStateGet() == FALSE))
     {
         if (WEDGESysState.WedgeIgnOffToOnTimerStart == FALSE)
         {
@@ -1017,7 +1019,7 @@ void WedgeIgnitionOnToOffCheck(void)
 
     IGNTYPE = *((IGNTYPETypeDef *)WedgeCfgGet(WEDGE_CFG_IGNTYPE));
 
-    if (WEDGESysState.WedgeIgnitionChangeDetected == FALSE)
+    if ((WEDGESysState.WedgeIgnitionChangeDetected == FALSE) && (WedgeIgnitionPinStateGet() == TRUE))
     {
         if (WEDGESysState.WedgeIgnOnToOffTimerStart == FALSE)
         {

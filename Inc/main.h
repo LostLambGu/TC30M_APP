@@ -135,6 +135,8 @@
 #define WEDGE_MINUTE_TO_SECOND_FACTOR (1) /* Just for test! */
 #endif /* TC30M_TEST_CONFIG_OFF */
 
+#define WEDGE_MSG_QUE_DATA_LEN_MAX (252)
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

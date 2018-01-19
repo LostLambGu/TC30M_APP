@@ -30,6 +30,7 @@ typedef struct
     uint32_t verifydata;
 } WEDGEDeviceInfoHeadTypedef;
 
+extern void WedgeDeviceInfoAddrSet(uint32_t address);
 extern uint8_t WedgeDeviceInfoWrite(uint8_t *pDeviceInfo, uint32_t infosize);
 extern uint8_t WedgeDeviceInfoRead(uint8_t *pDeviceInfo, uint32_t infosize);
 

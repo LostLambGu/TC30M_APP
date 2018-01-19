@@ -22,6 +22,7 @@
 #include "iocontrol.h"
 #include "deepsleep.h"
 #include "flash.h"
+#include "wedgedatadefine.h"
 
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
@@ -362,6 +363,10 @@ static void ATCmdDefFlashChipEraseFactoryTest(void)
 	ATCmdPrintf(TRUE, "\r\nSFlash Chip Erase factory test start!");
 	SerialFlashInit();
 	SerialFlashErase(FLASH_ERASE_ALL, 0);
+
+	extern void WedgeDeviceInfoAddrSet(uint32_t address);
+	WedgeDeviceInfoAddrSet(WEDGE_DEVICE_INFO_START_ADDR);
+
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 

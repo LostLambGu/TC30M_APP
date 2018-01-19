@@ -114,7 +114,17 @@ static void WedgeIgnitionStateProcess(void)
 
     case WEDGE_IGN_IGNORE_STATE:
     {
-        
+        #define WEDGE_IGNITION_IGNORE_PROCESS_PERIOD (5000)
+        static uint32_t WedgeIgniIgnorLastMs = 0;
+        if (WEDGE_IGNITION_IGNORE_PROCESS_PERIOD > (HAL_GetTick() - WedgeIgniIgnorLastMs))
+        {
+            return;
+        }
+        else
+        {
+            WedgeIgniIgnorLastMs = HAL_GetTick();
+        }
+        APP_LOG("WEDGE Ign Stat WEDGE_IGN_IGNORE_STATE Period(%d)", WEDGE_IGNITION_IGNORE_PROCESS_PERIOD);
     }
     break;
 
