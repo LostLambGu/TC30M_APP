@@ -19,7 +19,7 @@ extern "C" {
 #include "uart_api.h"
 
 /* Private define ------------------------------------------------------------*/
-#define TBUFFER_MAX 0x3F
+#define TBUFFER_MAX UART_BUF_MAX_LENGTH
 #define ATDbgPrintf DebugPrintf
 #define ATCmdPrintf DebugPrintf
 

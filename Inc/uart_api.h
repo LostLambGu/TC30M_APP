@@ -37,9 +37,9 @@ extern "C" {
 
 #define UART1_END_CHAR_OD 0x0D
 #define UART1_END_CHAR_OA 0x0A
-#define UART_FINISHED_RECV 0x80
-#define UART_FIRST_END_CHAR 0x40
-#define UART_BUF_MAX_LENGTH 0x3F
+#define UART_FINISHED_RECV 0x200
+#define UART_FIRST_END_CHAR 0x100
+#define UART_BUF_MAX_LENGTH 0xFF
 
 extern __IO uint8_t UART1_RX_NUM;
 extern uint16_t Uart1RxCount;
