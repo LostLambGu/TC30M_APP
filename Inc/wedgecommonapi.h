@@ -133,6 +133,7 @@ extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
 extern void UdpReceivedHandle(void *MsgBufferP, uint32_t size);
 extern void WedgeResponseUdpBinaryInit(void);
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
+extern void WedgeResponseUdpAsciiInit(void);
 extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
 
@@ -142,7 +143,7 @@ extern uint8_t WedgeFlashReadData(uint32_t address, uint8_t *pDataBuf, uint32_t 
 extern uint8_t WedgeFlashWriteData(uint32_t address, uint8_t *pDataBuf, uint32_t datalen);
 
 #define WEDGE_BUF_POOL_NUM_MAX (12)
-#define WEDGE_BUF_CELL_LEN_MAX (256)
+#define WEDGE_BUF_CELL_LEN_MAX (256) // sizeof(WEDGEMsgQueCellTypeDef)
 typedef struct
 {
 	uint8_t UsedFlag[WEDGE_BUF_POOL_NUM_MAX];

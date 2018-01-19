@@ -33,7 +33,7 @@ enum
     WEDGE_MSG_QUE_EMPTY_TYPE = 0xFF
 };
 
-#define WEDGE_MSG_QUE_DATA_LEN_MAX (254)
+#define WEDGE_MSG_QUE_DATA_LEN_MAX (250)
 typedef struct
 {
     uint8_t sentstate;
@@ -43,8 +43,9 @@ typedef struct
 {
     uint8_t sentstate;
     uint8_t type;
+    uint16_t size;
     uint8_t data[WEDGE_MSG_QUE_DATA_LEN_MAX];
-} WEDGEMsgQueCellTypeDef;
+} WEDGEMsgQueCellTypeDef; //The total size should be n * 256
 
 extern uint8_t WedgeMsgQueInit(void);
 extern uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell);

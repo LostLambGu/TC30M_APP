@@ -208,6 +208,7 @@ static void WedgeInit(void)
     char *WedgeInitStr = " WEDGE Init ";
 
     WedgeResponseUdpBinaryInit();
+    WedgeResponseUdpAsciiInit();
 
     ret = WedgeIsStartFromPowerLost();
     if (ret != FALSE)

@@ -166,7 +166,7 @@ typedef struct
                                                     Command Response = 0x02
                                                     Diagnostic Response = 0x03
                                                     **Diagnostic Request = 0x04 (reserved) */
-    uint8_t ASCII_DATA[MSG_FMT_ASCII_DATA_250_BYTES];
+    uint8_t *ASCII_DATA;  /*Max MSG_FMT_ASCII_DATA_250_BYTES */
 } AsciiMsgFormatTypedDef;
 
 enum
