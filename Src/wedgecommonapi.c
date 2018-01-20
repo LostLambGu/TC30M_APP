@@ -479,6 +479,12 @@ void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
     SmsReceiveBufTypedef *pSmsRecTmp = (SmsReceiveBufTypedef *)MsgBufferP;
     SmsReceiveBufProcessTypedef *pSmsRecProTmp = (SmsReceiveBufProcessTypedef *)(pSmsRecTmp->smsnumber);
 
+    // Delete the read sms
+    WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle Delete Read Sms");
+    memset(IdxString,0, sizeof(IdxString));
+    sprintf((char *)IdxString, "%d", pSmsRecTmp->smsindex);
+    SendATCmd(GSM_CMD_CMGD, GSM_CMD_TYPE_EVALUATE , (uint8_t *)IdxString);
+
     if ((pSmsRecProTmp->smstextdata != NULL) && (pSmsRecProTmp->smsnumber != NULL))
     {
         WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle At Process Num(%s) Data.80(%.80s)", pSmsRecProTmp->smsnumber, pSmsRecProTmp->smstextdata);
@@ -488,12 +494,6 @@ void SmsReceivedHandle(void *MsgBufferP, uint32_t size)
     {
         WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle Parma Err");
     }
-
-    // Delete the read sms
-    WEDGE_COM_API_LOG("WEDGE SmsReceivedHandle Delete Read Sms");
-    memset(IdxString,0, sizeof(IdxString));
-    sprintf((char *)IdxString, "%d", pSmsRecTmp->smsindex);
-    SendATCmd(GSM_CMD_CMGD, GSM_CMD_TYPE_EVALUATE , (uint8_t *)IdxString);
 }
 
 void UdpReceivedHandle(void *MsgBufferP, uint32_t size)
@@ -517,6 +517,7 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     uint8_t Buf[4] = {0};
     uint32_t *pTmpu = NULL;
     TimeTableT timeTable = {0};
+    uint8_t *ptmp = WedgeBufPoolCalloc(sizeof(BinaryMsgRecord));
 
     BinaryMsgRecord.PYLD[0] = PYLDType;
     memcpy(&BinaryMsgRecord.IDENT, IMEIBuf, sizeof(BinaryMsgRecord.IDENT));
@@ -593,31 +594,42 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     BinaryMsgRecord.FW_VER[0] = 0;     /* Firmware Version */
     BinaryMsgRecord.SPARE[0] = 0;       /* Spare data bytes */
     
-    if(WedgeUdpSendQueue.numinqueue >= WEDGE_UDP_SEND_QUEUE_LENGHT_MAX)
+    if((WedgeUdpSendQueue.numinqueue >= WEDGE_UDP_SEND_QUEUE_LENGHT_MAX) || (ptmp == NULL))
     {
-        WEDGE_COM_API_LOG("WEDGE Response Udp Binary, Wedge Udp Send Queue Full");
+        WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
+        memset(&WEDGEMsgQueCell, 0, sizeof(WEDGEMsgQueCell));
+
+        if (ptmp != NULL)
+        {
+            WedgeBufPoolFree(ptmp);
+        }
+
+        WEDGE_COM_API_LOG("WEDGE Response Udp Binary Fail WedgeUdpSendQueue.numinqueue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
+
+        WEDGEMsgQueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
+        WEDGEMsgQueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
+        WEDGEMsgQueCell.size = sizeof(BinaryMsgRecord);
+        memcpy(WEDGEMsgQueCell.data, &BinaryMsgRecord, sizeof(BinaryMsgRecord));
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response Udp Binary Msg Que In",
+                            FmtTimeShow());
+        if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
+        {
+            WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response Udp Binary Msg Que In err",
+                                FmtTimeShow());
+        }
     }
     else
     {
-        uint8_t *ptmp = NULL;
-        ptmp = WedgeBufPoolCalloc(sizeof(BinaryMsgRecord));
-        if(ptmp == NULL)
-        {
-            WEDGE_COM_API_LOG("WEDGE Response Udp Binary, Wedge BufPoolCalloc Fail");
-        }
-        else
-        {
-            WedgeUdpSendUintTypedef WedgeUdpSendUint = {0};
-            WedgeUdpSendUint.datalen = sizeof(BinaryMsgRecord);
-            WedgeUdpSendUint.buf = ptmp;
+        WedgeUdpSendUintTypedef WedgeUdpSendUint = {0};
+        WedgeUdpSendUint.datalen = sizeof(BinaryMsgRecord);
+        WedgeUdpSendUint.buf = ptmp;
 
-            memcpy(WedgeUdpSendUint.buf, &BinaryMsgRecord, sizeof(BinaryMsgRecord));
+        memcpy(WedgeUdpSendUint.buf, &BinaryMsgRecord, sizeof(BinaryMsgRecord));
 
-            WEDGE_COM_API_LOG("WEDGE Response Udp Binary, WedgeUdpSendUnitIn");
-            WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
+        WEDGE_COM_API_LOG("WEDGE Response Udp Binary, WedgeUdpSendUnitIn");
+        WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
 
-            WedgeUdpSocketManageDataComeSet(TRUE);
-        }
+        WedgeUdpSocketManageDataComeSet(TRUE);
     }
 }
 
@@ -630,47 +642,106 @@ void WedgeResponseUdpAsciiInit(void)
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
 {
-    AsciiMsgRecord.PYLD[0] = PYLDType;
-
-    if ((MsgBufferP == NULL) || (size == 0) || (size > MSG_FMT_ASCII_DATA_250_BYTES))
+    if ((MsgBufferP == NULL) || (size == 0) || (size > MSG_FMT_ASCII_DATA_250_BYTES) || (PYLDType > WEDGEPYLD_INVALID_MAX))
     {
         WEDGE_COM_API_LOG("WEDGE Response Udp Ascii Param Err");
         return;
     }
     else
     {
-        if (WedgeUdpSendQueue.numinqueue >= WEDGE_UDP_SEND_QUEUE_LENGHT_MAX)
+        uint8_t *ptmp = WedgeBufPoolCalloc(size);
+
+        AsciiMsgRecord.PYLD[0] = PYLDType;
+
+        if ((WedgeUdpSendQueue.numinqueue >= WEDGE_UDP_SEND_QUEUE_LENGHT_MAX) || (ptmp == NULL))
         {
-            WEDGE_COM_API_LOG("WEDGE Response Udp Ascii, Wedge Udp Send Queue Full");
+            WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
+            memset(&WEDGEMsgQueCell, 0, sizeof(WEDGEMsgQueCell));
+
+            if (ptmp != NULL)
+            {
+                WedgeBufPoolFree(ptmp);
+            }
+
+            WEDGE_COM_API_LOG("WEDGE Response Udp Ascii Fail WedgeUdpSendQueue.numinqueue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
+
+            WEDGEMsgQueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
+            WEDGEMsgQueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
+            WEDGEMsgQueCell.size = size;
+            memcpy(WEDGEMsgQueCell.data, MsgBufferP, size);
+            WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response Udp Ascii Msg Que In",
+                                FmtTimeShow());
+            if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
+            {
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response Udp Ascii Msg Que In err",
+                                    FmtTimeShow());
+            }
         }
         else
         {
-            uint8_t *ptmp = NULL;
-            ptmp = WedgeBufPoolCalloc(size);
-            if (ptmp == NULL)
-            {
-                WEDGE_COM_API_LOG("WEDGE Response Udp Ascii, Wedge BufPoolCalloc Fail");
-            }
-            else
-            {
-                WedgeUdpSendUintTypedef WedgeUdpSendUint = {0};
-                WedgeUdpSendUint.datalen = size;
-                WedgeUdpSendUint.buf = ptmp;
+            WedgeUdpSendUintTypedef WedgeUdpSendUint = {0};
+            WedgeUdpSendUint.datalen = size;
+            WedgeUdpSendUint.buf = ptmp;
 
-                memcpy(WedgeUdpSendUint.buf, &BinaryMsgRecord, sizeof(BinaryMsgRecord));
+            memcpy(WedgeUdpSendUint.buf, MsgBufferP, size);
 
-                WEDGE_COM_API_LOG("WEDGE Response Udp Ascii, WedgeUdpSendUnitIn");
-                WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
+            WEDGE_COM_API_LOG("WEDGE Response Udp Ascii WedgeUdpSendUnitIn");
+            WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
 
-                WedgeUdpSocketManageDataComeSet(TRUE);
-            }
+            WedgeUdpSocketManageDataComeSet(TRUE);
         }
     }
 }
 
 void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
 {
+    if ((MsgBufferP == NULL) || (size == 0) || (size > (WEDGE_SMS_DATA_MAX_LEN + SMS_RECEIVE_NUMBER_MAX_LEN)) || (PYLDType > WEDGEPYLD_INVALID_MAX))
+    {
+        WEDGE_COM_API_LOG("WEDGE Response SMS Parm Err");
+    }
+    else
+    {
+        SmsReceiveBufProcessTypedef *pSmsRecProTmp = (SmsReceiveBufProcessTypedef *)MsgBufferP;
+        (pSmsRecProTmp->smstextdata)[0] = PYLDType;
 
+        uint8_t *ptmpnumber = WedgeBufPoolCalloc(size);
+        uint8_t *ptmpdata = WedgeBufPoolCalloc(size);
+
+        if ((ptmpnumber == NULL) || (ptmpdata == NULL) || (SmsSendQueue.numinqueue >= SMS_SEND_QUEUE_LENGHT_MAX))
+        {
+            WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
+            memset(&WEDGEMsgQueCell, 0, sizeof(WEDGEMsgQueCell));
+
+            WEDGE_COM_API_LOG("WEDGE Response SMS  Fail SmsSendQueue.numinqueue(%d Max(%d))", SmsSendQueue.numinqueue, SMS_SEND_QUEUE_LENGHT_MAX);
+            if (ptmpnumber != NULL)
+            {
+                WedgeBufPoolFree(ptmpnumber);
+            }
+
+            if (ptmpdata != NULL)
+            {
+                WedgeBufPoolFree(ptmpdata);
+            }
+
+            WEDGEMsgQueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
+            WEDGEMsgQueCell.type = WEDGE_MSG_QUE_SMS_TYPE;
+            WEDGEMsgQueCell.size = size;
+            memcpy(WEDGEMsgQueCell.data, MsgBufferP, size);
+            WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response SMS Msg Que In",
+                                FmtTimeShow());
+            if (0 != WedgeMsgQueInWrite(&WEDGEMsgQueCell))
+            {
+                WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response SMS Msg Que In err",
+                                    FmtTimeShow());
+            }
+        }
+        else
+        {
+            WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response SMS SendMessage",
+                                    FmtTimeShow());
+            SendMessage(pSmsRecProTmp->smsnumber, pSmsRecProTmp->smstextdata);
+        }
+    }
 }
 
 uint8_t WedgeFlashChipErase(void)
