@@ -47,6 +47,7 @@ typedef struct
 } WEDGEDeviceInfoTypeDef;
 
 extern void ApplicationProcess(void);
+extern void WedgeDeviceInfoSave(void);
 
 #ifdef __cplusplus
 }

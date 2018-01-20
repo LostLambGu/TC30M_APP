@@ -10,6 +10,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgertctimer.h"
 #include "rtcclock.h"
+#include "initialization.h"
+#include "ublox_driver.h"
 #include "wedgeeventalertflow.h"
 #include "wedgecommonapi.h"
 
@@ -35,6 +37,9 @@ static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void);
 static uint8_t WedgeRtcTimerPeriodOverProcess(RTCTimerListCellTypeDef RTCTimerListCell, uint32_t Period);
 static RTCTimerListCellTypeDef WedgeRTCGetCurrentInstance(void);
 
+extern void WedgeDeviceInfoSave(void);
+extern void MCUReset(void);
+
 void WedgeRTCTimerEventProcess(void)
 {
     RTCTimerListCellTypeDef currentinstance;
@@ -56,40 +61,85 @@ void WedgeRTCTimerEventProcess(void)
     {
     case Periodic_Moving_Event:
     {
+        double speedkm = 0.0;
         RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
         Period = RPTINTVL.perint * WEDGE_MINUTE_TO_SECOND_FACTOR;
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Moving_Event",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        
+        speedkm = UbloxSpeedKM();
+        if (UbloxFixStateGet() == TRUE)
+        {
+            if (speedkm > (WEDGE_PERIOD_MOVING_MILES_PERHOUR * MILE_TO_KM_FACTOR))
+            {
+                WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Moving_Event-->(UdpBinary)",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+                WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Drive_Report_Location);
+            }
+            else
+            {
+                WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Moving_Event Speed < %dmile/hour",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr, WEDGE_PERIOD_MOVING_MILES_PERHOUR);
+            }
+        }
+        else
+        {
+            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Moving_Event Gps Not fix",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        }
     }
-        break;
+    break;
 
     case Periodic_OFF_Event:
-
+    {
         RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
         Period = RPTINTVL.ioffint * WEDGE_MINUTE_TO_SECOND_FACTOR;
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_OFF_Event",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
-        break;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_OFF_Event-->(UdpBinary)",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Periodic_Report_with_Ignition_OFF);
+    }
+    break;
 
     case Periodic_Health_Event:
-
+    {
         RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
         Period = RPTINTVL.perint * WEDGE_MINUTE_TO_SECOND_FACTOR;
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Health_Event",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
-        break;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Health_Event-->(UdpBinary)",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Health_Message);
+    }
+    break;
 
     case Stop_Report_Onetime_Event:
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sStop_Report_Onetime_Event",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
-        break;
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sStop_Report_Onetime_Event-->(UdpBinary)",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        WedgeResponseUdpBinary(WEDGEPYLD_STATUS, Stop_Report);
+    }
+    break;
 
     case Periodic_Hardware_Reset_Onetime:
-        break;
+    {
+        uint32_t LastHWRSTRTCTime = 0;
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Hardware_Reset_Onetime",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        
+        UbloxGPSStop();
+        ModemPowerEnControl(DISABLE);
+
+        LastHWRSTRTCTime = WedgeRtcCurrentSeconds();
+        WedgeSysStateSet(WEDGE_LAST_HWRST_RTC_TIME, &LastHWRSTRTCTime);
+        WedgeDeviceInfoSave();
+        // Message not sent out save.
+        // Reserved
+        WedgeSetPowerLostBeforeReset();
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Hardware_Reset_Onetime MCUReset",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+        MCUReset();
+    }
+    break;
 
     default:
         WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sProcess err",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
         return;
     }
 
@@ -97,11 +147,11 @@ void WedgeRTCTimerEventProcess(void)
     if (0 != ret)
     {
         WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%s PeriodOver err%d",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
         return;
     }
     WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sProcess Ok",
-                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
+                          FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
 }
 
 void WedgeSetRTCAlarmStatus(uint8_t Status)
@@ -128,7 +178,11 @@ uint32_t WedgeRtcCurrentSeconds(void)
 uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
 {
     // Wedge Power/Start up time compensation
-    #define WEDGE_HWREST_TIME_SECONDS (5)
+    #if TC30M_TEST_CONFIG_OFF
+    #define WEDGE_HWREST_TIME_SECONDS (2)
+    #else
+    #define WEDGE_HWREST_TIME_SECONDS (1)
+    #endif /* TC30M_TEST_CONFIG_OFF */
     uint32_t LastHWRSTRTCTime = 0, RTCTimeBase = 0;
     TimeTableT timetable = {0};
 
@@ -141,20 +195,21 @@ uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
     else
     {
         RTCTimerList = *pRTCTimerList;
-    }
-
-    LastHWRSTRTCTime = *((uint32_t *)WedgeSysStateGet(WEDGE_LAST_HWRST_RTC_TIME));
-    if (LastHWRSTRTCTime != 0)
-    {
-        // RTC Timer Compensation
-        WedgeRtcTimerModifySettime(WEDGE_HWREST_TIME_SECONDS ,WEDGE_RTC_TIMER_MODIFY_INCREASE);
-        timetable = SecondsToTimeTable(LastHWRSTRTCTime + WEDGE_HWREST_TIME_SECONDS);
-        SetRTCDatetime(&timetable);
+        LastHWRSTRTCTime = *((uint32_t *)WedgeSysStateGet(WEDGE_LAST_HWRST_RTC_TIME));
+        if (LastHWRSTRTCTime != 0)
+        {
+            // RTC Timer Compensation
+            WedgeRtcTimerModifySettime(WEDGE_HWREST_TIME_SECONDS, WEDGE_RTC_TIMER_MODIFY_INCREASE);
+            timetable = SecondsToTimeTable(LastHWRSTRTCTime + WEDGE_HWREST_TIME_SECONDS);
+            SetRTCDatetime(&timetable);
+        }
     }
 
     // The RTC set should before lte time get
     RTCTimeBase = WedgeRtcCurrentSeconds();
     WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &RTCTimeBase);
+
+    WEDGE_RTC_TIMER_PRINT(TRUE, "\r\n[%s] WEDGE RTCTimerInit RTCTimeBase(%u)", FmtTimeShow(), RTCTimeBase);
 
     return 0;
 }

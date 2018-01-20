@@ -42,10 +42,12 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         else if (IGNTYPE.itype == Virtual_Ignition_Battery_Voltage)
         {
             // Reserved
+            WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Virtual_Ignition_Battery_Voltage Reserved");
         }
         else if (IGNTYPE.itype == Virtual_Ignition_GPS_velocity)
         {
             // Reserved
+            WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Virtual_Ignition_GPS_velocity Reserved");
         }
         else if (IGNTYPE.itype == Wired_Ignition)
         {
@@ -94,6 +96,10 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
             WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Err2");
             return 2;
         }
+        else
+        {
+            WEDGE_EVENT_ALERT_LOG("WEDGE Sys State Init Reserved");
+        }
 
         WEDGESysState.WedgeIgnOffToOnTimerStart = 0;
         WEDGESysState.WedgeIgnOnToOffTimerStart = 0;
@@ -102,7 +108,6 @@ uint8_t WedgeSysStateInit(WEDGESysStateTypeDef *pWEDGESysState)
         WEDGESysState.Latitude = 0.0;
         WEDGESysState.IDLEDtectTimerStart = 0;
         WEDGESysState.OverSpeedTimerStart = 0;
-        WEDGESysState.PeriodicHealthEventTimerStart = 0;
     }
 
     if (WedgeIsPowerLostGet() == FALSE)
@@ -453,7 +458,6 @@ void WedgeLowBatteryAlert(void)
 }
 
 #define WEDGE_IDLE_DETECT_SPPED_MILE (3)
-#define MILE_TO_KM_FACTOR (1.6093)
 extern TIMER WedgeIDLETimer;
 
 static void CheckWedgeIDLETimerCallback(uint8_t status)

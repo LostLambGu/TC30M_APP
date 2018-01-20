@@ -28,7 +28,6 @@ static void WedgeIGNOffStateReset(void);
 static void WedgeMsgQueProcess(void);
 
 static void WedgeCfgChgStateProcess(void);
-static void WedgeDeviceInfoSave(void);
 static void WedgeSMSAddrCfgChg(void);
 static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg);
 static void WedgeAPNCfgChg(void);
@@ -177,10 +176,10 @@ static void WedgeIgnitionStateProcess(void)
         if (IGNTYPE.itype == Wired_Ignition)
         {
             WedgeLocationOfDisabledVehicleOnToOff();
-
-            // When Ignition on, WEDGESysState.StopReportOnetimeRtcTimerAdded need to be reset!
-            WedgeStopReportOnToOff();
         }
+
+        // When Ignition on, WEDGESysState.StopReportOnetimeRtcTimerAdded need to be reset!
+        WedgeStopReportOnToOff();
 
         WedgeIGNOnStateReset();
 
@@ -271,14 +270,78 @@ static void WedgeInit(void)
 
 static void WedgeMsgQueProcess(void)
 {
+    NetworkStatT networkstat = GetNetworkMachineStatus();
+    static uint32_t SystickRec = 0, WedgeMsgUnsent = FALSE;
+    static WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
 
+    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (1000)
+    if (WEDGE_MSG_QUE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
 
-
-
-
-
-
-
+    if (networkstat != NET_CONNECTED_STAT)
+    {
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Disconnect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
+        return;
+    }
+    else
+    {
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Connect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
+        if (WedgeMsgUnsent == FALSE)
+        {
+            memset(&WEDGEMsgQueCell, 0, sizeof(WEDGEMsgQueCell));
+            if (0 == WedgeMsgQueOutRead(&WEDGEMsgQueCell))
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout", FmtTimeShow());
+                WedgeMsgUnsent = TRUE;
+            }
+            else
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout Err", FmtTimeShow());
+                WedgeMsgUnsent = FALSE;
+            }
+        }
+        
+        if (WedgeMsgUnsent == TRUE)
+        {
+            if (WEDGEMsgQueCell.type == WEDGE_MSG_QUE_UDP_TYPE)
+            {
+                if (WedgeMsgProcessResponseUdp(WEDGEMsgQueCell.data, WEDGEMsgQueCell.size) > 0)
+                {
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Fail", FmtTimeShow());
+                    WedgeMsgUnsent = TRUE;
+                }
+                else
+                {
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Ok", FmtTimeShow());
+                    WedgeMsgUnsent = FALSE;
+                }
+            }
+            else if (WEDGEMsgQueCell.type == WEDGE_MSG_QUE_SMS_TYPE)
+            {
+                if (WedgeMsgProcessResponseSms(WEDGEMsgQueCell.data, WEDGEMsgQueCell.size) > 0)
+                {
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseSms Fail", FmtTimeShow());
+                    WedgeMsgUnsent = TRUE;
+                }
+                else
+                {
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseSms Ok", FmtTimeShow());
+                    WedgeMsgUnsent = FALSE;
+                }
+            }
+            else
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess MsgQueCell Type Err", FmtTimeShow());
+                WedgeMsgUnsent = FALSE;
+            }
+        }
+    }
 }
 
 static void WedgeCfgChgStateProcess(void)
@@ -419,7 +482,7 @@ static void WedgeCfgChgStateProcess(void)
     WedgeDeviceInfoSave();
 }
 
-static void WedgeDeviceInfoSave(void)
+void WedgeDeviceInfoSave(void)
 {
     WEDGEDeviceInfoTypeDef WEDGEDeviceInfo;
     uint32_t size = 0;

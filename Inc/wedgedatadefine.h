@@ -458,6 +458,8 @@ typedef struct
 #define WEDGE_GPS_DATA_PERIOD_MS (1000)
 #define WEDGE_SMS_DATA_MIN_LEN (1)
 #define WEDGE_SMS_DATA_MAX_LEN (122)
+#define WEDGE_PERIOD_MOVING_MILES_PERHOUR (3)
+#define MILE_TO_KM_FACTOR (1.6093)
 
 #ifdef __cplusplus
 }

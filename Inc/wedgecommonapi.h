@@ -135,7 +135,9 @@ extern void WedgeResponseUdpBinaryInit(void);
 extern void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID);
 extern void WedgeResponseUdpAsciiInit(void);
 extern void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern int8_t WedgeResponseUdp(void *MsgBufferP, uint32_t size);
 extern void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size);
+extern int8_t WedgeMsgProcessResponseSms(void *MsgBufferP, uint32_t size);
 
 extern uint8_t WedgeFlashChipErase(void);
 extern uint8_t WedgeFlashEraseSector(uint32_t address);
