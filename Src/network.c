@@ -514,6 +514,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if ((UdpSendQueue.numinqueue != 0) && (udpsendoverflag == 1))
 	{
+		DebugLog("--->>>Network: Udp send data UdpSendQueue.numinqueue(%d)", UdpSendQueue.numinqueue);
 		memset(&UDPIpSendUint, 0, sizeof(UDPIpSendUint));
 		UdpSendUintOut(&UdpSendQueue, &UDPIpSendUint);
 
@@ -570,35 +571,37 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 	if (GetUDPDataCanSendStat() == TRUE)
 	{
-		uint8_t i = 0, count = 0, left = 0;
-		char *tmp = UDPIpSendUint.buf;
+		// uint8_t i = 0, count = 0, left = 0;
+		// char *tmp = UDPIpSendUint.buf;
 
-		if (tmp != NULL)
-		{
-			count = UDPIpSendUint.datalen / UDP_HEX_SEND_NUM_MAX;
-			left = UDPIpSendUint.datalen % UDP_HEX_SEND_NUM_MAX;
+		UART3SendHexData(UDPIpSendUint.buf, UDPIpSendUint.datalen);
 
-			for (i = 0; i < count; i++)
-			{
-				UART3SendHexData(tmp + (i * UDP_HEX_SEND_NUM_MAX), UDP_HEX_SEND_NUM_MAX);
-			}
+		// if (tmp != NULL)
+		// {
+		// 	count = UDPIpSendUint.datalen / UDP_HEX_SEND_NUM_MAX;
+		// 	left = UDPIpSendUint.datalen % UDP_HEX_SEND_NUM_MAX;
 
-			if (left)
-			{
-				UART3SendHexData(tmp + (i * UDP_HEX_SEND_NUM_MAX), left);
-			}
-		}
+		// 	for (i = 0; i < count; i++)
+		// 	{
+		// 		UART3SendHexData(tmp + (i * UDP_HEX_SEND_NUM_MAX), UDP_HEX_SEND_NUM_MAX);
+		// 	}
+
+		// 	if (left)
+		// 	{
+		// 		UART3SendHexData(tmp + (i * UDP_HEX_SEND_NUM_MAX), left);
+		// 	}
+		// }
 
 		UART3SendHexData("\x1a", 1);
 
-		if (OpenStatSocketNum > 0)
-		{
-			SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
-			OpenStatSocketNum--;
-			*pTimeout = 10;
-		}
-		else
-		{
+		// if (OpenStatSocketNum > 0)
+		// {
+		// 	SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
+		// 	OpenStatSocketNum--;
+		// 	*pTimeout = 10;
+		// }
+		// else
+		// {
 			if (UDPIpSendUint.buf != NULL)
 			{
 				WedgeBufPoolFree(UDPIpSendUint.buf);
@@ -606,7 +609,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 			}
 			udpsendoverflag = 1;
 			SetUDPDataCanSendStat(FALSE);
-		}
+		// }
 
 		return;
 	}

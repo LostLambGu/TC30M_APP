@@ -147,6 +147,7 @@ extern u8 GetNetworkRegistrationStat(void);
 extern ServiceStatus GetNetServiceStatus(void);
 extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);
+extern void SendMessage(char *Num, char *buf);
 extern void CheckNetlorkTimerCallback(u8 Status);
 
 

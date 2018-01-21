@@ -711,7 +711,7 @@ int8_t WedgeMsgProcessResponseUdp(void *MsgBufferP, uint32_t size)
                 WedgeBufPoolFree(ptmp);
             }
 
-            WEDGE_COM_API_LOG("WEDGE MsgProcess Response Udp Fail WedgeUdpSendQueue.numinqueue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
+            WEDGE_COM_API_LOG("WEDGE MsgProcessResponseUdp Fail WedgeUdpSendQueue.numinqueue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
             return 1;
         }
         else
@@ -722,7 +722,7 @@ int8_t WedgeMsgProcessResponseUdp(void *MsgBufferP, uint32_t size)
 
             memcpy(WedgeUdpSendUint.buf, MsgBufferP, size);
 
-            WEDGE_COM_API_LOG("WEDGE MsgProcess Response Udp WedgeUdpSendUnitIn");
+            WEDGE_COM_API_LOG("WEDGE MsgProcessResponseUdp WedgeUdpSendUnitIn");
             WedgeUdpSendUnitIn(&WedgeUdpSendQueue, &WedgeUdpSendUint);
 
             WedgeUdpSocketManageDataComeSet(TRUE);
@@ -1211,6 +1211,8 @@ void WedgeUdpSocketManageProcess(void)
         memset(&WedgeUDPIpSendUint, 0, sizeof(WedgeUDPIpSendUint));
         WedgeUdpSendUintOut(&WedgeUdpSendQueue, &WedgeUDPIpSendUint);
 
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Opened Stat WedgeUdpSendQueue.numinqueue(%d) WedgeUDPIpSendUint.datalen(%d)",
+                                      FmtTimeShow(), WedgeUdpSendQueue.numinqueue, WedgeUDPIpSendUint.datalen);
         // If datalen wrong, there is not warings info.
         if (WedgeUDPIpSendUint.datalen != 0)
         {
@@ -1218,7 +1220,7 @@ void WedgeUdpSocketManageProcess(void)
             {
                 WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Opened Stat UdpIpSocketSendData",
                                       FmtTimeShow());
-                UdpIpSocketSendData(WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
+                UdpIpSocketSendData((char *)WedgeUDPIpSendUint.buf, WedgeUDPIpSendUint.datalen);
             }
             else
             {

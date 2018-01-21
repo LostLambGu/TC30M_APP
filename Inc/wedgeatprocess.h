@@ -9,8 +9,8 @@
 *******************************************************************************
 /
 
-/* Define to prevent recursive inclusion 
--------------------------------------*/
+Define to prevent recursive inclusion -------------------------------------*/
+
 #ifndef __TC30M_APPATPROCESS_H__
 #define __TC30M_APPATPROCESS_H__
 

@@ -291,7 +291,7 @@ static void WedgeMsgQueProcess(void)
     }
     else
     {
-        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Connect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
+        //APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Connect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
         if (WedgeMsgUnsent == FALSE)
         {
             memset(&WEDGEMsgQueCell, 0, sizeof(WEDGEMsgQueCell));
@@ -313,7 +313,7 @@ static void WedgeMsgQueProcess(void)
             {
                 if (WedgeMsgProcessResponseUdp(WEDGEMsgQueCell.data, WEDGEMsgQueCell.size) > 0)
                 {
-                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Fail", FmtTimeShow());
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Fail WEDGEMsgQueCell.size(%d)", FmtTimeShow(), WEDGEMsgQueCell.size);
                     WedgeMsgUnsent = TRUE;
                 }
                 else
