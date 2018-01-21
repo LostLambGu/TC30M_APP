@@ -1688,7 +1688,7 @@ static void MmiSQNSRING(char* MsgDataP)
 {
 	char *tmp;
 
-	ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:%s", FmtTimeShow(), MsgDataP);
+	ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:%s UdpSocketListenIndicateFlag(0x%X)", FmtTimeShow(), MsgDataP, UdpSocketListenIndicateFlag);
 
 	// +SQNSRING: 3,12
 	tmp = strstr((char*)MsgDataP,(char*)"+SQNSRING:");

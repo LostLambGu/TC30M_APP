@@ -302,7 +302,7 @@ static void WedgeMsgQueProcess(void)
             }
             else
             {
-                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout Err", FmtTimeShow());
+                // APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout Err", FmtTimeShow());
                 WedgeMsgUnsent = FALSE;
             }
         }
