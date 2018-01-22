@@ -9,8 +9,8 @@
 *******************************************************************************
 /
 
-Define to prevent recursive inclusion -------------------------------------*/
-
+/* Define to prevent recursive inclusion 
+-------------------------------------*/
 #ifndef __TC30M_APPATPROCESS_H__
 #define __TC30M_APPATPROCESS_H__
 
@@ -102,4 +102,5 @@ char *s;
 *
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File
-*******************************************************************************/
+*******************************************************************************
+/
