@@ -41,6 +41,7 @@ extern const ATCompareTable_t ATCmdTypeTable[AT_CMD_DEF_LAST];
 extern PswGpsNmeaStreamMsgT MsgBuffer;
 
 __IO uint8_t factorymodeindicatefalg = FALSE;
+__IO uint8_t factorymodembypassfalg = FALSE;
 
 extern char ICCIDBuf[32];
 extern char IMEIBuf[32];
@@ -154,12 +155,12 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 			ATCmdDefSleep(Len, Param);
 			break;
 
-		case AT_CMD_DEF_TRANSFER:
-			ATCmdDefTransfer(Len, Param, dataBuf);
-			break;
-
 		case AT_CMD_DEF_PWRCTL:
 			ATCmdDefPwrCtl(Len, Param, dataBuf);
+			break;
+
+		case AT_CMD_DEF_TRANSFER:
+			ATCmdDefTransfer(Len, Param, dataBuf);
 			break;
 
 		case AT_CMD_DEF_LED:
@@ -243,59 +244,63 @@ static void ATCmdDefGPSFactoryTest(void)
 	#endif /* TC30M_TEST_CONFIG_OFF */
 }
 
+extern uint8_t ModemPowerOnFlag;
 static void ATCmdModemFactoryTest(void)
 {
-	uint8_t DataLen = 0;
-	uint8_t UartData[UART_BUF_MAX_LENGTH] = {'\0'};
+	// uint8_t DataLen = 0;
+	// uint8_t UartData[UART_BUF_MAX_LENGTH] = {'\0'};
 
-	ModemPowerEnControl(DISABLE);
-	ModemRTSEnControl(DISABLE);
-	HAL_Delay(1000);
-	factorymodeindicatefalg = TRUE;
+	factorymodembypassfalg = TRUE;
 	
-	ModemPowerEnControl(ENABLE);
-	ModemRTSEnControl(ENABLE);
+	if (ModemPowerOnFlag == FALSE)
+	{
+		ModemPowerEnControl(ENABLE);
+		ModemRTSEnControl(ENABLE);
+	}
 
 	HAL_Delay(3000);
 	HAL_UART_Transmit(&huart1, ENTER_MODEM_BYPASS_INFO, strlen(ENTER_MODEM_BYPASS_INFO), UART_SEND_DATA_TIMEOUT);
 
-	while (factorymodeindicatefalg == TRUE)
+	while (factorymodembypassfalg == TRUE)
 	{
-		if (Uart1RxCount & UART_FINISHED_RECV)
-		{
-			// Get Data
-			SystemDisableAllInterrupt(); // Disable Interrupt
-			DataLen = Uart1RxCount & UART_BUF_MAX_LENGTH;
-			// Copy Data
-			if (*Uart1RxBuffer == 0xff)
-			{
-				memcpy((char *)UartData, (char *)(Uart1RxBuffer + 1), DataLen);
-			}
-			else
-				memcpy((char *)UartData, (char *)Uart1RxBuffer, DataLen);
-			UartData[DataLen++] = '\r';
-			UartData[DataLen++] = '\n';
-			UartData[DataLen] = '\0';
-			// Clear Data
-			memset(Uart1RxBuffer, 0, sizeof(Uart1RxBuffer));
-			Uart1RxCount = 0;
-			SystemEnableAllInterrupt(); // Enable Interrupt
-			// HAL_UART_Transmit(&huart1, UartData, strlen((const char *)UartData), UART_SEND_DATA_TIMEOUT);
-			HAL_UART_Transmit(&huart3, UartData, DataLen, UART_SEND_DATA_TIMEOUT);
-			DataLen = 0;
-			memset(UartData, 0, sizeof(UartData));
-		}
+		// if (Uart1RxCount & UART_FINISHED_RECV)
+		// {
+		// 	// Get Data
+		// 	SystemDisableAllInterrupt(); // Disable Interrupt
+		// 	DataLen = Uart1RxCount & UART_BUF_MAX_LENGTH;
+		// 	// Copy Data
+		// 	if (*Uart1RxBuffer == 0xff)
+		// 	{
+		// 		memcpy((char *)UartData, (char *)(Uart1RxBuffer + 1), DataLen);
+		// 	}
+		// 	else
+		// 		memcpy((char *)UartData, (char *)Uart1RxBuffer, DataLen);
+		// 	UartData[DataLen++] = '\r';
+		// 	UartData[DataLen++] = '\n';
+		// 	UartData[DataLen] = '\0';
+		// 	// Clear Data
+		// 	memset(Uart1RxBuffer, 0, sizeof(Uart1RxBuffer));
+		// 	Uart1RxCount = 0;
+		// 	SystemEnableAllInterrupt(); // Enable Interrupt
+		// 	// HAL_UART_Transmit(&huart1, UartData, strlen((const char *)UartData), UART_SEND_DATA_TIMEOUT);
+		// 	HAL_UART_Transmit(&huart3, UartData, DataLen, UART_SEND_DATA_TIMEOUT);
+		// 	DataLen = 0;
+		// 	memset(UartData, 0, sizeof(UartData));
+		// }
 		HAL_Delay(50);
-		if (Uart3RxCount != 0)
-		{
-			HAL_UART_Transmit(&huart1, Uart3RxBuffer, Uart3RxCount, UART_SEND_DATA_TIMEOUT);
-			memset(Uart3RxBuffer, 0, sizeof(Uart3RxBuffer));
-			Uart3RxCount = 0;
-		}
+		// if (Uart3RxCount != 0)
+		// {
+		// 	HAL_UART_Transmit(&huart1, Uart3RxBuffer, Uart3RxCount, UART_SEND_DATA_TIMEOUT);
+		// 	memset(Uart3RxBuffer, 0, sizeof(Uart3RxBuffer));
+		// 	Uart3RxCount = 0;
+		// }
 	}
 
-	ModemRTSEnControl(DISABLE);
-	ModemPowerEnControl(DISABLE);
+	if (ModemPowerOnFlag == FALSE)
+	{
+		ModemRTSEnControl(DISABLE);
+		ModemPowerEnControl(DISABLE);
+	}	
 }
 
 static void ATCmdGsensorFactoryTest(void)
@@ -414,8 +419,8 @@ static void ATCmdDefRtcFactoryTest(void)
 
 static void ATCmdIoFactoryTest(void)
 {
-	// char *str[2] = {"LOW", "HIGH"};
-	// ATCmdPrintf(TRUE, "\r\nIO:PWR_DET, %s", str[READ_IO(PC14_CHG_END_GPIO_Port, PC14_CHG_END_Pin)]);
+	char *str[2] = {"LOW", "HIGH"};
+	ATCmdPrintf(TRUE, "\r\nIO: WEDGE Ignition, %s", str[READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin)]);
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
@@ -454,6 +459,54 @@ static void ATCmdDefSleep(uint8_t Len, int32_t Param)
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*WAKE UP OK\r\n");
 }
 
+static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
+{
+	if (Len == 0)
+	{
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
+	}
+	else
+	{
+		switch (Param)
+		{
+		case 0:
+		{
+			HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_RESET);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER OFF\r\n");
+		}
+		break;
+
+		case 1:
+		{
+			HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_SET);
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER ON\r\n");
+		}
+		break;
+
+		case 2:
+		{
+			UbloxGPSStop();
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER OFF\r\n");
+		}
+		break;
+
+		case 3:
+		{
+			UbloxGPSStart();
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER ON\r\n");
+		}
+		break;
+
+		default:
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
+			break;
+		}
+	}
+	
+	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+}
+
 static void ATCmdDefTransfer(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 {
 	if (Len == 0)
@@ -487,60 +540,6 @@ static void ATCmdDefTransfer(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 		}
 	}
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
-}
-
-static void ATCmdDefPwrCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
-{
-	uint8_t Result = 0;
-	if (Len == 0)
-	{
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
-	}
-	else
-	{
-		switch (Param)
-		{
-		case 0:
-		{
-			Result = 0;
-			ModemPowerEnControl(DISABLE);
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER OFF\r\n");
-		}
-		break;
-
-		case 1:
-		{
-			Result = 0;
-			ModemPowerEnControl(ENABLE);
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER ON\r\n");
-		}
-		break;
-
-		case 2:
-		{
-			Result = 0;
-			UbloxPowerEnControl(DISABLE);
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER OFF\r\n");
-		}
-		break;
-
-		case 3:
-		{
-			Result = 0;
-			UbloxPowerEnControl(ENABLE);
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: GPS POWER ON\r\n");
-		}
-		break;
-
-		default:
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
-			break;
-		}
-	}
-	if (Result != 1)
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
-	else
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
 }
 
 extern uint8_t gGreenLEDFlashingFlag;

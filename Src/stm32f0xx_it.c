@@ -59,6 +59,7 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern __IO uint8_t factorymodeindicatefalg;
+extern __IO uint8_t factorymodembypassfalg;
 
 /******************************************************************************/
 /*            Cortex-M0 Processor Interruption and Exception Handlers         */ 
@@ -295,10 +296,20 @@ void USART1_IRQHandler(void)
     if (0x1b == RevData)
     {
       factorymodeindicatefalg = FALSE;
+      factorymodembypassfalg = FALSE;
       __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
       return;
     }
+
     huart->Instance->TDR = RevData;
+
+    if (factorymodembypassfalg)
+    {
+      huart3.Instance->TDR = RevData;
+      
+      __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+      return;
+    }
 
     if (Uart1RxCount & UART_FIRST_END_CHAR) // Get 0x0D
     {
@@ -376,6 +387,13 @@ void USART3_8_IRQHandler(void)
   {
     /* Read one byte from the receive data register and send it back */
     tmp = (uint8_t)(huart->Instance->RDR & (uint8_t)0x00FF);
+
+    if (factorymodembypassfalg)
+    {
+      huart1.Instance->TDR = tmp;
+      __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
+      return;
+    }
 
     Uart3RxBuffer[Uart3RxCount] = tmp;
     Uart3RxCount++;
