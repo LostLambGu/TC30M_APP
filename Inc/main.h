@@ -9,7 +9,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * COPYRIGHT(c) 2018 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -127,7 +127,7 @@
 #define MODEM_PWR_ON_PORT PB1_SW_LOAD_EN_GPIO_Port
 #define MODEM_PWR_ON_PIN PB1_SW_LOAD_EN_Pin
 
-#define TC30M_TEST_CONFIG_OFF (0)
+#define TC30M_TEST_CONFIG_OFF (1)
 
 #if TC30M_TEST_CONFIG_OFF
 #define WEDGE_MINUTE_TO_SECOND_FACTOR (60)

@@ -211,12 +211,17 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 	}
 }
 
+extern uint8_t ATUbloxTestFlag;
 static void ATCmdDefGPSFactoryTest(void)
 {
 	#if TC30M_TEST_CONFIG_OFF
 	const uint8_t temp = DbgCtl.UbloxDbgInfoEn;
 
-	UbloxPowerEnControl(ENABLE);
+	if (ATUbloxTestFlag == FALSE)
+	{
+		UbloxPowerEnControl(ENABLE);
+	}
+	
 	DbgCtl.UbloxDbgInfoEn = TRUE;
 	factorymodeindicatefalg = TRUE;
 
@@ -230,7 +235,11 @@ static void ATCmdDefGPSFactoryTest(void)
 	}
 
 	DbgCtl.UbloxDbgInfoEn = temp;
-	UbloxPowerEnControl(DISABLE);
+
+	if (ATUbloxTestFlag == FALSE)
+	{
+		UbloxPowerEnControl(DISABLE);
+	}
 	#endif /* TC30M_TEST_CONFIG_OFF */
 }
 
@@ -534,6 +543,7 @@ static void ATCmdDefPwrCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
 }
 
+extern uint8_t gGreenLEDFlashingFlag;
 static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 {
 	if (Len == 0)
@@ -545,13 +555,15 @@ static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	switch (Param)
 	{
 	case 0:
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LEDs Off");
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: LEDs Off");
+		gGreenLEDFlashingFlag = FALSE;
 		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_SET);
 		break;
 
 	case 1:
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: Red LEDs On");
+		gGreenLEDFlashingFlag = TRUE;
+		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nLED: LEDs On");
 		HAL_GPIO_WritePin(PC9_LED_R_GPIO_Port, PC9_LED_R_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(PC8_LED_G_GPIO_Port, PC8_LED_G_Pin, GPIO_PIN_RESET);
 		break;
@@ -824,6 +836,8 @@ static void ATCmdDefWatchDog(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 
 static void ATCmdDefDbgCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 {
+	uint8_t *pdbgctl = (uint8_t *)&DbgCtl;
+
 	if (Len == 0)
 	{
 		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
@@ -831,8 +845,6 @@ static void ATCmdDefDbgCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 	}
 	else
 	{
-		uint8_t *pdbgctl = (uint8_t *)&DbgCtl;
-
 		if (Param < (sizeof(DbgCtl)))
 		{
 			if (*dataBuf == '0')
@@ -846,8 +858,27 @@ static void ATCmdDefDbgCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 		}
 		else
 		{
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nParam Error\r\n");
-			return;
+			if(Param == 0xff)
+			{
+				uint8_t i = 0;
+
+				for (i = 0; i < sizeof(DbgCtl); i++)
+				{
+					if (*dataBuf == '0')
+					{
+						pdbgctl[i] = FALSE;
+					}
+					else
+					{
+						pdbgctl[i] = TRUE;
+					}
+				}
+			}
+			else
+			{
+				ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nParam Error\r\n");
+				return;
+			}
 		}
 	}
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
