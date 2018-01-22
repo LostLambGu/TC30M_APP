@@ -214,29 +214,29 @@ void SystemInitialization(void)
 	CompileSetRTCTime();
 
 	// Spi Flash Init
-	// SerialFlashInit();
+	SerialFlashInit();
 
 	// Ublox Init
 	UbloxI2cInit();
 
-	// // UartBufferInit();
-	// // Timer Init
-	// InitSoftwareTimers();
-	// aiDFdhInit();
-	// parseAtDHInit();
-	// IqmgrMutexInit();
+	// UartBufferInit();
+	// Timer Init
+	InitSoftwareTimers();
+	aiDFdhInit();
+	parseAtDHInit();
+	IqmgrMutexInit();
 
-	// // Eanble MCU RTS
-	// ModemRTSEnControl(ENABLE);
-	// DelayMsTime(1000);
-	// // OPEN Modem
-	// ModemPowerEnControl(ENABLE);
+	// Eanble MCU RTS
+	ModemRTSEnControl(ENABLE);
+	DelayMsTime(1000);
+	// OPEN Modem
+	ModemPowerEnControl(ENABLE);
 
 	// Close GPS
 	UbloxGPSStart();
 
-	// // Sensor init
-    // GSensorI2cInit();
+	// Sensor init
+    GSensorI2cInit();
 }
 
 extern uint8_t ATUbloxTestFlag;
