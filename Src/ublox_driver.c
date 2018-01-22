@@ -65,93 +65,104 @@ void UbloxI2cInit(void)
 }
 
 #if TC30M_TEST_CONFIG_OFF
+#define GPS_DATA_LENGTH 2
+void WaitI2cDmaTransferDone(void)
+{
+	while (HAL_I2C_GetState(&hi2c2) != HAL_I2C_STATE_READY){} 
+
+}
+
 void ReadUbloxData(void)
 {
-	u8 LoopCount = 0;
-	u8 I2CRXBuffer[4] = {'\0'};
+	u8 LoopCount;
+	u8 GpsLenBuff[GPS_DATA_LENGTH];
 
 	// Read NMEA Data Length
-	if (HAL_I2C_Mem_Read(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u16)UBLOX_LEN_START_ADDR, I2C_MEMADD_SIZE_8BIT, (u8 *)I2CRXBuffer, 2, UBLOX_OPERATE_TIMEOUT) != HAL_OK)
+	if(HAL_I2C_Mem_Read(&hi2c2,(u16)UBLOX_I2C_DRV_ADDRESS,(u16)UBLOX_LEN_START_ADDR,I2C_MEMADD_SIZE_8BIT,(u8 *)GpsLenBuff,GPS_DATA_LENGTH,UBLOX_OPERATE_TIMEOUT)!= HAL_OK)
 	{
-		UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: RD Len First Fail", FmtTimeShow());
-	}
+		// Print out
+		UbloxPrintf(NRCMD, "\r\n[%s] GPS: 1st len fail",FmtTimeShow());
+	} 
 	else
 	{
-		memset((void *)&MsgBuffer, 0, sizeof(MsgBuffer));
-		MsgBuffer.DataLen = I2CRXBuffer[1] + (I2CRXBuffer[0] << 8);
+		memset((void*)&MsgBuffer, 0, sizeof(PswGpsNmeaStreamMsgT));
+		MsgBuffer.DataLen = GpsLenBuff[1] + (GpsLenBuff[0]<<8);
 		// Check Ublox Data Length
-		for (LoopCount = 0; LoopCount < LENGTH_LOOP_TIME; LoopCount++)
+		for(LoopCount = 0;LoopCount < LENGTH_LOOP_TIME;LoopCount++)					  
 		{
-			if (MsgBuffer.DataLen > 0)
-			{
+			if(MsgBuffer.DataLen > 0)
 				break;
-			}
 			else
 			{
 				HAL_Delay(50);
-				if (HAL_I2C_Mem_Read(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u16)UBLOX_LEN_START_ADDR, I2C_MEMADD_SIZE_8BIT, (u8 *)I2CRXBuffer, 2, UBLOX_OPERATE_TIMEOUT) == HAL_OK)
-				{
-					MsgBuffer.DataLen = I2CRXBuffer[1] + (I2CRXBuffer[0] << 8);
-				}
+				if(HAL_I2C_Mem_Read(&hi2c2,(u16)UBLOX_I2C_DRV_ADDRESS,(u16)UBLOX_LEN_START_ADDR,I2C_MEMADD_SIZE_8BIT,(u8 *)GpsLenBuff,2,UBLOX_OPERATE_TIMEOUT) == HAL_OK)
+					MsgBuffer.DataLen = GpsLenBuff[1] + (GpsLenBuff[0]<<8);
 				else
-				{
-					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: RD Len Go on Fail", FmtTimeShow());
-				}
+					UbloxPrintf(NRCMD, "\r\n[%s] GPS: 2nd len fail",FmtTimeShow());
 			}
 		}
-		// Print Out
-		//UbloxPrintf(DbgCtl.UbloxDbgInfoEn," \r\n[%s] Ublox: Len[%d] Loop[%d]",FmtTimeShow(), MsgBuffer.DataLen, LoopCount);
+		// Print out
+		UbloxPrintf(NRCMD, "\r\n[%s] GPS: len(%d) retry(%d)", \
+			FmtTimeShow(), MsgBuffer.DataLen, LoopCount);
 		// Read NMEA Data
-		if (MsgBuffer.DataLen > 0 && MsgBuffer.DataLen < DATA_SIZE_MAX + 1)
+		if(MsgBuffer.DataLen > 0 && MsgBuffer.DataLen < DATA_SIZE_MAX+1)
 		{
 			// Get Data
-			if (HAL_I2C_Master_Receive(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data, MsgBuffer.DataLen, UBLOX_OPERATE_TIMEOUT) == HAL_OK)
+			if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
+				UbloxPrintf(NRCMD, "\r\n[%s] GPS: data ready",FmtTimeShow());
+			else
+				UbloxPrintf(NRCMD, "\r\n[%s] GPS: data fail",FmtTimeShow());
+			//#ifdef UBLOX_GPS_IIC_DMA_SUPPORT
+			// I2C DMA Wating
+			WaitI2cDmaTransferDone();
+			// Print out
+			UbloxPrintf(NRCMD, "\r\n");
+			if (DbgCtl.UbloxDbgInfoEn)
 			{
-				//UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Ublox: NMEA DATA:\r\n[\r\n%s]",FmtTimeShow(),MsgBuffer.Data);
-				// UbloxPrintf(DbgCtl.ATCmdInfoEn, "\r\n%s", MsgBuffer.Data);
-				if (DbgCtl.UbloxDbgInfoEn)
-				{
-					UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
-				}
+				UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
 			}
 		}
 		else
 		{
 			// Check Ublox Data Length
-			for (LoopCount = 0; LoopCount < LENGTH_LOOP_TIME; LoopCount++)
+			for(LoopCount = 0;LoopCount < LENGTH_LOOP_TIME;LoopCount++)					  
 			{
-				if (MsgBuffer.DataLen >= DATA_SIZE_MAX)
-				{
+				if(MsgBuffer.DataLen >= DATA_SIZE_MAX)
 					MsgBuffer.DataLen = DATA_SIZE_MAX;
-				}
-				//if length is still above max size, it means the data includes 2 packet data at least.
-				if (HAL_I2C_Master_Receive(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data, MsgBuffer.DataLen, UBLOX_OPERATE_TIMEOUT) == HAL_OK)
-				{
-					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal data[%d]", FmtTimeShow(), MsgBuffer.DataLen);
-				}
+			        //if length is still above max size, it means the data includes 2 packet data at least.
+				if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
+				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: data ok len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
 				else
+				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: data err len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
+				//#ifdef UBLOX_GPS_IIC_DMA_SUPPORT
+				// I2C DMA Wating
+				WaitI2cDmaTransferDone();
+				// Print out
+				UbloxPrintf(NRCMD, "\r\n");
+				if (DbgCtl.UbloxDbgInfoEn)
 				{
-					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal break[%d]", FmtTimeShow(), MsgBuffer.DataLen);
+					UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
 				}
+				
 				HAL_Delay(50);
 				// Recheck Data Length
-				if (HAL_I2C_Mem_Read(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u16)UBLOX_LEN_START_ADDR, I2C_MEMADD_SIZE_8BIT, (u8 *)I2CRXBuffer, 2, UBLOX_OPERATE_TIMEOUT) == HAL_OK)
+				if(HAL_I2C_Mem_Read(&hi2c2,(u16)UBLOX_I2C_DRV_ADDRESS,(u16)UBLOX_LEN_START_ADDR,I2C_MEMADD_SIZE_8BIT,(u8 *)GpsLenBuff,2,UBLOX_OPERATE_TIMEOUT) == HAL_OK)
 				{
-					MsgBuffer.DataLen = I2CRXBuffer[1] + (I2CRXBuffer[0] << 8);
-					if (MsgBuffer.DataLen == 0)
-					{
+					MsgBuffer.DataLen = GpsLenBuff[1] + (GpsLenBuff[0]<<8);
+					// Print out
+				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: retry len(%d)", \
+						FmtTimeShow(),MsgBuffer.DataLen);
+					// Checl lenght
+					if(MsgBuffer.DataLen == 0)
 						break;
-					}
-				}
+				} 
 				else
 				{
-					UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: abnormal Recheck", FmtTimeShow());
-				}
+					UbloxPrintf(NRCMD, "\r\n[%s] GPS: abnormal Recheck",FmtTimeShow());
+				} 
 			}
-			//if clear buffer,parsefun will display 0
-			//memset((void*)&MsgBuffer, 0, sizeof(MsgBuffer));
 		}
-	}
+	}	
 }
 #else
 void UART2_RxCpltCallback(uint8_t Data)

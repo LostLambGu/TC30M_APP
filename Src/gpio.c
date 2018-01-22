@@ -191,7 +191,7 @@ HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_RESET);
   HAL_GPIO_Init(PB4_G_INT1_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }

@@ -52,39 +52,39 @@ static void WedgeOSPDCfgChg(void);
 
 void ApplicationProcess(void)
 {
-    WedgeInit();
+    // WedgeInit();
 
     while (1)
     {
         // Debug Info
         ATCmdDetection();
-        // LTE Info
-        LteCmdDetection();
+        // // LTE Info
+        // LteCmdDetection();
         // Soft Timer
         SoftwareCheckTimerStatus();
-        // Gsensor Interupt
-        GsensorIntProcess();
+        // // Gsensor Interupt
+        // GsensorIntProcess();
 
-        // Wedge Service Odometer Alert
-        WedgeServiceOdometerAlert();
-        // Wedge Low Battery Alert
-        WedgeLowBatteryAlert();
-        // Wedge Geofence Alert
-        WedgeGeofenceAlert();
-        // Wedge Over Speed Alert
-        WedgeOverSpeedAlert();
-        // Wedge Heading Change Detect
-        WedgeHeadingChangeDetect();
-        // Wedge Event and Alert Process
-        WedgeIgnitionStateProcess();
-        // Wedge Configuration Change Process
-        WedgeCfgChgStateProcess();
-        // Wedge Msg Que Process
-        WedgeMsgQueProcess();
-        // Wedge Socket Manage Process
-        WedgeUdpSocketManageProcess();
-        // Wedge Rtc Timer Event Process
-        WedgeRTCTimerEventProcess();
+        // // Wedge Service Odometer Alert
+        // WedgeServiceOdometerAlert();
+        // // Wedge Low Battery Alert
+        // WedgeLowBatteryAlert();
+        // // Wedge Geofence Alert
+        // WedgeGeofenceAlert();
+        // // Wedge Over Speed Alert
+        // WedgeOverSpeedAlert();
+        // // Wedge Heading Change Detect
+        // WedgeHeadingChangeDetect();
+        // // Wedge Event and Alert Process
+        // WedgeIgnitionStateProcess();
+        // // Wedge Configuration Change Process
+        // WedgeCfgChgStateProcess();
+        // // Wedge Msg Que Process
+        // WedgeMsgQueProcess();
+        // // Wedge Socket Manage Process
+        // WedgeUdpSocketManageProcess();
+        // // Wedge Rtc Timer Event Process
+        // WedgeRTCTimerEventProcess();
     }
 }
 

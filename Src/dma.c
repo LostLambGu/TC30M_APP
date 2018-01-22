@@ -61,8 +61,11 @@ void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Ch1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Ch1_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Ch1_IRQn, 3, 0);
   HAL_NVIC_EnableIRQ(DMA1_Ch1_IRQn);
+  /* DMA1_Ch4_7_DMA2_Ch3_5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Ch4_7_DMA2_Ch3_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Ch4_7_DMA2_Ch3_5_IRQn);
 
 }
 
