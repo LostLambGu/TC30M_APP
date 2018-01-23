@@ -43,6 +43,41 @@ extern FlashStatusT SerialFlashWrite(uint8_t *buf, uint32_t to, int len);
 extern FlashStatusT SerialFlashErase(EraseTypeT type, uint32_t index);
 extern FlashStatusT SerialFlashBlocksErase(uint32_t start_block, uint32_t num_blocks);
 
+
+#define JUMP_TO_BOOTLOADER_ADDRESS (0x08000000)
+#define JUMP_TO_APPLICATION_ADDRESS (0x08005000)
+
+#define IAP_BOOT_FLASH (uint32_t)(0xAA) // 170
+#define IAP_BOOT_UART (uint32_t)(0xBB) // 187
+#define IAP_APP_FLASH (uint32_t)(0xCC)  // 204
+#define IAP_APP_UART (uint32_t)(0xDD)  // 221
+#define IAP_RESET (uint32_t)(0xFF)     // 255
+#define IAP_FLAG (uint32_t)(JUMP_TO_APPLICATION_ADDRESS - 0x400)
+
+#define ADDR_FLASH_PAGE_9 (9 * FLASH_PAGE_SIZE + 0x08000000)
+#define ADDR_FLASH_PAGE_8 (8 * FLASH_PAGE_SIZE + 0x08000000)
+#define FLASH_USER_END_ADDR (128 * FLASH_PAGE_SIZE + 0x08000000)
+
+/* Get the number of Sector from where the user program will be loaded */
+#define FLASH_PAGE_NUMBER (uint32_t)((JUMP_TO_APPLICATION_ADDRESS - 0x08000000) >> 12)
+
+/* Compute the mask to test if the Flash memory, where the user program will be
+   loaded, is write protected */
+#define FLASH_PROTECTED_PAGES ((uint32_t) ~((1 << FLASH_PAGE_NUMBER) - 1))
+
+#define USER_FLASH_END_ADDRESS FLASH_USER_END_ADDR
+
+/* define the user application size */
+#define USER_FLASH_SIZE (USER_FLASH_END_ADDRESS - JUMP_TO_APPLICATION_ADDRESS + 1)
+
+#define FIRMWARE_VERSION_LEN_MAX (32)
+typedef struct FirmwareInfo
+{
+	uint32_t IAPFlag;
+	uint32_t FirmwareSize;
+	char Version[FIRMWARE_VERSION_LEN_MAX];
+} FirmwareInfoTypeDef;
+
 #endif  /* _SERIAL_FLAH__H */
 
 /*******************************************************************************

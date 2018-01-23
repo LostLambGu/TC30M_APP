@@ -47,6 +47,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
+#include "flash.h"
 
 #include "initialization.h"
 #include "wedgeapplication.h"
@@ -66,21 +67,38 @@
 void SystemClock_Config(void);
 extern void ApplicationProcess(void);
 
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
+#define REMAP_MEMORY_SRAM
+#ifdef REMAP_MEMORY_SRAM
+//#pragma abs_address:0x20000000
+#if   (defined ( __CC_ARM ))
+  __IO uint32_t VectorTable[48] __attribute__((at(0x20000000)));
+#elif (defined (__ICCARM__))
+#pragma location = 0x20000000
+  __no_init __IO uint32_t VectorTable[48];
+#elif defined   (  __GNUC__  )
+  __IO uint32_t VectorTable[48] __attribute__((section(".RAMVectorTable")));
+#elif defined ( __TASKING__ )
+#endif
+#endif
 
-/* USER CODE END PFP */
-
-/* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
+#ifdef REMAP_MEMORY_SRAM
+void AppRemapmemorySRAM(void)
+{
+  uint8_t i =0;
+  for(i = 0; i < 48; i++)
+  {
+    VectorTable[i] = *(__IO uint32_t*)(JUMP_TO_APPLICATION_ADDRESS + (i<<2));
+  }
+  /// Remap SRAM at 0x00000000
+  __HAL_SYSCFG_REMAPMEMORY_SRAM();
+}
+#endif
 
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
+  #ifdef REMAP_MEMORY_SRAM
+  AppRemapmemorySRAM();
+  #endif
 
   /* MCU Configuration----------------------------------------------------------*/
 
