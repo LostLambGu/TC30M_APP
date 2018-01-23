@@ -100,7 +100,7 @@
         <tRSysVw>1</tRSysVw>
         <sRunDeb>0</sRunDeb>
         <sLrtime>0</sLrtime>
-        <nTsel>6</nTsel>
+        <nTsel>11</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -111,7 +111,7 @@
         <tDlgDll></tDlgDll>
         <tDlgPa></tDlgPa>
         <tIfile></tIfile>
-        <pMon>Segger\JL2CM3.dll</pMon>
+        <pMon>STLink\ST-LINKIII-KEIL_SWO.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
         <SetRegEntry>
@@ -142,16 +142,16 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>ST-LINKIII-KEIL_SWO</Key>
-          <Name>-U49FF75067284524950520167 -O2254 -S3 -C0 -A0 -N00("ARM CoreSight SW-DP") -D00(0BB11477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8004 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC800 -FN1 -FF0STM32F0xx_256.FLM -FS08000000 -FL040000 -FP0($$Device:STM32F091RC$Flash\STM32F0xx_256.FLM)</Name>
+          <Name>-U55FF73065180485446281087 -O2254 -S3 -C0 -A0 -N00("ARM CoreSight SW-DP") -D00(0BB11477) -L00(0) -TO18 -TC10000000 -TP21 -TDS8004 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO15 -FD20000000 -FC800 -FN1 -FF0STM32F0xx_256.FLM -FS08000000 -FL040000 -FP0($$Device:STM32F091RC$Flash\STM32F0xx_256.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
       <Breakpoint>
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>80</LineNumber>
+          <LineNumber>71</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237580</Address>
+          <Address>134279474</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -160,87 +160,71 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>..\Src\ublox_driver.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\80</Expression>
+          <Expression>\\TC30MApplication\../Src/ublox_driver.c\71</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>111</LineNumber>
+          <LineNumber>583</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237704</Address>
+          <Address>134237834</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Src\ublox_driver.c</Filename>
+          <Filename>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\111</Expression>
+          <Expression>\\TC30MApplication\../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c\583</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>130</LineNumber>
+          <LineNumber>605</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237744</Address>
+          <Address>134237878</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Src\ublox_driver.c</Filename>
+          <Filename>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\130</Expression>
+          <Expression>\\TC30MApplication\../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c\605</Expression>
         </Bp>
         <Bp>
           <Number>3</Number>
           <Type>0</Type>
-          <LineNumber>122</LineNumber>
+          <LineNumber>634</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237718</Address>
+          <Address>134237930</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Src\ublox_driver.c</Filename>
+          <Filename>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\122</Expression>
+          <Expression>\\TC30MApplication\../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c\634</Expression>
         </Bp>
         <Bp>
           <Number>4</Number>
           <Type>0</Type>
-          <LineNumber>145</LineNumber>
+          <LineNumber>609</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134237768</Address>
+          <Address>134237884</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Src\ublox_driver.c</Filename>
+          <Filename>../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\145</Expression>
-        </Bp>
-        <Bp>
-          <Number>5</Number>
-          <Type>0</Type>
-          <LineNumber>147</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134237772</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Src\ublox_driver.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\TC30MApplication\../Src/ublox_driver.c\147</Expression>
+          <Expression>\\TC30MApplication\../Drivers/STM32F0xx_HAL_Driver/Src/stm32f0xx_hal_dma.c\609</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
