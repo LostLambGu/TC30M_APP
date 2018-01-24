@@ -19,6 +19,64 @@
 #define TRUE 1
 #endif
 
+const GpioInfoCellTypedef GpioInfoArray[WEDGE_IO_Last] = 
+{
+    [Vbat_On_Off_Pin] = {PB0_BAT_ROUTE_EN_GPIO_Port, PB0_BAT_ROUTE_EN_Pin},
+    [MCU_PD2_IO_Pin] = {PD2_MCU_IO_GPIO_Port, PD2_MCU_IO_Pin},
+    [MCU_PC11_OD_Pin] = {PC11_MCU_OD_GPIO_Port, PC11_MCU_OD_Pin},
+    [MCU_PC12_Starter_Pin] = {PC12_MCU_STARTER_GPIO_Port, PC12_MCU_STARTER_Pin},
+    [MCU_PA15_RELAY_Pin] = {PA15_MCU_RELAY_GPIO_Port, PA15_MCU_RELAY_Pin},
+    [MCU_PC10_IGN] = {PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin},
+};
+
+uint8_t GpioOutputInputSet(WEDGEIoTypedef Io, uint8_t outin)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    if (Io >= WEDGE_IO_Last)
+    {
+        return 1;
+    }
+
+    if (outin == GPIO_OUT_STATUS)
+    {
+        GPIO_InitStruct.Pin = GpioInfoArray[Io].PINx;
+        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+        HAL_GPIO_Init(GpioInfoArray[Io].GPIOx, &GPIO_InitStruct);
+        return 0;
+    }
+    else
+    {
+        GPIO_InitStruct.Pin = GpioInfoArray[Io].PINx;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GpioInfoArray[Io].GPIOx, &GPIO_InitStruct);
+        return 0;
+    }
+}
+
+void GpioOutputStateSet(WEDGEIoTypedef Io, GPIO_PinState state)
+{
+    if (Io >= WEDGE_IO_Last)
+    {
+        return;
+    }
+
+    WRITE_IO(GpioInfoArray[Io].GPIOx, GpioInfoArray[Io].PINx, state);
+}
+
+uint8_t GpioOutputStateGet(WEDGEIoTypedef Io)
+{
+    if (Io >= WEDGE_IO_Last)
+    {
+        return 2;
+    }
+
+    return READ_IO(GpioInfoArray[Io].GPIOx, GpioInfoArray[Io].PINx);
+}
+
 void WedgeGpsRedLedControl(uint8_t state)
 {
     state++;

@@ -67,6 +67,7 @@ static void ATCmdDefLed(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefPwm(uint8_t Len, int Param);
 static void ATCmdDefGPS(uint8_t Len, int Param);
 static void ATCmdGsensorTest(uint8_t Len, int Param);
+static void ATCmdDefGPIOSETDIR(uint8_t Len, int Param, uint8_t *dataBuf);
 static void ATCmdDefGPIOREAD(uint8_t Len, int Param, uint8_t *dataBuf);
 static void ATCmdDefGPIOWRITE(uint8_t Len, int32_t Param, uint8_t *dataBuf);
 static void ATCmdDefWatchDog(uint8_t Len, int32_t Param, uint8_t *dataBuf);
@@ -177,6 +178,10 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 		case AT_CMD_DEF_GSENSOR:
 			ATCmdGsensorTest(Len, Param);
+			break;
+
+		case AT_CMD_DEF_GPIOSETDIR:
+			ATCmdDefGPIOSETDIR(Len, Param, dataBuf);
 			break;
 
 		case AT_CMD_DEF_GPIOREAD:
@@ -761,38 +766,84 @@ static void ATCmdGsensorTest(uint8_t Len, int Param)
 	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
 }
 
-static void ATCmdDefGPIOREAD(uint8_t Len, int Param, uint8_t *dataBuf)
+static void ATCmdDefGPIOSETDIR(uint8_t Len, int Param, uint8_t *dataBuf)
 {
-	bool val;
+	uint8_t val;
 
-	if (Len == 0)
+	if ((dataBuf == NULL) || (Len == 0))
 	{
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Error ", FmtTimeShow());
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOSETDIR Param Error ", FmtTimeShow());
 		return;
 	}
 
-	// val = IO_Read(Param);
-	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nval %d \r\n", val);
-	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+	if (dataBuf[0] == '0')
+	{
+		val = GpioOutputInputSet((WEDGEIoTypedef)Param, GPIO_IN_STATUS);
+	}
+	else
+	{
+		val = GpioOutputInputSet((WEDGEIoTypedef)Param, GPIO_OUT_STATUS);
+	}
+	
+	if (val == 0)
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOSETDIR Ok", FmtTimeShow());
+		return;
+	}
+	else
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOSETDIR Err", FmtTimeShow());
+		return;
+	}
+}
+
+static void ATCmdDefGPIOREAD(uint8_t Len, int Param, uint8_t *dataBuf)
+{
+	uint8_t val;
+
+	if (Len == 0)
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOREAD Param Error ", FmtTimeShow());
+		return;
+	}
+
+	val = GpioOutputStateGet((WEDGEIoTypedef)Param);
+	if (0 == val)
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOREAD Param(%d) State(%d)", FmtTimeShow(), Param, val);
+	}
+	else if (1 == val )
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOREAD Param(%d) State(%d)", FmtTimeShow(), Param, val);
+	}
+	else
+	{
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOREAD Err", FmtTimeShow());
+		return;
+	}
+
+	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
 static void ATCmdDefGPIOWRITE(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 {
-	if (Len == 0)
+	if ((dataBuf == NULL) || (Len == 0))
 	{
-		ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n[%s] Error ", FmtTimeShow());
+		ATCmdPrintf(TRUE, "\r\n[%s] GPIOWRITE Param Error ", FmtTimeShow());
 		return;
 	}
 
-	// if (dataBuf != NULL)
-	// {
-	// 	if (dataBuf[0] == '0')
-	// 		IO_Write(Param, FALSE);
-	// 	if (dataBuf[0] == '1')
-	// 		IO_Write(Param, TRUE);
-	// }
+	if (dataBuf[0] == '0')
+	{
+		GpioOutputStateSet((WEDGEIoTypedef)Param, GPIO_PIN_RESET);
+	}
+	else
+	{
+		GpioOutputStateSet((WEDGEIoTypedef)Param, GPIO_PIN_SET);
+	}
 
-	ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+	ATCmdPrintf(TRUE, "\r\n[%s] GPIOWRITE Param(%d) State(%d)", FmtTimeShow(), Param, dataBuf[0] - '0');
+	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
 static void ATCmdDefWatchDog(uint8_t Len, int32_t Param, uint8_t *dataBuf)
