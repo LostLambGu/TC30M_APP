@@ -985,7 +985,7 @@ void WedgeUdpSendUintOut(WedgeUdpSendQueueTypedef *pWedgeUdpSendQueue, WedgeUdpS
 
 }
 
-static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
+static uint8_t WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
 {
     if (pSVRCFG == NULL)
     {
@@ -999,36 +999,61 @@ static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
         if (strlen((const char *)pSVRCFG->srvr1) > strlen("\"\""))
         {
             UdpIpSocketOpen(1, 1111, (char *)pSVRCFG->srvr1, pSVRCFG->port);
+            return 1;
         }
-        break;
+        else
+        {
+            return 0;
+        }
+        // break;
 
     case 2:
         if (strlen((const char *)pSVRCFG->srvr2) > strlen("\"\""))
         {
             UdpIpSocketOpen(2, 2222, (char *)pSVRCFG->srvr2, pSVRCFG->port);
+            return 2;
         }
-        break;
+        else
+        {
+            return 0;
+        }
+        // break;
 
     case 3:
         if (strlen((const char *)pSVRCFG->srvr3) > strlen("\"\""))
         {
             UdpIpSocketOpen(3, 3333, (char *)pSVRCFG->srvr3, pSVRCFG->port);
+            return 3;
         }
-        break;
+        else
+        {
+            return 0;
+        }
+        // break;
 
     case 4:
         if (strlen((const char *)pSVRCFG->srvr4) > strlen("\"\""))
         {
             UdpIpSocketOpen(4, 4444, (char *)pSVRCFG->srvr4, pSVRCFG->port);
+            return 4;
         }
-        break;
+        else
+        {
+            return 0;
+        }
+        // break;
 
     case 5:
         if (strlen((const char *)pSVRCFG->srvr5) > strlen("\"\""))
         {
             UdpIpSocketOpen(5, 5555, (char *)pSVRCFG->srvr5, pSVRCFG->port);
+            return 5;
         }
-        break;
+        else
+        {
+            return 0;
+        }
+        // break;
 
     default:
         WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Parm Err2",
@@ -1037,12 +1062,12 @@ static void WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
     }
 }
 
-static void WedgeUdpSocketOpen(void)
+static uint8_t WedgeUdpSocketOpen(void)
 {
     #define SVRCFG_UDP (1)
     #define SVRCFG_MAX_UDP_NUM (5)
     SVRCFGTypeDef SVRCFG;
-    uint8_t i = 0;
+    uint8_t i = 0, opensocket = 0;
 
     memset(&SVRCFG, 0, sizeof(SVRCFG));
 
@@ -1052,13 +1077,18 @@ static void WedgeUdpSocketOpen(void)
     {
         WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Init Not Udp",
                                       FmtTimeShow());
-        return;
+        return 0;
     }
 
     for (i = 0; i < SVRCFG_MAX_UDP_NUM; i++)
     {
-        WedgeOpenUdpSocket(&SVRCFG, i + 1);
+        if (0 != WedgeOpenUdpSocket(&SVRCFG, i + 1))
+        {
+            opensocket++;
+        }
     }
+
+    return opensocket;
 }
 
 static WedgeUdpSocketManageTypeDef WedgeUdpSocketManage = {0};
@@ -1160,10 +1190,18 @@ void WedgeUdpSocketManageProcess(void)
 
     case WEDGE_UDP_NEED_OPEN_STAT:
     {
-        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Need Open Stat",
-                                      FmtTimeShow());
-        WedgeUdpSocketOpen();
-        WedgeUdpSocketManageStatSet(WEDGE_UDP_WAIT_OPEN_STAT);
+        uint8_t count = WedgeUdpSocketOpen();
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Need Open Stat Count(%d)",
+                                      FmtTimeShow(), count);
+        if (0 != count)
+        {
+            WedgeUdpSocketManageStatSet(WEDGE_UDP_WAIT_OPEN_STAT);
+        }
+        else
+        {
+            WedgeUdpSocketManageStatSet(WEDGE_WAIT_UDP_DISCONNECTED_STAT);
+        }
+        
         udpsmtimeoutcount = 0;
         deltaProcessTime = 10;
 

@@ -52,7 +52,7 @@ static void WedgeOSPDCfgChg(void);
 
 void ApplicationProcess(void)
 {
-    // WedgeInit();
+    WedgeInit();
 
     while (1)
     {

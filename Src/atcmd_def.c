@@ -873,6 +873,22 @@ static void ATCmdDefDbgCtl(uint8_t Len, int32_t Param, uint8_t *dataBuf)
 					}
 				}
 			}
+			else if (Param == 0xfe) /* Open close wedge related logs. */
+			{
+				uint8_t i = 0;
+
+				for (i = 0; i < 6; i++)
+				{
+					if (*dataBuf == '0')
+					{
+						pdbgctl[sizeof(DbgCtl) - i - 1] = FALSE;
+					}
+					else
+					{
+						pdbgctl[sizeof(DbgCtl) - i - 1] = TRUE;
+					}
+				}
+			}
 			else
 			{
 				ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nParam Error\r\n");
