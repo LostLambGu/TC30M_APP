@@ -164,7 +164,7 @@ void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPI
 {
     if ((pUdpSendQueue == NULL) || (pUDPIpSendUint == NULL))
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "UdpSendUnitIn param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "--->>>Network: UdpSendUnitIn param err");
         return;
     }
 
@@ -189,7 +189,7 @@ void UdpSendUintOut(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDP
 {
     if ((pUdpSendQueue == NULL) || (pUDPIpSendUint == NULL))
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "UdpSendUintOut param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "--->>>Network: UdpSendUintOut param err");
         return;
     }
 
@@ -216,7 +216,7 @@ void SmsSendUnitIn(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMSS
 {
     if ((pSmsSendQueue == NULL) || (pSMSSendUint == NULL))
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "SmsSendUnitIn param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "--->>>Network: SmsSendUnitIn param err");
         return;
     }
 
@@ -240,7 +240,7 @@ void SmsSendUintOut(SmsSendQueueTypedef *pSmsSendQueue, SmsSendUintTypedef *pSMS
 {
     if ((pSmsSendQueue == NULL) || (pSMSSendUint == NULL))
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "SmsSendUintOut param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "--->>>Network: SmsSendUintOut param err");
         return;
     }
 
@@ -274,7 +274,7 @@ void UdpIpSocketOpen(uint8_t Socket_Num, uint16_t LocalPort, char *DestAddrP, ui
 
         if (UDPIPSocket[Socket_Num - 1].status != SOCKET_CLOSE)
         {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket %d not close", Socket_Num);
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket %d not close", Socket_Num);
             return;
         }
 
@@ -294,7 +294,7 @@ void UdpIpSocketOpen(uint8_t Socket_Num, uint16_t LocalPort, char *DestAddrP, ui
 	}
     else
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket open param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket open param err");
     }
 }
 
@@ -304,7 +304,7 @@ void UdpIpSocketClose(uint8_t Socket_Num)
     {
         if (UDPIPSocket[Socket_Num - 1].status == SOCKET_CLOSE)
         {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket %d already closed", Socket_Num);
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket %d already closed", Socket_Num);
             return;
         }
 
@@ -325,7 +325,7 @@ void UdpIpSocketClose(uint8_t Socket_Num)
     }
     else
     {
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket close param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket close param err");
     }
 }
 
@@ -339,7 +339,7 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
 
             if (UdpSendQueue.numinqueue >= UDP_SEND_QUEUE_LENGHT_MAX)
             {
-                NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send queue fulll");
+                NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket send queue fulll");
                 return;
             }
 
@@ -358,7 +358,7 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
 		}
         else
         {
-            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send soket closed");
+            NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket send soket closed");
         }
     }
     else
@@ -368,7 +368,7 @@ void UdpIpSocketSendData(char *buffer, uint16_t len)
 			WedgeBufPoolFree(buffer);
 		}
 
-        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nUdpIpSocket send param err");
+        NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: UdpIpSocket send param err");
     }
 }
 
@@ -378,18 +378,18 @@ void SendMessage(char *Num, char *buf)
 	if ((NULL != Num) && (NULL != buf))
 	{
 		uint16_t numlen = strlen(Num);
-		uint16_t buflen = strlen(buf);
+		uint16_t buflen = strlen(buf + WEDGE_SMS_MESSAGE_HEADER_LEN);
 		SmsSendUintTypedef SmsSendUint = {0};
 
 		if (SmsSendQueue.numinqueue >= SMS_SEND_QUEUE_LENGHT_MAX)
 		{
-			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send queue full");
+			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: SMS send queue full");
 			return;
 		}
 
 		if ((0 == numlen) || (0 == buflen))
 		{
-			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send len err");
+			NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: SMS send len err");
 
 			WedgeBufPoolFree(Num);
 			WedgeBufPoolFree(buf);
@@ -411,7 +411,7 @@ void SendMessage(char *Num, char *buf)
 	}
 	else
 	{
-		NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nSMS send param err");
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n--->>>Network: SMS send param err");
 
 		if (Num != NULL)
 		{
@@ -663,7 +663,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 	if (GetSMSDataCanSendStat() == TRUE)
 	{
 		DebugLog("--->>>Network: Sms send SMSSendUint.buf.80(%.80s)", SMSSendUint.buf);
-		UART3SendHexData(SMSSendUint.buf, strlen(SMSSendUint.buf));
+		UART3SendHexData(SMSSendUint.buf, strlen(SMSSendUint.buf + WEDGE_SMS_MESSAGE_HEADER_LEN) + WEDGE_SMS_MESSAGE_HEADER_LEN);
 
 		UART3SendHexData("\x1a", 1);
 

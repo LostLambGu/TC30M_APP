@@ -9,6 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "wedgecommonapi.h"
+#include "adc.h"
 #include "iocontrol.h"
 #include "rtcclock.h"
 #include "usrtimer.h"
@@ -518,6 +519,10 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     uint32_t *pTmpu = NULL;
     TimeTableT timeTable = {0};
     uint8_t *ptmp = WedgeBufPoolCalloc(sizeof(BinaryMsgRecord));
+    volatile float vinadctmp = 0.0;
+
+    WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Response Udp Binary PYLDType(0x%x) EvID(0x%x)",
+                                FmtTimeShow(), PYLDType, EvID);
 
     BinaryMsgRecord.PYLD[0] = PYLDType;
     memcpy(&BinaryMsgRecord.IDENT, IMEIBuf, sizeof(BinaryMsgRecord.IDENT));
@@ -526,12 +531,12 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     pTmpu = (uint32_t *)Buf;
     *pTmpu = (uint32_t)(EvID);
     BytesOrderSwap(Buf, 2);
-    BinaryMsgRecord.POS_SPD[0] = Buf[0];
-    BinaryMsgRecord.POS_SPD[1] = Buf[1];
+    BinaryMsgRecord.EVID[0] = Buf[0];
+    BinaryMsgRecord.EVID[1] = Buf[1];
 
     // Real-Time Clock timestamp UTC
     timeTable = GetRTCDatetime();
-    BinaryMsgRecord.RTC_TS[0] = (uint8_t)timeTable.year;
+    BinaryMsgRecord.RTC_TS[0] = (uint8_t)((timeTable.year < 2000) ? (timeTable.year) : (timeTable.year - 2000));
     BinaryMsgRecord.RTC_TS[1] = (uint8_t)timeTable.month;
     BinaryMsgRecord.RTC_TS[2] = (uint8_t)timeTable.day;
     BinaryMsgRecord.RTC_TS[3] = (uint8_t)timeTable.hour;
@@ -548,7 +553,8 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
     BinaryMsgRecord.IO_STAT[0] |= ((WedgeGpsPowerStateGet() & 0x01) << 6);
     BinaryMsgRecord.IO_STAT[0] |= ((WedgeIgnitionPinStateGet() & 0x01) << 7);
     BinaryMsgRecord.IO_STAT[1] = 0x2C;
-    Buf[0] = (((uint16_t)((ADCGetVinVoltage() + 3.9) * 10)) < 239) ? (uint8_t)((ADCGetVinVoltage() + 3.9) * 10): 239;
+    vinadctmp = (float)ADCGetVinVoltage() / 1000;// MV To V
+    Buf[0] = (((uint8_t)((vinadctmp + 3.9) * 10)) < 239) ? (uint8_t)((vinadctmp + 3.9) * 10): 239;
     BinaryMsgRecord.IO_STAT[2] = Buf[0];
 
     BinaryMsgRecord.GSM_SS[0] = (GetNetworkRssiValue() <= 6) ? 0 : (GetNetworkRssiValue() - 6);
@@ -604,7 +610,7 @@ void WedgeResponseUdpBinary(WEDGEPYLDTypeDef PYLDType, WEDGEEVIDTypeDef EvID)
             WedgeBufPoolFree(ptmp);
         }
 
-        WEDGE_COM_API_LOG("WEDGE Response Udp Binary Fail WedgeUdpSendQueue.numinqueue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
+        WEDGE_COM_API_LOG("WEDGE Response Udp Binary Fail WedgeUdpSendQue(%d Max(%d))", WedgeUdpSendQueue.numinqueue, WEDGE_UDP_SEND_QUEUE_LENGHT_MAX);
 
         WEDGEMsgQueCell.sentstate = WEDGE_MSG_QUE_UNSENT;
         WEDGEMsgQueCell.type = WEDGE_MSG_QUE_UDP_TYPE;
@@ -638,6 +644,7 @@ void WedgeResponseUdpAsciiInit(void)
     AsciiMsgRecord.EQ_VEN[0] = 0x01; // Vendor is OEM
     AsciiMsgRecord.PROT[0] = 0x01; // Binary = 0x00; ASCII = 0x01
     AsciiMsgRecord.PVER[0] = 0x00; // Initial Protocol version
+    (void)(AsciiMsgRecord);
 }
 
 void WedgeResponseUdpAscii(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
@@ -1058,7 +1065,8 @@ static uint8_t WedgeOpenUdpSocket(SVRCFGTypeDef *pSVRCFG, uint8_t socketnum)
     default:
         WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Open Parm Err2",
                   FmtTimeShow());
-        break;
+				return 0;
+        // break;
     }
 }
 
@@ -1393,7 +1401,7 @@ void WedgeUdpSocketManageProcess(void)
 
         return;
     }
-    break;
+    // break;
 
     default:
         WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WEDGE Udp Socket Process Stat Err",

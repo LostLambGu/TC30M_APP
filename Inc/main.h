@@ -136,6 +136,7 @@
 #endif /* TC30M_TEST_CONFIG_OFF */
 
 #define WEDGE_MSG_QUE_DATA_LEN_MAX (252)
+#define WEDGE_SMS_MESSAGE_HEADER_LEN (18)
 
 /* ########################## Assert Selection ############################## */
 /**
