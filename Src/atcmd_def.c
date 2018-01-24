@@ -256,9 +256,9 @@ static void ATCmdModemFactoryTest(void)
 	{
 		ModemPowerEnControl(ENABLE);
 		ModemRTSEnControl(ENABLE);
+		HAL_Delay(3000);
 	}
 
-	HAL_Delay(3000);
 	HAL_UART_Transmit(&huart1, ENTER_MODEM_BYPASS_INFO, strlen(ENTER_MODEM_BYPASS_INFO), UART_SEND_DATA_TIMEOUT);
 
 	while (factorymodembypassfalg == TRUE)

@@ -305,6 +305,8 @@ void USART1_IRQHandler(void)
 
     if (factorymodembypassfalg)
     {
+      while (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_TXE) == RESET)
+      ;
       huart3.Instance->TDR = RevData;
       
       __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
@@ -390,6 +392,8 @@ void USART3_8_IRQHandler(void)
 
     if (factorymodembypassfalg)
     {
+      while (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TXE) == RESET)
+      ;
       huart1.Instance->TDR = tmp;
       __HAL_UART_CLEAR_FLAG(huart, UART_FLAG_RXNE);
       return;
