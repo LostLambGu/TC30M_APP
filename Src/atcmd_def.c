@@ -387,6 +387,7 @@ static void ATCmdDefFlashFactoryTest(void)
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }
 
+extern uint8_t WedgeIsStartFromPowerLost(void);
 static void ATCmdDefFlashChipEraseFactoryTest(void)
 {
 	MQSTATTypeDef MQSTAT = {0};

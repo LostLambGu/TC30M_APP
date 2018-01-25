@@ -164,6 +164,7 @@ typedef struct
 } BinaryMsgFormatTypeDef;
 
 #define MSG_FMT_ASCII_DATA_250_BYTES (250)
+#define MSG_FMT_ASCII_DATA_HEADER_SIZE (4)
 typedef struct
 {
     uint8_t EQ_VEN[MSG_FMT_DEFAULT_1_BYTES];      /* OEM = 0x01 */
