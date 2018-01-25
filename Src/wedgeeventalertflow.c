@@ -1207,6 +1207,8 @@ void WedgePeriodicOffEvent(void)
     RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
     if (RPTINTVL.ioffint == 0)
     {
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicOff ioffint(%d)"
+                                    , FmtTimeShow(), WedgePeriodicOffEventErr, RPTINTVL.ioffint);
         return;
     }
 
@@ -1253,6 +1255,8 @@ void WedgePeriodicHealthEvent(void)
     RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
     if (RPTINTVL.perint == 0)
     {
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicHealth perint(%d)"
+                                    , FmtTimeShow(), WedgePeriodicHealthEventStr, RPTINTVL.perint);
         return;
     }
 

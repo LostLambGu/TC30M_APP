@@ -9,6 +9,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "wedgertctimer.h"
+#include "rtc.h"
 #include "rtcclock.h"
 #include "initialization.h"
 #include "ublox_driver.h"
@@ -33,7 +34,6 @@ static uint8_t WedgeRtcAlarmHappen = 0;
 /* Function definition -------------------------------------------------------*/
 static uint8_t WedgeRtcTimerInstanceInsert(RTCTimerListCellTypeDef Instance);
 static uint8_t WedgeRtcTimerFetchMinInArray(RTCTimerListCellTypeDef *pInstance, uint8_t *pIndex);
-static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void);
 static uint8_t WedgeRtcTimerPeriodOverProcess(RTCTimerListCellTypeDef RTCTimerListCell, uint32_t Period);
 static RTCTimerListCellTypeDef WedgeRTCGetCurrentInstance(void);
 
@@ -214,6 +214,14 @@ uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList)
             WedgeRtcTimerModifySettime(WEDGE_HWREST_TIME_SECONDS, WEDGE_RTC_TIMER_MODIFY_INCREASE);
             timetable = SecondsToTimeTable(LastHWRSTRTCTime + WEDGE_HWREST_TIME_SECONDS);
             SetRTCDatetime(&timetable);
+            if (HAL_OK != HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A))
+            {
+                WEDGE_RTC_TIMER_PRINT(TRUE, "\r\n--->> WEDGE RTCTimerInit HAL_RTC_DeactivateAlarm Fail");
+            }
+            else
+            {
+                WedgeRtcTimerInstanceAlarmRefresh();
+            }
         }
     }
 
@@ -391,14 +399,6 @@ uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef M
         (RTCTimerList.currentinstance).settime -= Delta;
     }
 
-    ret = WedgeRtcTimerInstanceAlarmRefresh();
-	if (ret)
-    {
-        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE RTC Timer Modify Refresh err: %d",
-                                  FmtTimeShow(), ret);
-        return 2;
-    }
-
     return 0;
 }
 
@@ -508,11 +508,17 @@ static uint8_t WedgeRtcTimerFetchMinInArray(RTCTimerListCellTypeDef *pInstance, 
     return 0;
 }
 
-static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
+uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
 {
     uint32_t curseconds = WedgeRtcCurrentSeconds();
     uint32_t setseconds = 0;
 
+    if (((RTCTimerList.currentinstance).RTCTimerType == WEDGE_RTC_TIMER_INVALID) || ((RTCTimerList.currentinstance).RTCTimerType >= WEDGE_RTC_TIMER_MAX))
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE RTC Timer Refresh Current Instance Invalid",
+                                      FmtTimeShow());
+        return 2;
+    }
 
     // If there is no instance in RTC Timer list , there is no instance type check, this may cause bugs(Luckyly this is at least on instance.)
     if ((RTCTimerList.currentinstance).settime <= curseconds)
@@ -524,7 +530,6 @@ static uint8_t WedgeRtcTimerInstanceAlarmRefresh(void)
     }
 
     setseconds = (RTCTimerList.currentinstance).settime - curseconds;
-
     return SetRTCAlarmTime(setseconds, DbgCtl.WedgeRtcTimerInfoEn);
 }
 

@@ -73,6 +73,7 @@ extern void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize);
 extern uint8_t WedgeRtcTimerInstanceAdd(RTCTimerListCellTypeDef Instance);
 extern uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType);
 extern uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType);
+extern uint8_t WedgeRtcTimerInstanceAlarmRefresh(void);
 
 #ifdef __cplusplus
 }

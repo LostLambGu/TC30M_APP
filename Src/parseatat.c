@@ -10,8 +10,12 @@
 #include "parseatat.h"
 #include "ltecatm.h"
 #include "network.h"
-#include "wedgecommonapi.h"
 #include "iocontrol.h"
+#include "wedgecommonapi.h"
+#include "wedgertctimer.h"
+#include "wedgeeventalertflow.h"
+
+#include "rtc.h"
 
 #define ParseatPrint DebugPrintf
 
@@ -1248,6 +1252,7 @@ static void MmiCCLK (ATRspParmT* MsgDataP)
 		(MsgDataP[4].Num <= 59) && \
 		(MsgDataP[5].Num <= 59))
 	{
+		uint32_t RTCTimeBase = *((uint32_t *)WedgeSysStateGet(WEDGE_BASE_RTC_TIME));
 		// Init RTC Time
 		timeTable.year 	= MsgDataP[0].Num;
 		timeTable.month 	= MsgDataP[1].Num;
@@ -1255,9 +1260,32 @@ static void MmiCCLK (ATRspParmT* MsgDataP)
 		timeTable.hour 	= MsgDataP[3].Num;
 		timeTable.minute 	= MsgDataP[4].Num;
 		timeTable.second 	= MsgDataP[5].Num;
-		SetRTCDatetime(&timeTable);
-		ModemTimetalbeGet = timeTable;
-		ModemTimeInSeconds = TimeTableToSeconds(timeTable);
+
+		if (HAL_OK != HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A))
+		{
+			ParseatPrint(TRUE,"\r\n--->>PAT:+CCLK HAL_RTC_DeactivateAlarm Fail");
+		}
+		else
+		{
+			// HAL_RTC_DeInit(&hrtc);
+			// MX_RTC_Init();
+			SetRTCDatetime(&timeTable);
+			ModemTimetalbeGet = timeTable;
+			ModemTimeInSeconds = WedgeRtcCurrentSeconds();
+
+			if (RTCTimeBase < ModemTimeInSeconds)
+			{
+				WedgeRtcTimerModifySettime((ModemTimeInSeconds - RTCTimeBase), WEDGE_RTC_TIMER_MODIFY_INCREASE);
+				WedgeRtcTimerInstanceAlarmRefresh();
+			}
+			else
+			{
+				WedgeRtcTimerModifySettime((RTCTimeBase - ModemTimeInSeconds), WEDGE_RTC_TIMER_MODIFY_DECREASE);
+				WedgeRtcTimerInstanceAlarmRefresh();
+			}
+
+			WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &ModemTimeInSeconds);
+		}
 	}
 	else
 	{

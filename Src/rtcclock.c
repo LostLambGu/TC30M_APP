@@ -323,7 +323,9 @@ uint8_t SetRTCAlarmTime(uint32_t seconds, uint8_t Status)
 	sAlarm.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_DATE;
 	sAlarm.AlarmDateWeekDay = BCDday;
 	sAlarm.Alarm = RTC_ALARM_A;
+  SystemDisableAllInterrupt();
 	ErrCode = (uint8_t)HAL_RTC_SetAlarm_IT(&hrtc, &sAlarm, RTC_FORMAT_BCD);
+  SystemEnableAllInterrupt();
 	// Print Out
 	RTCTimPrintf(DbgCtl.RTCDebugInfoEn,"\r\n[%s] RTC: Almset(%d)Next(%02X %02X:%02X:%02X)Err(%d)", \
 		FmtTimeShow(), \

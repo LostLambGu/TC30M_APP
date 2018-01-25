@@ -153,6 +153,8 @@ static void WedgeIgnitionStateProcess(void)
 
     case WEDGE_IGN_OFF_TO_ON_STATE:
     {
+        APP_LOG("WEDGE Ign Stat IGN OFF_TO_ON");
+
         WedgeIGNOffStateReset();
 
         WedgeStopReportOnToOffDisable();
@@ -177,6 +179,8 @@ static void WedgeIgnitionStateProcess(void)
 
     case WEDGE_IGN_ON_TO_OFF_STATE:
     {
+        APP_LOG("WEDGE Ign Stat IGN ON_TO_OFF");
+
         if (IGNTYPE.itype == Wired_Ignition)
         {
             WedgeLocationOfDisabledVehicleOnToOff();
@@ -602,15 +606,17 @@ static void WedgeIGNTYPCfgChg(void)
         APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s3", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
     }
     else if (IGNTYPE.itype == Wired_Ignition)
-    {
+    {   
         if (GPIO_PIN_RESET == READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin))
         {
             APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s4", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+            WedgeIGNOffStateReset();
             WedgeIgnitionStateSet(WEDGE_IGN_ON_TO_OFF_STATE);
         }
         else
         {
             APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%s5", FmtTimeShow(), WedgeIGNTYPCfgChgStr);
+            WedgeIGNOnStateReset();
             WedgeIgnitionStateSet(WEDGE_IGN_OFF_TO_ON_STATE);
         }
     }
