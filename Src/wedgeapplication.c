@@ -113,7 +113,11 @@ static void WedgeIgnitionStateProcess(void)
 
     case WEDGE_IGN_IGNORE_STATE:
     {
+        #if TC30M_TEST_CONFIG_OFF
+        #define WEDGE_IGNITION_IGNORE_PROCESS_PERIOD (20000)
+        #else
         #define WEDGE_IGNITION_IGNORE_PROCESS_PERIOD (5000)
+        #endif /* TC30M_TEST_CONFIG_OFF */
         static uint32_t WedgeIgniIgnorLastMs = 0;
         if (WEDGE_IGNITION_IGNORE_PROCESS_PERIOD > (HAL_GetTick() - WedgeIgniIgnorLastMs))
         {
@@ -123,7 +127,7 @@ static void WedgeIgnitionStateProcess(void)
         {
             WedgeIgniIgnorLastMs = HAL_GetTick();
         }
-        APP_LOG("WEDGE Ign Stat WEDGE_IGN_IGNORE_STATE Period(%d)", WEDGE_IGNITION_IGNORE_PROCESS_PERIOD);
+        APP_LOG("WEDGE Ign Stat IGN IGNORE_STATE Period(%d)", WEDGE_IGNITION_IGNORE_PROCESS_PERIOD);
     }
     break;
 
@@ -274,7 +278,7 @@ static void WedgeMsgQueProcess(void)
     static uint32_t SystickRec = 0, WedgeMsgUnsent = FALSE;
     static WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
 
-    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (1000)
+    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (5000)
     if (WEDGE_MSG_QUE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
@@ -286,7 +290,7 @@ static void WedgeMsgQueProcess(void)
 
     if (networkstat != NET_CONNECTED_STAT)
     {
-        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Disconnect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Net Disconnect Period(%d)", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
         return;
     }
     else
@@ -313,12 +317,12 @@ static void WedgeMsgQueProcess(void)
             {
                 if (WedgeMsgProcessResponseUdp(WEDGEMsgQueCell.data, WEDGEMsgQueCell.size) > 0)
                 {
-                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Fail WEDGEMsgQueCell.size(%d)", FmtTimeShow(), WEDGEMsgQueCell.size);
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Udp Fail Size(%d)", FmtTimeShow(), WEDGEMsgQueCell.size);
                     WedgeMsgUnsent = TRUE;
                 }
                 else
                 {
-                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseUdp Ok", FmtTimeShow());
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Udp Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
                 }
             }
@@ -326,12 +330,12 @@ static void WedgeMsgQueProcess(void)
             {
                 if (WedgeMsgProcessResponseSms(WEDGEMsgQueCell.data, WEDGEMsgQueCell.size) > 0)
                 {
-                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseSms Fail", FmtTimeShow());
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Sms Fail", FmtTimeShow());
                     WedgeMsgUnsent = TRUE;
                 }
                 else
                 {
-                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess WedgeMsgProcessResponseSms Ok", FmtTimeShow());
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Sms Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
                 }
             }

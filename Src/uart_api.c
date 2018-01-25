@@ -33,9 +33,31 @@ uint16_t Uart3RxCount = 0;
 
 uint8_t Uart3RxBuffer[UART3_RX_BUFFER_SIZE] = {'\0'};
 // uint8_t Uart3ParseBuffer[UART3_RX_BUFFER_SIZE] = {'\0'};
-
-DebugCtlPrarm DbgCtl =
-	{
+#if TC30M_TEST_CONFIG_OFF
+DebugCtlPrarm DbgCtl = {
+		.NormalInfoEn = TRUE,
+		.ATCmdInfoEn = TRUE,
+		.ATCmdDbgEn = TRUE,
+		.AppATCmdDbgEn = FALSE,
+		.Lis3dhDbgInfoEn = TRUE,
+		.SerialFlashEn = FALSE,
+		.RTCDebugInfoEn = FALSE,
+		.UbloxDbgInfoEn = FALSE,
+		.ParseatCmdEn = TRUE,
+		.ParseatResultEn = TRUE,
+		.SendToModemEn = TRUE,
+		.VersionDebugInfoEn = TRUE,
+		.NetworkDbgInfoEn = TRUE,
+		.LteRecDbgInfoEn = TRUE,
+		.WedgeAppLogInfoEn = TRUE,
+		.WedgeCommonLogInfo = TRUE,
+		.WedgeDeviceInfoEn = TRUE,
+		.WedgeEvtAlrtFlwInfoEn = TRUE,
+		.WedgeMsgQueInfoEn = TRUE,
+		.WedgeRtcTimerInfoEn = TRUE,
+};
+#else
+DebugCtlPrarm DbgCtl = {
 		.NormalInfoEn = TRUE,
 		.ATCmdInfoEn = TRUE,
 		.ATCmdDbgEn = TRUE,
@@ -57,6 +79,7 @@ DebugCtlPrarm DbgCtl =
 		.WedgeMsgQueInfoEn = TRUE,
 		.WedgeRtcTimerInfoEn = TRUE,
 };
+#endif /* TC30M_TEST_CONFIG_OFF */
 
 /* Function definition -------------------------------------------------------*/
 void PutString(uint8_t *String)

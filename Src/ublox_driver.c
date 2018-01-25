@@ -61,7 +61,7 @@ void UbloxI2cInit(void)
 	//UbloxPowerEnControl(ENABLE);
 
 	// Print Out
-	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] Ublox: Hardware Init", FmtTimeShow());
+	UbloxPrintf(TRUE, "\r\n[%s] Ublox: Hardware Init", FmtTimeShow());
 }
 
 #if TC30M_TEST_CONFIG_OFF

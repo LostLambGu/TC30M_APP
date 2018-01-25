@@ -71,6 +71,7 @@ typedef enum
 
 extern void WedgeCfgInit(WEDGECfgTypeDef *pWEDGECfg);
 extern void WedgeCfgGetTotal(uint8_t *pBuf, uint32_t *pSize);
+extern uint16_t WedgeGetGeofenceBitMap(void);
 extern void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet);
 extern void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData);
 

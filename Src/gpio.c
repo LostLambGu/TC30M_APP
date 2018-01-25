@@ -166,7 +166,7 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(PC10_MCU_IGN_GPIO_Port, &GPIO_InitStruct);
 #else
-#if 1/* 1 Ignition On, 0 Off */
+#if 0/* 1 Ignition On, 0 Off */
 HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_SET);
 #else
 HAL_GPIO_WritePin(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin, GPIO_PIN_RESET);

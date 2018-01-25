@@ -481,6 +481,12 @@ void WedgeIDLEDetectAlert(void)
     IDLETypeDef IDLE = {0};
     double speedkm = 0.0;
     static uint32_t SystickRec = 0;
+    #if TC30M_TEST_CONFIG_OFF
+    #define WEDGE_IDLE_DETECT_ALERT_PRINT_COUNT (10)
+    #else
+    #define WEDGE_IDLE_DETECT_ALERT_PRINT_COUNT (1)
+    #endif
+    static uint8_t printcount = 0;
 
     if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
@@ -493,8 +499,8 @@ void WedgeIDLEDetectAlert(void)
 
     IDLE = *((IDLETypeDef *)WedgeCfgGet(WEDGE_CFG_IDLE));
 
-    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt IDLE.duration(%d)"
-                                , FmtTimeShow(), IDLE.duration);
+    // WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt IDLE.duration(%d)"
+    //                             , FmtTimeShow(), IDLE.duration);
     if (IDLE.duration == 0)
     {
         return;
@@ -531,8 +537,13 @@ void WedgeIDLEDetectAlert(void)
     }
     else
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt Gps No Fix"
-                                , FmtTimeShow());
+        printcount++;
+        if ((printcount % WEDGE_IDLE_DETECT_ALERT_PRINT_COUNT) == 0)
+        {
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE IDLE Alrt Gps No Fix Count(%d)"
+                                , FmtTimeShow(), WEDGE_IDLE_DETECT_ALERT_PRINT_COUNT);
+        }
+        
         // if (WEDGESysState.IDLEDtectTimerStart == FALSE)
         // {
         //    SoftwareTimerCreate(&WedgeIDLETimer, 1, CheckWedgeIDLETimerCallback, TimeMsec(IDLE.duration));
@@ -1097,6 +1108,12 @@ void WedgeHeadingChangeDetect(void)
     double HeadingTmp = 0.0;
     static uint32_t SystickRec = 0;
     char * WedgeHeadingChangeDetectStr= " WEDGE Heading Change Detect ";
+    #if TC30M_TEST_CONFIG_OFF
+    #define WEDGE_HEADING_CHANGE_DETECT_PRINT_COUNT (10)
+    #else
+    #define WEDGE_HEADING_CHANGE_DETECT_PRINT_COUNT (1)
+    #endif
+    static uint8_t printoutcount = 0;
 
     if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
@@ -1109,8 +1126,13 @@ void WedgeHeadingChangeDetect(void)
 
     if (UbloxFixStateGet() == FALSE)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sGps Not Fix"
-                                    , FmtTimeShow(), WedgeHeadingChangeDetectStr);
+        printoutcount++;
+        if ((printoutcount % WEDGE_HEADING_CHANGE_DETECT_PRINT_COUNT) == 0)
+        {
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%sGps Not Fix Count(%d)"
+                , FmtTimeShow(), WedgeHeadingChangeDetectStr, WEDGE_HEADING_CHANGE_DETECT_PRINT_COUNT);
+        }
+        
         return;
     }
 

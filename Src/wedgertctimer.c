@@ -39,6 +39,7 @@ static RTCTimerListCellTypeDef WedgeRTCGetCurrentInstance(void);
 
 extern void WedgeDeviceInfoSave(void);
 extern void MCUReset(void);
+extern uint8_t WedgeSetPowerLostBeforeReset(void);
 
 void WedgeRTCTimerEventProcess(void)
 {
