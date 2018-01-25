@@ -429,7 +429,7 @@ void WedgeUpdateBinaryMsgGpsRecord(void)
         return;
     }
 
-    BinaryMsgRecord.GPS_DT[0] = (uint8_t)GpsInfo.Year;
+    BinaryMsgRecord.GPS_DT[0] = (uint8_t)((GpsInfo.Year > 2000) ? (GpsInfo.Year - 2000): GpsInfo.Year);
     BinaryMsgRecord.GPS_DT[1] = (uint8_t)GpsInfo.Month;
     BinaryMsgRecord.GPS_DT[2] = (uint8_t)GpsInfo.Day;
     BinaryMsgRecord.GPS_TM[0] = (uint8_t)GpsInfo.Hour;
