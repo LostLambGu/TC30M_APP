@@ -442,6 +442,35 @@ static void UART3SendHexData(char *string, uint16_t slen)
 
 #define SMS_SEND_OVER_TIME_MS (60000)
 #define UDP_SEND_OVER_TIME_MS (10000)
+
+static uint8_t networkmutex = FALSE;
+
+static uint8_t NetWorkMutexGet(void)
+{
+	if (networkmutex == FALSE)
+	{
+		networkmutex = TRUE;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+static uint8_t NetWorkMutexGive(void)
+{
+	if (networkmutex == TRUE)
+	{
+		networkmutex = FALSE;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
 void NetReadySocketProcess(uint32_t *pTimeout)
 {
 	static UdpSendUintTypedef UDPIpSendUint = {0};
@@ -512,7 +541,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		return;
 	}
 
-	if ((UdpSendQueue.numinqueue != 0) && (udpsendoverflag == 1))
+	if ((UdpSendQueue.numinqueue != 0) && (udpsendoverflag == 1) && (NetWorkMutexGet() == TRUE))
 	{
 		DebugLog("--->>>Network: Udp send data UdpSendQueue.numinqueue(%d)", UdpSendQueue.numinqueue);
 		memset(&UDPIpSendUint, 0, sizeof(UDPIpSendUint));
@@ -558,6 +587,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		{
 			DebugLog("--->>>Network: Udp send data overtime");
 			udpsendoverflag = 1;
+			NetWorkMutexGive();
 
 			if (UDPIpSendUint.buf != NULL)
 			{
@@ -608,13 +638,14 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 				UDPIpSendUint.buf = NULL;
 			}
 			udpsendoverflag = 1;
+			NetWorkMutexGive();
 			SetUDPDataCanSendStat(FALSE);
 		// }
 
 		return;
 	}
 
-	if ((SmsSendQueue.numinqueue != 0) && (smssendoverflag == 1) && (GetSMSNeedResponseStat() == FALSE))
+	if ((SmsSendQueue.numinqueue != 0) && (smssendoverflag == 1) && (GetSMSNeedResponseStat() == FALSE) && (NetWorkMutexGet() == TRUE))
 	{
 		// Did not do SMS length Check
 		DebugLog("--->>>Network: Sms send  SmsSendQueue.numinqueue (%d)", SmsSendQueue.numinqueue);
@@ -641,6 +672,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		{
 			DebugLog("--->>>Network: Sms send data overtime");
 			smssendoverflag = 1;
+			NetWorkMutexGive();
 			if (SMSSendUint.buf != NULL)
 			{
 				WedgeBufPoolFree(SMSSendUint.buf);
@@ -680,6 +712,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		}
 
 		smssendoverflag = 1;
+		NetWorkMutexGive();
 		SetSMSDataCanSendStat(FALSE);
 		SetSMSNeedResponseStat(TRUE);
 		

@@ -159,11 +159,13 @@ int smssend(u8 PYLDType, char *fmt, ...)
         {
 
             memcpy(SMSMessage->smstextdata, string ,strlen(string));
+					  memcpy(&(SMSMessage->smstextdata[2]),	imei,15);
             WedgeResponseSms(PYLDType,SMSMessage,cnt);
         }
         else
         {
             memcpy(SMSMessage->smstextdata, string ,MAX_PRINTF_STR_SIZE);
+					  memcpy(&(SMSMessage->smstextdata[2]),	imei,15);
             WedgeResponseSms(PYLDType,SMSMessage,MAX_PRINTF_STR_SIZE);
         }
     }
@@ -181,7 +183,10 @@ int SendRpt(u8 PYLDType, ATCmdSource_t type,char *fmt, ...)
         va_start(ap,fmt);
         //cnt = vsprintf(string, fmt, 	ap);
         cnt = vsnprintf(string,MAX_PRINTF_STR_SIZE ,fmt, ap);
-        smssend(PYIDchange(PYLDType),"%c,%s,%s",PYIDchange(PYLDType),imei,string);
+				
+					 smssend(PYIDchange(PYLDType),"%c,000000000000000,%s",PYIDchange(PYLDType),string);
+				
+				
     }
     else if (type==ToUDP)
     {

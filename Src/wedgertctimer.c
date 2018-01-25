@@ -119,11 +119,22 @@ void WedgeRTCTimerEventProcess(void)
     case Periodic_Hardware_Reset_Onetime:
     {
         uint32_t LastHWRSTRTCTime = 0;
+        HWRSTTypeDef HWRST;
         WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sPeriodic_Hardware_Reset_Onetime",
                               FmtTimeShow(), WedgeRTCTimerEventProcessStr);
         
         UbloxGPSStop();
         ModemPowerEnControl(DISABLE);
+
+        HWRST = *((HWRSTTypeDef *)WedgeCfgGet(WEDGE_CFG_HWRST));
+        Period = HWRST.interval * WEDGE_MINUTE_TO_SECOND_FACTOR;
+        ret = WedgeRtcTimerPeriodOverProcess(currentinstance, Period);
+        if (0 != ret)
+        {
+            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%s HWRST PeriodOver err%d",
+                                  FmtTimeShow(), WedgeRTCTimerEventProcessStr, ret);
+            return;
+        }
 
         LastHWRSTRTCTime = WedgeRtcCurrentSeconds();
         WedgeSysStateSet(WEDGE_LAST_HWRST_RTC_TIME, &LastHWRSTRTCTime);

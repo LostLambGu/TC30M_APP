@@ -84,7 +84,8 @@ void MCUReset(void)
   // __disable_irq();
   // __dsb(portSY_FULL_READ_WRITE);
   // __isb(portSY_FULL_READ_WRITE);
-  SoftwareJumping(ROM_START_ADDRESS);
+  // SoftwareJumping(ROM_START_ADDRESS);
+  NVIC_SystemReset();
 }
 
 typedef void (*ApplicationInitTypedef)(void);

@@ -740,7 +740,7 @@ int8_t WedgeMsgProcessResponseUdp(void *MsgBufferP, uint32_t size)
 
 void WedgeResponseSms(WEDGEPYLDTypeDef PYLDType, void *MsgBufferP, uint32_t size)
 {
-    if ((MsgBufferP == NULL) || (size == 0) || (size > (WEDGE_SMS_DATA_MAX_LEN + SMS_RECEIVE_NUMBER_MAX_LEN)) || (PYLDType > WEDGEPYLD_INVALID_MAX))
+    if ((MsgBufferP == NULL) || (size == 0) || (size > (WEDGE_SMS_DATA_MAX_LEN + SMS_RECEIVE_NUMBER_MAX_LEN)) || (PYLDType > WEDGEPYLD_SMS_INVALID_MAX))
     {
         WEDGE_COM_API_LOG("WEDGE Response SMS Parm Err");
     }
