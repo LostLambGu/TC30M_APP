@@ -362,7 +362,7 @@ uint8_t WedgeRtcTimerInstanceDel(WEDGERTCTimerInstanceTypeDef InstanceType)
 
 uint8_t WedgeRtcTimerModifySettime(uint32_t Delta, WEDGERTCTimerSettimeTypeDef ModifyType)
 {
-    uint8_t i = 0, ret = 0;
+    uint8_t i = 0;
 
     if (ModifyType >= WEDGE_RTC_TIMER_MODIFY_INVALID_MAX)
     {

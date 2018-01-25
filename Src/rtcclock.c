@@ -11,6 +11,7 @@
 #include "rtc.h"
 #include "rtcclock.h"
 #include "uart_api.h"
+#include "initialization.h"
 
 /* Private typedef -----------------------------------------------------------*/
 #ifndef FALSE
