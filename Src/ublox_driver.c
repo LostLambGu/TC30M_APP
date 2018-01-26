@@ -102,23 +102,23 @@ void ReadUbloxData(void)
 			}
 		}
 		// Print out
-		UbloxPrintf(NRCMD, "\r\n[%s] GPS: len(%d) retry(%d)", \
+		UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: len(%d) retry(%d)", \
 			FmtTimeShow(), MsgBuffer.DataLen, LoopCount);
 		// Read NMEA Data
 		if(MsgBuffer.DataLen > 0 && MsgBuffer.DataLen < DATA_SIZE_MAX+1)
 		{
 			// Get Data
 			if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
-				UbloxPrintf(NRCMD, "\r\n[%s] GPS: data ready",FmtTimeShow());
+				UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: data ready",FmtTimeShow());
 			else
-				UbloxPrintf(NRCMD, "\r\n[%s] GPS: data fail",FmtTimeShow());
+				UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: data fail",FmtTimeShow());
 			//#ifdef UBLOX_GPS_IIC_DMA_SUPPORT
 			// I2C DMA Wating
 			WaitI2cDmaTransferDone();
 			// Print out
-			UbloxPrintf(NRCMD, "\r\n");
 			if (DbgCtl.UbloxDbgInfoEn)
 			{
+				UbloxPrintf(NRCMD, "\r\n");
 				UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
 			}
 		}
@@ -131,16 +131,17 @@ void ReadUbloxData(void)
 					MsgBuffer.DataLen = DATA_SIZE_MAX;
 			        //if length is still above max size, it means the data includes 2 packet data at least.
 				if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
-				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: data ok len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
+				 	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: data ok len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
 				else
-				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: data err len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
+				 	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: data err len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
 				//#ifdef UBLOX_GPS_IIC_DMA_SUPPORT
 				// I2C DMA Wating
 				WaitI2cDmaTransferDone();
 				// Print out
-				UbloxPrintf(NRCMD, "\r\n");
+				
 				if (DbgCtl.UbloxDbgInfoEn)
 				{
+					UbloxPrintf(NRCMD, "\r\n");
 					UART1PrintMassData(MsgBuffer.Data, strlen((char *)MsgBuffer.Data));
 				}
 				
@@ -150,7 +151,7 @@ void ReadUbloxData(void)
 				{
 					MsgBuffer.DataLen = GpsLenBuff[1] + (GpsLenBuff[0]<<8);
 					// Print out
-				 	UbloxPrintf(NRCMD, "\r\n[%s] GPS: retry len(%d)", \
+				 	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: retry len(%d)", \
 						FmtTimeShow(),MsgBuffer.DataLen);
 					// Checl lenght
 					if(MsgBuffer.DataLen == 0)

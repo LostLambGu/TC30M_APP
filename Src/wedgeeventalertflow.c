@@ -847,6 +847,12 @@ void WedgeOverSpeedAlert(void)
     OSPDTypeDef OSPD;
     double speedkm = 0.0;
     static uint32_t SystickRec = 0;
+    #if TC30M_TEST_CONFIG_OFF
+    #define WEDGE_HEADING_OVERSPEED_PRINT_COUNT (10)
+    #else
+    #define WEDGE_HEADING_OVERSPEED_PRINT_COUNT (1)
+    #endif
+    static uint8_t printoutcount = 0;
 
     if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
@@ -859,8 +865,12 @@ void WedgeOverSpeedAlert(void)
 
     if (UbloxFixStateGet() == FALSE)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Gps Not Fix"
-                                    , FmtTimeShow());
+        printoutcount++;
+        if ((printoutcount % WEDGE_HEADING_OVERSPEED_PRINT_COUNT) == 0)
+        {
+            WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Over Speed Gps Not Fix Count(%d)"
+                                    , FmtTimeShow(), WEDGE_HEADING_OVERSPEED_PRINT_COUNT);
+        }
         return;
     }
 
