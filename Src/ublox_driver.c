@@ -183,12 +183,11 @@ void UART2_RxCpltCallback(uint8_t Data)
 
 double ChangetoRadian(int value)
 {
-	int tmp = value;
-
-	tmp = (tmp / 10000000) * 10000000;
-	value = value - tmp;
-
-	return (value / 60.0 + tmp) / 10000000.0;
+        int tmp = 0.0;
+        tmp = value;
+        tmp = (tmp/10000000)*10000000;
+        value = value - tmp;
+        return (value*10/6+tmp)/10;
 }
 
 bool NmeaGPGGAParseFun(void *pdata, int *fixmode)
@@ -1044,8 +1043,12 @@ bool NmeaParseFun(PswGpsNmeaStreamMsgT *pNmeaMsg, ValGpsInfo *GpsInfop)
 	{
 		GpsInfop->Altitude = gLocMsg.AltitudeWRTSeaLevel;
 		GpsInfop->Heading = gLocMsg.Heading;
-		GpsInfop->Latitude = ChangetoRadian(gLocMsg.Latitude);
-		GpsInfop->Longitude = ChangetoRadian(gLocMsg.Longitude);
+		// Conversion degree to Radian
+		// Conversion degree to Radian
+		GpsInfop->Latitude = ChangetoRadian(gLocMsg.Latitude) / 1000000;
+		GpsInfop->Longitude = ChangetoRadian(gLocMsg.Longitude) / 1000000;
+		UbloxPrintf(DbgCtl.UbloxDbgInfoEn,"\r\n[%s] GpsInfop->Latitude(%f) GpsInfop->Longitude(%f)", \
+		FmtTimeShow(), GpsInfop->Latitude, GpsInfop->Longitude);
 		GpsInfop->SatelliteCount = gLocMsg.SatelliteCount;
 		GpsInfop->Velocity = gLocMsg.Speed;
 		GpsInfop->bGpsLock = TRUE;
