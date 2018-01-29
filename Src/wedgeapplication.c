@@ -269,7 +269,10 @@ static void WedgeInit(void)
 
     WedgeCfgChgStateResetAll();
 
-    WedgeMsgQueInit();
+    if (WedgeIsPowerLostGet() == TRUE)
+    {
+        WedgeMsgQueInit();
+    }
 
     WedgePeriodicHardwareResetInit();
 

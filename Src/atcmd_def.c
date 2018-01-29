@@ -340,49 +340,49 @@ static void ATCmdDefAdcFactoryTest(void)
 
 static void ATCmdDefFlashFactoryTest(void)
 {
-	uint16_t i, j, sectorsize = 4096, pagesize = 256;
-	uint8_t readbuf[256] = {0}, writebuf[256] = {0};
+	// uint16_t i, j, sectorsize = 4096, pagesize = 256;
+	// uint8_t readbuf[256] = {0}, writebuf[256] = {0};
 
 	ATCmdPrintf(TRUE, "\r\nSFlash factory test start!");
 	SerialFlashInit();
-	for (i = 0; i < 5; i++)
-	{
+	// for (i = 0; i < 5; i++)
+	// {
 
-		if (SerialFlashErase(FLASH_ERASE_04KB, i) != FLASH_STAT_OK)
-		{
-			ATCmdPrintf(TRUE, "\r\n[%s] SFlash sector erase error!", FmtTimeShow());
-			return;
-		}
+	// 	if (SerialFlashErase(FLASH_ERASE_04KB, i) != FLASH_STAT_OK)
+	// 	{
+	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash sector erase error!", FmtTimeShow());
+	// 		return;
+	// 	}
 
-		for (j = 0; j < pagesize; j++)
-		{
-			writebuf[j] = j + i;
-		}
+	// 	for (j = 0; j < pagesize; j++)
+	// 	{
+	// 		writebuf[j] = j + i;
+	// 	}
 
-		if (SerialFlashWrite(writebuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
-		{
-			ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
-			return;
-		}
+	// 	if (SerialFlashWrite(writebuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
+	// 	{
+	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
+	// 		return;
+	// 	}
 
-		memset(readbuf, 0, sizeof(readbuf));
+	// 	memset(readbuf, 0, sizeof(readbuf));
 
-		if (SerialFlashRead(readbuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
-		{
-			ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
-			return;
-		}
+	// 	if (SerialFlashRead(readbuf, sectorsize * i, pagesize) != FLASH_STAT_OK)
+	// 	{
+	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash page write error!", FmtTimeShow());
+	// 		return;
+	// 	}
 
-		if (strncmp((const char *)writebuf, (const char *)readbuf, pagesize) == 0)
-		{
-			ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test pass!", FmtTimeShow(), i);
-		}
-		else
-		{
-			ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test fail!", FmtTimeShow(), i);
-			return;
-		}
-	}
+	// 	if (strncmp((const char *)writebuf, (const char *)readbuf, pagesize) == 0)
+	// 	{
+	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test pass!", FmtTimeShow(), i);
+	// 	}
+	// 	else
+	// 	{
+	// 		ATCmdPrintf(TRUE, "\r\n[%s] SFlash %dth page test fail!", FmtTimeShow(), i);
+	// 		return;
+	// 	}
+	// }
 
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
 }

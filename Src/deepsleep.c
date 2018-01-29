@@ -81,7 +81,7 @@ void MCUReset(void)
 {
   // extern void SoftwareJumping(uint32_t Address);
   // SoftwareJumping(ROM_START_ADDRESS);
-  // __disable_irq();
+  __disable_irq();
   // __dsb(portSY_FULL_READ_WRITE);
   // __isb(portSY_FULL_READ_WRITE);
   // SoftwareJumping(ROM_START_ADDRESS);

@@ -1217,10 +1217,11 @@ void WedgePeriodicOffEvent(void)
     RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
     if (RPTINTVL.ioffint == 0)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicOff ioffint(%d)"
-                                    , FmtTimeShow(), WedgePeriodicOffEventErr, RPTINTVL.ioffint);
         return;
     }
+
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicOff ioffint(%d)"
+                                    , FmtTimeShow(), WedgePeriodicOffEventErr, RPTINTVL.ioffint);
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Instance.RTCTimerInstance = Periodic_OFF_Event;
@@ -1265,10 +1266,11 @@ void WedgePeriodicHealthEvent(void)
     RPTINTVL = *((RPTINTVLTypeDef *)WedgeCfgGet(WEDGE_CFG_RPTINTVL));
     if (RPTINTVL.perint == 0)
     {
-        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicHealth perint(%d)"
-                                    , FmtTimeShow(), WedgePeriodicHealthEventStr, RPTINTVL.perint);
         return;
     }
+
+    WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s]%s PeriodicHealth perint(%d)"
+                                    , FmtTimeShow(), WedgePeriodicHealthEventStr, RPTINTVL.perint);
 
     Instance.RTCTimerType = WEDGE_RTC_TIMER_PERIODIC;
     Instance.RTCTimerInstance = Periodic_Health_Event;
