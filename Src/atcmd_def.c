@@ -808,7 +808,7 @@ static void ATCmdDefGPIOREAD(uint8_t Len, int Param, uint8_t *dataBuf)
 		return;
 	}
 
-	val = GpioOutputStateGet((WEDGEIoTypedef)Param);
+	val = GpioStateGet((WEDGEIoTypedef)Param);
 	if (0 == val)
 	{
 		ATCmdPrintf(TRUE, "\r\n[%s] GPIOREAD Param(%d) State(%d)", FmtTimeShow(), Param, val);

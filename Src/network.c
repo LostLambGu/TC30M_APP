@@ -570,7 +570,14 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 
 			if (OpenStatSocketNum > 0)
 			{
+				#if TC30M_UDP_SEND_USE_SQNSSENDEXT
+				char socketnumBuf[32];
+				memset(socketnumBuf, 0, sizeof(socketnumBuf));
+				sprintf(socketnumBuf, "%s,%d", socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1], UDPIpSendUint.datalen);
+				SendATCmd(GSM_CMD_SQNSSENDEXT, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumBuf);
+				#else
 				SendATCmd(GSM_CMD_SQNSSEND, GSM_CMD_TYPE_EVALUATE, (uint8_t *)socketnumstr[SocketQue[OpenStatSocketNum - 1] - 1]);
+				#endif /* TC30M_UDP_SEND_USE_SQNSSENDEXT */
 				OpenStatSocketNum--;
 				udpsendoverflag = 0;
 				udpsendovertime = HAL_GetTick();
@@ -621,8 +628,9 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 		// 		UART3SendHexData(tmp + (i * UDP_HEX_SEND_NUM_MAX), left);
 		// 	}
 		// }
-
+		#if !(TC30M_UDP_SEND_USE_SQNSSENDEXT)
 		UART3SendHexData("\x1a", 1);
+		#endif /* TC30M_UDP_SEND_USE_SQNSSENDEXT */
 
 		// if (OpenStatSocketNum > 0)
 		// {
@@ -638,6 +646,7 @@ void NetReadySocketProcess(uint32_t *pTimeout)
 				UDPIpSendUint.buf = NULL;
 			}
 			udpsendoverflag = 1;
+			OpenStatSocketNum = 0;
 			NetWorkMutexGive();
 			SetUDPDataCanSendStat(FALSE);
 		// }

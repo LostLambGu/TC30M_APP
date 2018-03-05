@@ -67,7 +67,7 @@ void GpioOutputStateSet(WEDGEIoTypedef Io, GPIO_PinState state)
     WRITE_IO(GpioInfoArray[Io].GPIOx, GpioInfoArray[Io].PINx, state);
 }
 
-uint8_t GpioOutputStateGet(WEDGEIoTypedef Io)
+uint8_t GpioStateGet(WEDGEIoTypedef Io)
 {
     if (Io >= WEDGE_IO_Last)
     {

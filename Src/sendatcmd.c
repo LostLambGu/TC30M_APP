@@ -452,7 +452,7 @@ void SendATCmd(GSM_ATCMDINDEX CmdIndex, ARCA_GSM_COMAND_TYPE cmd_type,uint8* ext
 			}
 			else
 			{
-				//sprintf(atstring, "AT%s%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
+				//sprintf(atstring, "AT%s%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 				sprintf(atstring, "%s%s%s",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 			}
 			FwpSendData(CmdIndex, atstring, strlen(atstring));
@@ -461,15 +461,15 @@ void SendATCmd(GSM_ATCMDINDEX CmdIndex, ARCA_GSM_COMAND_TYPE cmd_type,uint8* ext
 		
 		case GSM_CMD_TYPE_EXECUTE:
 		if(ext_buf)
-			sprintf(atstring, "AT%s%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
+			sprintf(atstring, "AT%s%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 		else
-			sprintf(atstring, "AT%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type));
+			sprintf(atstring, "AT%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type));
 		FwpSendData(CmdIndex, atstring, strlen(atstring));
 		break;	
 		
 		case GSM_CMD_TYPE_QUERY:
 		case GSM_CMD_TYPE_QUERYALL:
-		sprintf(atstring, "AT%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type));
+		sprintf(atstring, "AT%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type));
 		FwpSendData(CmdIndex, atstring, strlen(atstring));
 		break;	
 		
@@ -482,7 +482,7 @@ void SendATCmd(GSM_ATCMDINDEX CmdIndex, ARCA_GSM_COMAND_TYPE cmd_type,uint8* ext
 			else if((CmdIndex == GSM_CMD_SQNSSEND) || (CmdIndex == GSM_CMD_SQNSSENDEXT))
 				sprintf(atstring, "AT%s%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 			else
-				sprintf(atstring, "AT%s%s%s\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
+				sprintf(atstring, "AT%s%s%s\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 			FwpSendData(CmdIndex, atstring, strlen(atstring));
 		}
 		break;
@@ -490,7 +490,7 @@ void SendATCmd(GSM_ATCMDINDEX CmdIndex, ARCA_GSM_COMAND_TYPE cmd_type,uint8* ext
 		case GSM_CMD_TYPE_SPEQUAL:
 		if(ext_buf)
 		{
-			sprintf(atstring, "AT%s%s\"%s\"\r\n",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
+			sprintf(atstring, "AT%s%s\"%s\"\r",GetATCmd(CmdIndex),GetAtCommandType(cmd_type),(char*)ext_buf);
 			FwpSendData(CmdIndex, atstring, strlen(atstring));
 		}
 		break;

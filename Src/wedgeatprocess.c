@@ -13,7 +13,8 @@
 #include "deepsleep.h"
 #include "stdarg.h"
 #include "network.h"
-
+#include "ublox_driver.h"
+#include "wedgeeventalertflow.h"
 SmsReceiveBufProcessTypedef *SMSMessage;
 char temsmsnumber[SMS_RECEIVE_NUMBER_MAX_LEN]={'\0'};
 
@@ -48,6 +49,7 @@ OSPDTypeDef *OSPD,_OSPD;
 PLSRLYTypeDef *PLSRLY,_PLSRLY;
 USRDATTypeDef *USRDAT,_USRDAT;
 FTPCFGTypeDef *FTPCFG,_FTPCFG;
+MQSTATTypeDef *MQSTAT,_MQSTAT;
 u8 ATKEY[0xff]={'\0'};
 u8 ATKEYLen = 0;
 char * myStrtok;
@@ -1184,7 +1186,22 @@ void OperaGFNCSet(ATCmdSource_t type,WEDGEPYLDTypeDef PYid,u8 *buffer)
 void OperaLOCGet(ATCmdSource_t type,WEDGEPYLDTypeDef PYid)
 {
     //gps
-    // SendRpt(PYid,type,"*VODO:\"%d\"\r\n",VODO->meters);
+
+//			double *pLatitude,_pLatitude=0;
+//			double *pLongitude,_pLongitude=0;
+//			 pLatitude=&_pLatitude;
+//		   pLongitude=&_pLongitude;
+//			 SendRpt(PYid,type,"*:%d\r\n");
+//		   if(UbloxFixStateGet())
+//				{
+//					UBloxGetGpsPoint(pLatitude, pLongitude);
+//				}
+//				else
+//				{
+//				}
+//		
+				WedgeResponseUdpBinary(PYid, Location_request);
+
 
 }
 
@@ -1287,7 +1304,8 @@ void DiagnRSTSet(ATCmdSource_t type,WEDGEPYLDTypeDef PYid)
 }
 void DiagnMQSTATGet(ATCmdSource_t type,WEDGEPYLDTypeDef PYid)
 {
-    SendRpt(PYid,type,"MQSTATGet:\r\n");
+	  MQSTAT=WedgeSysStateGet(WEDGE_MQSTAT);
+    SendRpt(PYid,type,"*MQSTAT:%d,%d\r\n",MQSTAT->unsent,MQSTAT->sent);
 }
 void DiagnMQCLRSet(ATCmdSource_t type,WEDGEPYLDTypeDef PYid)
 {
@@ -1382,7 +1400,7 @@ void ATGetProcess(ATCmdType_t type,ATCmdSource_t DataSource,u8 PYid,char IMEI[15
         //OperaCURGEOGet(DataSource,PYid);
         break;
     case AT_CMD_OPERA_LOC:
-        //OperaLOCGet(DataSource,PYid);
+        OperaLOCGet(DataSource,PYid);
         break;
     case AT_CMD_OPERA_RELAY:
         OperaRELAYGet(DataSource,PYid);

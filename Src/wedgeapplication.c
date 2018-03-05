@@ -284,9 +284,10 @@ static void WedgeMsgQueProcess(void)
     NetworkStatT networkstat = GetNetworkMachineStatus();
     static uint32_t SystickRec = 0, WedgeMsgUnsent = FALSE;
     static WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
+    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (20000)
+    static uint32_t wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS;
 
-    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (5000)
-    if (WEDGE_MSG_QUE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
+    if (wedgeMsgQueProcPeriod > (HAL_GetTick() - SystickRec))
     {
         return;
     }
@@ -310,11 +311,13 @@ static void WedgeMsgQueProcess(void)
             {
                 APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout", FmtTimeShow());
                 WedgeMsgUnsent = TRUE;
+                wedgeMsgQueProcPeriod = 500;
             }
             else
             {
                 // APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout Err", FmtTimeShow());
                 WedgeMsgUnsent = FALSE;
+                wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS;
             }
         }
         
@@ -326,11 +329,13 @@ static void WedgeMsgQueProcess(void)
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Udp Fail Size(%d)", FmtTimeShow(), WEDGEMsgQueCell.size);
                     WedgeMsgUnsent = TRUE;
+                    wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS;
                 }
                 else
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Udp Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
+                    wedgeMsgQueProcPeriod = 500;
                 }
             }
             else if (WEDGEMsgQueCell.type == WEDGE_MSG_QUE_SMS_TYPE)
@@ -339,11 +344,13 @@ static void WedgeMsgQueProcess(void)
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Sms Fail", FmtTimeShow());
                     WedgeMsgUnsent = TRUE;
+                    wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS;
                 }
                 else
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Sms Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
+                    wedgeMsgQueProcPeriod = 500;
                 }
             }
             else

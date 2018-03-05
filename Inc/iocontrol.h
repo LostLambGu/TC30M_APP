@@ -40,7 +40,7 @@ typedef enum
 
 extern uint8_t GpioOutputInputSet(WEDGEIoTypedef Io, uint8_t outin);
 extern void GpioOutputStateSet(WEDGEIoTypedef Io, GPIO_PinState state);
-extern uint8_t GpioOutputStateGet(WEDGEIoTypedef Io);
+extern uint8_t GpioStateGet(WEDGEIoTypedef Io);
 
 extern void WedgeGpsRedLedControl(uint8_t state);
 extern uint8_t WedgeGpsRedLedStateGet(void);
