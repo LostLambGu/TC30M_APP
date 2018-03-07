@@ -30,6 +30,7 @@ uint8_t smssendoverflag = 1;
 
 static NetworkStatT NetStateMachine = NET_FREE_IDLE_STAT;
 static u8 NetWorkServiceCount = 0;
+static u8 cidinuse = TC30M_DEFAULT_CID;
 
 ServerConfigParam gModemParam = 
 {
@@ -45,7 +46,9 @@ ServerConfigParam gModemParam =
 	TC30M_DEFAULT_CID,
 	FALSE,
 	"",
-	0xfffffffful
+	0xfffffffful,
+	"",
+	""
 };
 
 static const s8 RssiDbmTable[32] = 
@@ -100,6 +103,16 @@ void SetNetworkReadyStat(u8 Status)
 u8 GetNetworkReadyStat(void)
 {
 	return gModemParam.NetworkReadyStat;
+}
+
+void SetNetworkCidInUse(u8 cidNum)
+{
+	cidinuse = cidNum;
+}
+
+u8 GetNetworkCidInUse(void)
+{
+	return cidinuse;
 }
 
 uint8 GetNetworkRssiValue(void)
@@ -915,6 +928,180 @@ void CheckNetlorkTimerCallback(u8 Status)
 	// Reset Network Timer
 	SoftwareTimerReset(&NetworkCheckTimer,CheckNetlorkTimerCallback,Timeout);
 	SoftwareTimerStart(&NetworkCheckTimer);
+}
+
+/* This is the aligned version of ip_addr_t,
+   used as local variable, on the stack, etc. */
+struct ip_addr {
+  u32_t addr;
+};
+
+typedef struct ip_addr ip_addr_t;
+
+/* Here for now until needed in other places in lwIP */
+#ifndef isprint
+#define in_range(c, lo, up)  ((u8_t)c >= lo && (u8_t)c <= up)
+#define isprint(c)           in_range(c, 0x20, 0x7f)
+#define isdigit(c)           in_range(c, '0', '9')
+#define isxdigit(c)          (isdigit(c) || in_range(c, 'a', 'f') || in_range(c, 'A', 'F'))
+#define islower(c)           in_range(c, 'a', 'z')
+#define isspace(c)           (c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t' || c == '\v')
+#endif
+
+/** 255.255.255.255 */
+#define IPADDR_NONE         ((u32_t)0xffffffffUL)
+
+/** IPv4 only: set the IP address given as an u32_t */
+#define ip4_addr_set_u32(dest_ipaddr, src_u32) ((dest_ipaddr)->addr = (src_u32))
+/** IPv4 only: get the IP address as an u32_t */
+#define ip4_addr_get_u32(src_ipaddr) ((src_ipaddr)->addr)
+
+static int ipaddr_aton(const char *cp, ip_addr_t *addr);
+static u32_t htonl(u32_t n);
+
+/**
+ * Ascii internet address interpretation routine.
+ * The value returned is in network order.
+ *
+ * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
+ * @return ip address in network order
+ */
+u32_t
+ipaddr_addr(const char *cp)
+{
+  ip_addr_t val;
+
+  if (ipaddr_aton(cp, &val)) {
+    return ip4_addr_get_u32(&val);
+  }
+  return (IPADDR_NONE);
+}
+
+/**
+ * Convert an u32_t from host- to network byte order.
+ *
+ * @param n u32_t in host byte order
+ * @return n in network byte order
+ */
+static u32_t htonl(u32_t n)
+{
+  return ((n & 0xff) << 24) |
+    ((n & 0xff00) << 8) |
+    ((n & 0xff0000UL) >> 8) |
+    ((n & 0xff000000UL) >> 24);
+}
+
+/**
+ * Check whether "cp" is a valid ascii representation
+ * of an Internet address and convert to a binary address.
+ * Returns 1 if the address is valid, 0 if not.
+ * This replaces inet_addr, the return value from which
+ * cannot distinguish between failure and a local broadcast address.
+ *
+ * @param cp IP address in ascii represenation (e.g. "127.0.0.1")
+ * @param addr pointer to which to save the ip address in network order
+ * @return 1 if cp could be converted to addr, 0 on failure
+ */
+static int
+ipaddr_aton(const char *cp, ip_addr_t *addr)
+{
+  u32_t val;
+  u8_t base;
+  char c;
+  u32_t parts[4];
+  u32_t *pp = parts;
+
+  c = *cp;
+  for (;;) {
+    /*
+     * Collect number up to ``.''.
+     * Values are specified as for C:
+     * 0x=hex, 0=octal, 1-9=decimal.
+     */
+    if (!isdigit(c))
+      return (0);
+    val = 0;
+    base = 10;
+    if (c == '0') {
+      c = *++cp;
+      if (c == 'x' || c == 'X') {
+        base = 16;
+        c = *++cp;
+      } else
+        base = 8;
+    }
+    for (;;) {
+      if (isdigit(c)) {
+        val = (val * base) + (int)(c - '0');
+        c = *++cp;
+      } else if (base == 16 && isxdigit(c)) {
+        val = (val << 4) | (int)(c + 10 - (islower(c) ? 'a' : 'A'));
+        c = *++cp;
+      } else
+        break;
+    }
+    if (c == '.') {
+      /*
+       * Internet format:
+       *  a.b.c.d
+       *  a.b.c   (with c treated as 16 bits)
+       *  a.b (with b treated as 24 bits)
+       */
+      if (pp >= parts + 3) {
+        return (0);
+      }
+      *pp++ = val;
+      c = *++cp;
+    } else
+      break;
+  }
+  /*
+   * Check for trailing characters.
+   */
+  if (c != '\0' && !isspace(c)) {
+    return (0);
+  }
+  /*
+   * Concoct the address according to
+   * the number of parts specified.
+   */
+  switch (pp - parts + 1) {
+
+  case 0:
+    return (0);       /* initial nondigit */
+
+  case 1:             /* a -- 32 bits */
+    break;
+
+  case 2:             /* a.b -- 8.24 bits */
+    if (val > 0xffffffUL) {
+      return (0);
+    }
+    val |= parts[0] << 24;
+    break;
+
+  case 3:             /* a.b.c -- 8.8.16 bits */
+    if (val > 0xffff) {
+      return (0);
+    }
+    val |= (parts[0] << 24) | (parts[1] << 16);
+    break;
+
+  case 4:             /* a.b.c.d -- 8.8.8.8 bits */
+    if (val > 0xff) {
+      return (0);
+    }
+    val |= (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8);
+    break;
+  default:
+    NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] ipaddr_aton Err", FmtTimeShow());
+	return 0;
+    // break;
+  }
+  if (addr) {
+    ip4_addr_set_u32(addr, htonl(val));
+  }
+  return (1);
 }
 
 /*******************************************************************************

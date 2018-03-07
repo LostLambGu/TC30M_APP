@@ -121,6 +121,8 @@ typedef struct
     u8 defaultcidipgetflag;
     char defaultcidipstr[TC30M_DEFAULT_IPV4_MAX_LEN];
     u32 defaultcidipnum;
+    char dns1str[TC30M_DEFAULT_IPV4_MAX_LEN];
+    char dns2str[TC30M_DEFAULT_IPV4_MAX_LEN];
 }ServerConfigParam;
 
 typedef enum
@@ -141,6 +143,8 @@ extern void SetModemATPortStat(u8 Status);
 extern u8 GetModemATPortStat(void);
 extern void SetNetworkReadyStat(u8 Status);
 extern u8 GetNetworkReadyStat(void);
+extern void SetNetworkCidInUse(u8 cidNum);
+extern u8 GetNetworkCidInUse(void);
 extern uint8 GetNetworkRssiValue(void);
 extern void SetNetworkRssiValue(uint8 value);
 extern u8 GetNetworkRegistrationStat(void);
@@ -149,6 +153,8 @@ extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);
 extern void SendMessage(char *Num, char *buf);
 extern void CheckNetlorkTimerCallback(u8 Status);
+
+extern u32_t ipaddr_addr(const char *cp);
 
 
 #define UDPIP_SOCKET_MIN_NUM (1)

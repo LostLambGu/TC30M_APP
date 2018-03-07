@@ -94,6 +94,14 @@ typedef int32_t     		i32t;     ///< range: -2'147'483'648 .. +2'147'483'647
 
 typedef uint8_t bool;
 
+typedef unsigned char      u8_t;
+typedef signed char      s8_t;
+typedef unsigned short    u16_t;
+typedef signed   short    s16_t;
+
+typedef unsigned int    u32_t;
+typedef signed   int    s32_t;
+
 #ifndef FALSE
 #define FALSE 0
 #endif

@@ -50,8 +50,13 @@ static void WedgeRELAYCfgChg(void);
 static void WedgePLSRLYCfgChg(void);
 static void WedgeOSPDCfgChg(void);
 
+#define TC30M_LTE_PROCESS_PERIOD_MS (10)
 void ApplicationProcess(void)
 {
+    static uint32_t LteProcSystickRec = 0;
+
+    DebugPrintf(TRUE, "\r\n########Code Date: 20180307########\r\n");
+
     WedgeInit();
 
     while (1)
@@ -59,7 +64,11 @@ void ApplicationProcess(void)
         // Debug Info
         ATCmdDetection();
         // LTE Info
-        LteCmdDetection();
+        if (TC30M_LTE_PROCESS_PERIOD_MS < (HAL_GetTick() - LteProcSystickRec))
+        {
+            LteCmdDetection();
+            LteProcSystickRec = HAL_GetTick();
+        }
         // Soft Timer
         SoftwareCheckTimerStatus();
         // // Gsensor Interupt
@@ -285,24 +294,34 @@ static void WedgeMsgQueProcess(void)
     static uint32_t SystickRec = 0, WedgeMsgUnsent = FALSE;
     static WEDGEMsgQueCellTypeDef WEDGEMsgQueCell;
     #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS (20000)
-    static uint32_t wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS;
-
-    if (wedgeMsgQueProcPeriod > (HAL_GetTick() - SystickRec))
-    {
-        return;
-    }
-    else
-    {
-        SystickRec = HAL_GetTick();
-    }
+    #define WEDGE_MSG_QUE_PROCESS_PERIOD_MS_NET_ON (500)
+    static uint32_t wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS_NET_ON;
 
     if (networkstat != NET_CONNECTED_STAT)
     {
+        if (WEDGE_MSG_QUE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
+        {
+            return;
+        }
+        else
+        {
+            SystickRec = HAL_GetTick();
+        }
+
         APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Net Disconnect Period(%d)", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
         return;
     }
     else
     {
+        if (wedgeMsgQueProcPeriod > (HAL_GetTick() - SystickRec))
+        {
+            return;
+        }
+        else
+        {
+            SystickRec = HAL_GetTick();
+        }
+
         //APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess(Period %d) Net Connect", FmtTimeShow(), WEDGE_MSG_QUE_PROCESS_PERIOD_MS);
         if (WedgeMsgUnsent == FALSE)
         {
@@ -311,7 +330,7 @@ static void WedgeMsgQueProcess(void)
             {
                 APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Readout", FmtTimeShow());
                 WedgeMsgUnsent = TRUE;
-                wedgeMsgQueProcPeriod = 500;
+                wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS_NET_ON;
             }
             else
             {
@@ -335,7 +354,7 @@ static void WedgeMsgQueProcess(void)
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Udp Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
-                    wedgeMsgQueProcPeriod = 500;
+                    wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS_NET_ON;
                 }
             }
             else if (WEDGEMsgQueCell.type == WEDGE_MSG_QUE_SMS_TYPE)
@@ -350,7 +369,7 @@ static void WedgeMsgQueProcess(void)
                 {
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE MsgQueProcess Sms Ok", FmtTimeShow());
                     WedgeMsgUnsent = FALSE;
-                    wedgeMsgQueProcPeriod = 500;
+                    wedgeMsgQueProcPeriod = WEDGE_MSG_QUE_PROCESS_PERIOD_MS_NET_ON;
                 }
             }
             else

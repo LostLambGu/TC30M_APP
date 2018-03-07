@@ -22,6 +22,7 @@
 #include "iocontrol.h"
 #include "deepsleep.h"
 #include "flash.h"
+#include "network.h"
 #include "wedgedatadefine.h"
 #include "wedgeeventalertflow.h"
 
@@ -57,6 +58,7 @@ static void ATCmdDefFlashFactoryTest(void);
 static void ATCmdDefFlashChipEraseFactoryTest(void);
 static void ATCmdDefRtcFactoryTest(void);
 static void ATCmdIoFactoryTest(void);
+static void ATCmdIPDNSFactoryTest(void);
 
 static void ATCmdDefPrototype(void);
 static void ATCmdDefReset(void);
@@ -129,6 +131,10 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 		case AT_CMD_DEF_IOINFO:
 			ATCmdIoFactoryTest();
+			break;
+
+		case AT_CMD_DEF_READ_IP_DNS:
+			ATCmdIPDNSFactoryTest();
 			break;
 
 		default:
@@ -428,6 +434,12 @@ static void ATCmdIoFactoryTest(void)
 	char *str[2] = {"LOW", "HIGH"};
 	ATCmdPrintf(TRUE, "\r\nIO: WEDGE Ignition, %s", str[READ_IO(PC10_MCU_IGN_GPIO_Port, PC10_MCU_IGN_Pin)]);
 	ATCmdPrintf(TRUE, "\r\nOK\r\n");
+}
+
+static void ATCmdIPDNSFactoryTest(void)
+{
+	ATCmdPrintf(TRUE, "\r\n[%s] Local IP(%s) DNS1(%s) DNS2(%s)\r\n", FmtTimeShow(), gModemParam.defaultcidipstr,
+		gModemParam.dns1str, gModemParam.dns2str);
 }
 
 static void ATCmdDefDefault(void)

@@ -66,6 +66,7 @@ const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] =
 	{GSM_FB_CMTI,				"+CMTI:"},		// +CMTI:"RAM",0
 	{GSM_FB_CMGR,				"+CMGR:"},
 	{GSM_FB_CPIN,				"+CPIN:"},
+	{GSM_FB_CGACT,				"+CGACT:"},
 	{GSM_FB_SQNSI,				"+SQNSI:"},		// Socket Information
 	{GSM_FB_SQNSS,				"+SQNSS:"},		// Socket Status
 	{GSM_FB_SQNSH,				"+SQNSH:"},		// Socket Status
@@ -110,6 +111,7 @@ const ATRspParmFmtT ATParmFmt[GSM_FB_LAST_GSM_FB] =
 	/*GSM_FB_CMTI,*/				{2, 		{STR_WITH_QUOTE_TYPE,NUM_TYPE}},
 	/*GSM_FB_CMGR*/			{4,		{STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE}},				
 	/*GSM_FB_CPIN*/				{1,		{STR_TYPE}},	
+	/*GSM_FB_CGACT*/				{2,		{NUM_TYPE,NUM_TYPE}},
 	/*GSM_FB_SQNSI*/			{6,		{NUM_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE}},	
 	/*GSM_FB_SQNSS*/			{6,		{NUM_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE}},
 	/*GSM_FB_SQNSH*/			{1, 		{NUM_TYPE}},
@@ -226,6 +228,7 @@ static void MmiCMGS(ATRspParmT* MsgDataP);
 static void MmiCMTI(ATRspParmT* MsgDataP);
 static void MmiCMGR(ATRspParmT* MsgDataP);
 static void MmiCPIN(ATRspParmT* MsgDataP);
+static void MmiCGACT(ATRspParmT* MsgDataP);
 // static void MmiSQNSI(char* MsgDataP);
 static void MmiSQNSS(ATRspParmT* MsgDataP);
 static void MmiSQNSH(ATRspParmT* MsgDataP);
@@ -587,6 +590,9 @@ void ValATRspProcess(GSM_FB_CMD RspCmdType, ATRspParmT* pRspData, char *pOrigina
 		case GSM_FB_CPIN:
 			MmiCPIN(pRspData);
 			break;
+		case GSM_FB_CGACT:
+			MmiCGACT(pRspData);
+			break;
 		// case GSM_FB_SQNSI:
 		// 	MmiSQNSI(pOriginalData);
 		// 	break;
@@ -866,6 +872,7 @@ static void MmiCEREG(char *MsgDataP)
 			WedgeLteGreenLedBlink(FALSE);
 			if ((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
+				SendATCmd(GSM_CMD_CGACT, GSM_CMD_TYPE_QUERY, NULL);
 				SetNetworkReadyStat(TRUE);
 				WedgeLteGreenLedControl(TRUE);
 				NumP = strstr((char *)MsgDataP, (char *)"\",");
@@ -917,6 +924,7 @@ static void MmiCEREG(char *MsgDataP)
 			WedgeLteGreenLedBlink(FALSE);
 			if ((RegisterStatus == '1') || (RegisterStatus == '5'))
 			{
+				SendATCmd(GSM_CMD_CGACT, GSM_CMD_TYPE_QUERY, NULL);
 				SetNetworkReadyStat(TRUE);
 				WedgeLteGreenLedControl(TRUE);
 			}
@@ -1335,46 +1343,54 @@ static void MmiCGCONTRDP(ATRspParmT* MsgDataP)
 {
 	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:CGCONTRDP cid(%d) local_addr.subnet_mask(%s)", FmtTimeShow( ), MsgDataP[0].Num, MsgDataP[3].Str);
 
-	// if (MsgDataP[0].Num == TC30M_DEFAULT_CID)
-	// {
-	// 	uint8_t dotcount = 0, i = 0, j = 0;
-	// 	char *ptmp = MsgDataP[3].Str;
-	// 	uint8_t ipstrlen = strlen(MsgDataP[3].Str);
+	if (MsgDataP[0].Num == GetNetworkCidInUse())
+	{
+		uint8_t dotcount = 0, i = 0, j = 0;
+		char *ptmp = MsgDataP[3].Str;
+		uint8_t ipstrlen = strlen(MsgDataP[3].Str);
 
-	// 	for (j = 0; j < ipstrlen; j++)
-	// 	{
-	// 		if (*ptmp == '.')
-	// 		{
-	// 			dotcount++;
-	// 			if (dotcount >= 7)
-	// 			{
-	// 				// Not ipv4
-	// 				return;
-	// 			}
-	// 		}
-	// 	}
+		for (j = 0; j < ipstrlen; j++)
+		{
+			if (*ptmp == '.')
+			{
+				dotcount++;
+				if (dotcount > 7)
+				{
+					// Not ipv4
+					return;
+				}
+			}
+			ptmp++;
+		}
 
-	// 	dotcount = 0;
-	// 	memset(gModemParam.defaultcidipstr, 0, TC30M_DEFAULT_IPV4_MAX_LEN);
-	// 	gModemParam.defaultcidipgetflag = FALSE;
-	// 	gModemParam.defaultcidipnum = 0xfffffffful;
-	// 	for (i = 0; i < TC30M_DEFAULT_IPV4_MAX_LEN; i++)
-	// 	{
-	// 		if (*ptmp == '.')
-	// 		{
-	// 			dotcount++;
-	// 			if (dotcount == 4)
-	// 			{
-	// 				break;
-	// 			}
-	// 		}
-	// 		gModemParam.defaultcidipstr[i] = *ptmp;
-	// 		ptmp++;
-	// 	}
-	// 	gModemParam.defaultcidipnum = ipaddr_addr((char *)gModemParam.defaultcidipstr);
-	// 	gModemParam.defaultcidipgetflag = TRUE;
-	// 	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:CGCONTRDP Defaultcidipnum(0x%X)", FmtTimeShow( ), gModemParam.defaultcidipnum);
-	// }
+		dotcount = 0;
+		ptmp = MsgDataP[3].Str;
+		memset(gModemParam.defaultcidipstr, 0, TC30M_DEFAULT_IPV4_MAX_LEN);
+		memset(gModemParam.dns1str, 0, TC30M_DEFAULT_IPV4_MAX_LEN);
+		memset(gModemParam.dns2str, 0, TC30M_DEFAULT_IPV4_MAX_LEN);
+		gModemParam.defaultcidipgetflag = FALSE;
+		gModemParam.defaultcidipnum = 0xfffffffful;
+		for (i = 0; i < TC30M_DEFAULT_IPV4_MAX_LEN; i++)
+		{
+			if (*ptmp == '.')
+			{
+				dotcount++;
+				if (dotcount == 4)
+				{
+					break;
+				}
+			}
+			gModemParam.defaultcidipstr[i] = *ptmp;
+			ptmp++;
+		}
+		gModemParam.defaultcidipnum = ipaddr_addr((char *)gModemParam.defaultcidipstr);
+		memcpy(gModemParam.dns1str, MsgDataP[5].Str, strlen(MsgDataP[5].Str));
+		memcpy(gModemParam.dns2str, MsgDataP[6].Str, strlen(MsgDataP[6].Str));
+		gModemParam.defaultcidipgetflag = TRUE;
+		ParseatPrint(1, "IP(%s)(0x%x) DNS1(%s) DNS2(%s)", gModemParam.defaultcidipstr, gModemParam.defaultcidipnum,
+		gModemParam.dns1str, gModemParam.dns2str);
+		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:CGCONTRDP CidInuse(0x%X)", FmtTimeShow( ), GetNetworkCidInUse());
+	}
 }
 
 
@@ -1485,6 +1501,23 @@ static void MmiCPIN(ATRspParmT* MsgDataP)
 	if(strcmp("READY", (char*)MsgDataP[0].Str) == 0)
 	{
 		SetSimCardReadyStat(TRUE);
+	}
+}
+
+static void MmiCGACT(ATRspParmT* MsgDataP)
+{
+	ParseatPrint(NRCMD,"\r\n[%s] PAT:+CGACT Cid(%d) State(%d)",\
+			FmtTimeShow(), MsgDataP[0].Num, MsgDataP[1].Num);
+
+	if (MsgDataP[1].Num != FALSE)
+	{
+		char strbuf[16];
+		memset(strbuf, 0, sizeof(strbuf));
+
+		SetNetworkCidInUse(MsgDataP[0].Num);
+
+		sprintf(strbuf, "%d", GetNetworkCidInUse());
+		SendATCmd(GSM_CMD_CGCONTRDP, GSM_CMD_TYPE_EVALUATE, (uint8_t *)strbuf);
 	}
 }
 
