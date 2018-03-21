@@ -55,7 +55,7 @@ void ApplicationProcess(void)
 {
     static uint32_t LteProcSystickRec = 0;
 
-    DebugPrintf(TRUE, "\r\n########Code Date: 20180307########\r\n");
+    DebugPrintf(TRUE, "\r\n########Code Date: 201803021########\r\n");
 
     WedgeInit();
 

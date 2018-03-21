@@ -468,8 +468,7 @@ static void ATCmdDefSleep(uint8_t Len, int32_t Param)
 	{
 		if (Param > 0)
 		{
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*SLEEP:Done\r\n");
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nOK\r\n");
+			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*SLEEP(%dSeconds)\r\n", Param);
 			// Set Alarm Time
 			MCUDeepSleep(Param);
 		}
@@ -489,14 +488,16 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		{
 		case 0:
 		{
-			HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_RESET);
+			ModemPowerEnControl(DISABLE);
+			// HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_RESET);
 			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER OFF\r\n");
 		}
 		break;
 
 		case 1:
 		{
-			HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_SET);
+			ModemPowerEnControl(ENABLE);
+			// HAL_GPIO_WritePin(MODEM_PWR_ON_PORT, MODEM_PWR_ON_PIN, GPIO_PIN_SET);
 			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: MODEM POWER ON\r\n");
 		}
 		break;
@@ -515,8 +516,42 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		}
 		break;
 
+		case 4:
+		{
+			ModemRTSEnControl(DISABLE);
+			DebugLog("*PWR: MODEM RTS DISABLE\r\n");
+		}
+		break;
+
+		case 5:
+		{
+			ModemRTSEnControl(ENABLE);
+			DebugLog("*PWR: MODEM RTS ENABLE\r\n");
+		}
+		break;
+
+		case 6:
+		{
+			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER);
+			DebugLog("*PWR: ACC LOW POWER WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
+		case 7:
+		{
+			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_NORMAL);
+			DebugLog("*PWR: ACC NORMAL POWER WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
+		case 8:
+		{
+			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_POWER_DOWN);
+			DebugLog("*PWR: ACC POWER DOWN WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
 		default:
-			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n*PWR: (%s)", "DEBUG_PWR_INFO");
 			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
 			break;
 		}

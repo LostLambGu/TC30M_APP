@@ -149,6 +149,13 @@ void WedgeRTCTimerEventProcess(void)
     }
     break;
 
+    case Device_Deepsleep_Onetime:
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sDevice_Deepsleep_Onetime",
+                              FmtTimeShow(), WedgeRTCTimerEventProcessStr);
+    }
+    break;
+
     default:
         WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sProcess err",
                               FmtTimeShow(), WedgeRTCTimerEventProcessStr);
@@ -174,6 +181,42 @@ void WedgeSetRTCAlarmStatus(uint8_t Status)
 uint8_t WedgeGetRTCAlarmStatus(void)
 {
     return WedgeRtcAlarmHappen;
+}
+
+void WedgeRtcSetBeforeDeepsleep(uint32_t seconds)
+{
+    RTCTimerListCellTypeDef Instance;
+    char * WedgeRtcSetBeforeDeepsleepStr= " WEDGE DeepSleep Add Timer ";
+
+    Instance.RTCTimerType = WEDGE_RTC_TIMER_ONETIME;
+    Instance.RTCTimerInstance = Device_Deepsleep_Onetime;
+    Instance.settime = WedgeRtcCurrentSeconds() + seconds;
+    if (0 != WedgeRtcTimerInstanceAdd(Instance))
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sErr"
+                                    , FmtTimeShow(), WedgeRtcSetBeforeDeepsleepStr);
+    }
+    else
+    {
+        WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s]%sOk"
+                                    , FmtTimeShow(), WedgeRtcSetBeforeDeepsleepStr);
+    }
+}
+
+void WedgeRtcSetAfterDeepsleep(void)
+{
+    if ((RTCTimerList.currentinstance).RTCTimerInstance == Device_Deepsleep_Onetime)
+    {
+        return;
+    }
+    else
+    {
+        if (0 != WedgeRtcTimerInstanceDel(Device_Deepsleep_Onetime))
+        {
+            WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] WEDGE DeepSleep Timer Del Err"
+                                    , FmtTimeShow());
+        }
+    }
 }
 
 uint32_t WedgeRtcCurrentSeconds(void)

@@ -22,6 +22,7 @@
 #include "iqmgr.h"
 #include "version.h"
 #include "ltecatm.h"
+#include "flash.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -45,9 +46,10 @@
 /* Public variables ----------------------------------------------------------*/
 // uint8_t gRedLEDFlashingFlag = FALSE;
 uint8_t gGreenLEDFlashingFlag = FALSE;
-uint8_t Lis2dhMemsChipID = 0;
 
 extern uint8_t ModemPowerOnFlag;
+
+static uint8_t AccDeepSleepState = MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER;
 
 /* Public functions ----------------------------------------------------------*/
 // DelayUsTime
@@ -97,14 +99,22 @@ void StringToUper(char* s)
 
 void SystemDisableAllInterrupt(void)
 {
-	// portDISABLE_INTERRUPTS();
 	__asm volatile( "cpsid i" );
 }
 
 void SystemEnableAllInterrupt(void)
 {
-	// portENABLE_INTERRUPTS();
 	__asm volatile( "cpsie i" );
+}
+
+void SetMcuDeepSleepAccState(uint8_t state)
+{
+	AccDeepSleepState = state;
+}
+
+uint8_t GetMcuDeepSleepAccState(void)
+{
+	return AccDeepSleepState;
 }
 
 void ModemPowerEnControl(FunStates Status)

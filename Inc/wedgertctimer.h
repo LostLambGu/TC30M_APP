@@ -38,6 +38,7 @@ typedef enum
     Periodic_Health_Event,
     Stop_Report_Onetime_Event,
     Periodic_Hardware_Reset_Onetime,
+    Device_Deepsleep_Onetime,
 
     WEDGE_RTC_TIMER_INSTANCE_INVALID_MAX
 } WEDGERTCTimerInstanceTypeDef;
@@ -67,6 +68,8 @@ typedef enum
 extern void WedgeRTCTimerEventProcess(void);
 extern void WedgeSetRTCAlarmStatus(uint8_t Status);
 extern uint8_t WedgeGetRTCAlarmStatus(void);
+extern void WedgeRtcSetBeforeDeepsleep(uint32_t seconds);
+extern void WedgeRtcSetAfterDeepsleep(void);
 extern uint32_t WedgeRtcCurrentSeconds(void);
 extern uint8_t WedgeRtcTimerInit(RTCTimerListTypeDef *pRTCTimerList);
 extern void WedgeRTCTimerListGet(uint8_t *pBuf, uint32_t *pSize);

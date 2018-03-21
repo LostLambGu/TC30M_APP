@@ -38,8 +38,12 @@ extern "C" {
 #else
 #define LTE_AT_PORT_READY() 1
 #endif /* TC30M_TEST_CONFIG_OFF */
+
+#define MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER (0)
+#define MCU_DEEPSLEEP_ACC_STATUS_NORMAL (1)
+#define MCU_DEEPSLEEP_ACC_STATUS_POWER_DOWN (2)
+
 // Variable Declared
-extern uint8_t Lis2dhMemsChipID;
 // extern uint8_t gRedLEDFlashingFlag;
 extern uint8_t gGreenLEDFlashingFlag;
 
@@ -48,6 +52,8 @@ extern void DelayMsTime(uint16_t delay_time); //delay delay_time * 1ms
 extern void StringToUper(char* s);
 extern void SystemDisableAllInterrupt(void);
 extern void SystemEnableAllInterrupt(void);
+extern void SetMcuDeepSleepAccState(uint8_t state);
+extern uint8_t GetMcuDeepSleepAccState(void);
 extern void ModemPowerEnControl(FunStates Status);
 extern void ModemRTSEnControl(FunStates Status);
 extern void SystemInitialization(void);
