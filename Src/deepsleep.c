@@ -70,10 +70,6 @@ void HaltPowerConsumption(void)
   // dma
   __HAL_RCC_DMA1_CLK_DISABLE();
 
-  // i2c
-  HAL_I2C_DeInit(&hi2c1);
-  HAL_I2C_DeInit(&hi2c2);
-
   // PWM
   HAL_TIM_PWM_DeInit(&htim2);
 
@@ -93,9 +89,6 @@ void HaltPowerConsumption(void)
   // //module disable
   ModemPowerEnControl(DISABLE);
 
-  // Gps
-  UbloxGPSStop();
-
   // AccGyro
   if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER)
   {
@@ -109,6 +102,13 @@ void HaltPowerConsumption(void)
   {
     LIS3DH_SetMode(LIS3DH_POWER_DOWN);
   }
+
+  // i2c
+  HAL_I2C_DeInit(&hi2c1);
+  HAL_I2C_DeInit(&hi2c2);
+
+  // Gps
+  UbloxGPSStop();
 
   // Gpio
   GpioLowPower();
