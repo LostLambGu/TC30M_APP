@@ -84,10 +84,21 @@ void HaltPowerConsumption(void)
   // spi flash powerdown
 
   // Modem
-  // Disable RTS
-  ModemRTSEnControl(DISABLE);
-  // //module disable
-  ModemPowerEnControl(DISABLE);
+  if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER)
+  {
+    // Disable RTS
+    ModemRTSEnControl(DISABLE);
+  }
+  else if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
+  {
+  }
+  else
+  {
+    // Disable RTS
+    ModemRTSEnControl(DISABLE);
+    // //module disable
+    ModemPowerEnControl(DISABLE);
+  }
 
   // AccGyro
   if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER)
@@ -235,16 +246,19 @@ void RestorePowerConsumption(void)
   MX_USART2_UART_Init();
 
   // Modem
-  // Enable RTS
-  ModemRTSEnControl(ENABLE);
-  // Module ensable
-  ModemPowerEnControl(ENABLE);
+  // if (GetMcuDeepSleepModemState() != MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
+  {
+    // Enable RTS
+    ModemRTSEnControl(ENABLE);
+    // Module ensable
+    ModemPowerEnControl(ENABLE);
+  }
 
   // Gps
   UbloxGPSStart();
 
   // AccGyro
-  if (GetMcuDeepSleepAccState() != MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
+  // if (GetMcuDeepSleepAccState() != MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
   {
     LIS3DH_SetMode(LIS3DH_NORMAL);
   }

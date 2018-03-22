@@ -43,6 +43,10 @@ extern "C" {
 #define MCU_DEEPSLEEP_ACC_STATUS_NORMAL (1)
 #define MCU_DEEPSLEEP_ACC_STATUS_POWER_DOWN (2)
 
+#define MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER (0)
+#define MCU_DEEPSLEEP_MODEM_STATUS_NORMAL (1)
+#define MCU_DEEPSLEEP_MODEM_STATUS_POWER_DOWN (2)
+
 // Variable Declared
 // extern uint8_t gRedLEDFlashingFlag;
 extern uint8_t gGreenLEDFlashingFlag;
@@ -54,6 +58,8 @@ extern void SystemDisableAllInterrupt(void);
 extern void SystemEnableAllInterrupt(void);
 extern void SetMcuDeepSleepAccState(uint8_t state);
 extern uint8_t GetMcuDeepSleepAccState(void);
+extern void SetMcuDeepSleepModemState(uint8_t state);
+extern uint8_t GetMcuDeepSleepModemState(void);
 extern void ModemPowerEnControl(FunStates Status);
 extern void ModemRTSEnControl(FunStates Status);
 extern void SystemInitialization(void);

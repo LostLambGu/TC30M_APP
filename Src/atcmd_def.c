@@ -551,6 +551,27 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		}
 		break;
 
+		case 9:
+		{
+			SetMcuDeepSleepModemState(MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER);
+			DebugLog("*PWR: MODEM LOW POWER WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
+		case 10:
+		{
+			SetMcuDeepSleepModemState(MCU_DEEPSLEEP_MODEM_STATUS_NORMAL);
+			DebugLog("*PWR: MODEM NORMAL POWER WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
+		case 11:
+		{
+			SetMcuDeepSleepModemState(MCU_DEEPSLEEP_MODEM_STATUS_POWER_DOWN);
+			DebugLog("*PWR: MODEM POWER DOWN WHEN MCU DEEPSLEEP\r\n");
+		}
+		break;
+
 		default:
 			ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\nERROR\r\n");
 			break;

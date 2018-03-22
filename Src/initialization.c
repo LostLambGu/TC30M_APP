@@ -50,6 +50,7 @@ uint8_t gGreenLEDFlashingFlag = FALSE;
 extern uint8_t ModemPowerOnFlag;
 
 static uint8_t AccDeepSleepState = MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER;
+static uint8_t ModemDeepSleepState = MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER;
 
 /* Public functions ----------------------------------------------------------*/
 // DelayUsTime
@@ -115,6 +116,16 @@ void SetMcuDeepSleepAccState(uint8_t state)
 uint8_t GetMcuDeepSleepAccState(void)
 {
 	return AccDeepSleepState;
+}
+
+void SetMcuDeepSleepModemState(uint8_t state)
+{
+	ModemDeepSleepState = state;
+}
+
+uint8_t GetMcuDeepSleepModemState(void)
+{
+	return ModemDeepSleepState;
 }
 
 void ModemPowerEnControl(FunStates Status)
