@@ -15,7 +15,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define MAIN_VERSION_NUM 1
-#define SUB_VERSION_NUM 0
+#define SUB_VERSION_NUM 3
 
 #define VersionPrintf DebugPrintf
 
