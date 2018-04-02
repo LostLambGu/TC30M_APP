@@ -21,13 +21,12 @@ extern "C" {
 
 /* Defines  ------------------------------------------------------------------*/
 #define DEFAULT_RSSI_VALUE			0
-#define MAX_IP_ADDR_LEN 				32
+#define MAX_IP_ADDR_LEN 			32
 #define MAX_FILE_PATH_LEN 			64
-#define NETWORK_LISTEN_PORT 		5555
 #define CHECK_NETWORK_TIMEOUT 		2000
 #define OTA_REPROGRAM_ACT_TIMEOUT	(10*1000)
 
-#define MAX_VERSION_LEN             (22)
+#define MAX_VERSION_LEN             (32)
 
 #define TC30M_UDP_SEND_DATA_MAX_LEN (1500)
 
@@ -110,7 +109,7 @@ typedef struct
     u8  	NetworkReadyStat;
     u8 	RssiValue;
     s8		RssiDbm;
-    u8 	Version[MAX_VERSION_LEN+2];
+    u8 	Version[MAX_VERSION_LEN];
     u8      stat; //  Indicates the EPS registration status. 1 registered, home network, 5 registered, roaming
     u8      act; // access technology(ServiceType)
     u32 	sid; // tac area code 

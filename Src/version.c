@@ -39,6 +39,12 @@ void ShowSoftVersion(void)
 				  __TIME__);
 }
 
+void GetAppVersion(uint32_t *pMain, uint32_t *pSub)
+{
+	*pMain = MAIN_VERSION_NUM;
+	*pSub = SUB_VERSION_NUM;
+}
+
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File

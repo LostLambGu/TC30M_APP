@@ -68,6 +68,7 @@ typedef enum
 extern void WedgeRTCTimerEventProcess(void);
 extern void WedgeSetRTCAlarmStatus(uint8_t Status);
 extern uint8_t WedgeGetRTCAlarmStatus(void);
+extern void WedgeResetHardware(void);
 extern void WedgeRtcSetBeforeDeepsleep(uint32_t seconds);
 extern void WedgeRtcSetAfterDeepsleep(void);
 extern uint32_t WedgeRtcCurrentSeconds(void);

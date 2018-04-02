@@ -128,6 +128,7 @@ uint8_t GetMcuDeepSleepModemState(void)
 	return ModemDeepSleepState;
 }
 
+extern uint8_t resetFSM;
 void ModemPowerEnControl(FunStates Status)
 {
 	if (Status == ENABLE)
@@ -150,6 +151,11 @@ void ModemPowerEnControl(FunStates Status)
 		#endif /* TC30M_TEST_CONFIG_OFF */
 		// Clear Flag
 		ModemPowerOnFlag = FALSE;
+		// resetFSM
+		resetFSM = TRUE;
+		#ifdef MODEM_DEEPSLEEP_MODE
+		SetIsModemStartedState(FALSE);
+		#endif /* MODEM_DEEPSLEEP_MODE */
 		// Clear Status
 		SetModemATPortStat(FALSE);
 		SetNetworkRssiValue(DEFAULT_RSSI_VALUE);
@@ -175,6 +181,117 @@ void ModemRTSEnControl(FunStates Status)
 		HAL_GPIO_WritePin(PB14_MCU_RTS3_GPIO_Port, PB14_MCU_RTS3_Pin, GPIO_PIN_SET);
 	}
 }
+
+#ifdef MODEM_DEEPSLEEP_MODE
+
+static uint8_t ModemWakeEdUp = FALSE;
+static __IO uint8_t IsHttpOnGoing = FALSE;
+static __IO uint8_t IsFotaOnGoing = FALSE;
+static __IO uint8_t IsModemStarted = FALSE;
+
+uint8_t GetIsHttpOnGoingState(void)
+{
+	return IsHttpOnGoing;
+}
+
+void SetIsHttpOnGoingState(uint8_t state)
+{
+	IsHttpOnGoing = state;
+}
+
+uint8_t GetIsFotaOnGoingState(void)
+{
+	return IsFotaOnGoing;
+}
+
+void SetIsFotaOnGoingState(uint8_t state)
+{
+	IsFotaOnGoing = state;
+}
+
+uint8_t GetIsModemStartedState(void)
+{
+	return IsModemStarted;
+}
+
+void SetIsModemStartedState(uint8_t state)
+{
+	IsModemStarted = state;
+}
+
+void ModemWakeUp(void)
+{
+	ModemRTSEnControl(ENABLE);
+
+	if (ModemWakeEdUp == FALSE)
+	{
+		HAL_Delay(MODEM_FIRST_WAKE_UP_DELAY_MS);
+		ModemWakeEdUp = TRUE;
+	}
+}
+
+void ModemWakeUpTickFwpTimer(void)
+{
+	ModemRTSEnControl(ENABLE);
+
+	if (ModemWakeEdUp == FALSE)
+	{
+		HAL_Delay(MODEM_FIRST_WAKE_UP_DELAY_MS);
+		ModemWakeEdUp = TRUE;
+	}
+
+	if (GetFwpIsTimerStatus() == FALSE)
+	{
+		// Set flag
+		SetFwpIsTimerStatus(TRUE);
+		// Reset timer
+		SoftwareTimerReset(&AtSentToUart3Timer, AtSendtoUart3TimerCallback, AT_SENDTO_RETRY_TIMEOUT);
+		SoftwareTimerStart(&AtSentToUart3Timer);
+	}
+}
+
+void ModemWakeUpResetFwpTimer(uint32_t ms)
+{
+	ModemRTSEnControl(ENABLE);
+
+	if (ModemWakeEdUp == FALSE)
+	{
+		HAL_Delay(MODEM_FIRST_WAKE_UP_DELAY_MS);
+		ModemWakeEdUp = TRUE;
+	}
+
+	// Set flag
+	SetFwpIsTimerStatus(TRUE);
+	// Reset timer
+	SoftwareTimerReset(&AtSentToUart3Timer, AtSendtoUart3TimerCallback, ms);
+	SoftwareTimerStart(&AtSentToUart3Timer);
+}
+
+void ModemWakeUpFormISR(void)
+{
+	ModemRTSEnControl(ENABLE);
+
+	ModemWakeEdUp = TRUE;
+
+	if (GetFwpIsTimerStatus() == FALSE)
+	{
+		// Set flag
+		SetFwpIsTimerStatus(TRUE);
+		// Reset timer
+		SoftwareTimerReset(&AtSentToUart3Timer, AtSendtoUart3TimerCallback, AT_SENDTO_RETRY_TIMEOUT);
+		SoftwareTimerStart(&AtSentToUart3Timer);
+	}
+}
+
+void ModemEnterSleep(void)
+{
+	if ((GetIsHttpOnGoingState() == FALSE) && (GetIsFotaOnGoingState() == FALSE) && (GetIsModemStartedState() != FALSE))
+	{
+		ModemRTSEnControl(DISABLE);
+		ModemWakeEdUp = FALSE;
+	}
+}
+#endif /* MODEM_DEEPSLEEP_MODE */
 
 static const char *monthstr[] = {
 	"Err",
@@ -361,7 +478,7 @@ void ModemATInitTimerCallback(uint8_t Status)
 		// Check sim card
 		if(GetSimCardReadyStat() == FALSE)
 		{
-			if(CheckSimCardCount < 3)
+			if(CheckSimCardCount < 10)
 			{
 				CheckSimCardCount++;
 				// Get sim state
@@ -369,12 +486,20 @@ void ModemATInitTimerCallback(uint8_t Status)
 				// Reset AT Init Timer
 				SoftwareTimerReset(&ModemATInitTimer,ModemATInitTimerCallback,MODEM_AT_INIT_DELAY_TIMEOUT);
 				SoftwareTimerStart(&ModemATInitTimer);
+				#ifdef MODEM_DEEPSLEEP_MODE
+				if (CheckSimCardCount == 10)
+				{
+					CheckSimCardCount = 0;
+					SetIsModemStartedState(TRUE);
+				}
+				#endif /* MODEM_DEEPSLEEP_MODE */
 				// Print Out
 				InitPrintf(NRCMD,"\r\n[%s] INIT:check sim time %d", FmtTimeShow(), CheckSimCardCount);
 			}
 		}
 		else
 		{
+			HAL_Delay(15000);
 			// Print Out
 			InitPrintf(NRCMD,"\r\n[%s] INIT:sim card ready!", FmtTimeShow());
 			// Clear counter
@@ -387,16 +512,16 @@ void ModemATInitTimerCallback(uint8_t Status)
 			// SendATCmd(GSM_CMD_CNMI, GSM_CMD_TYPE_EVALUATE , "2,2,0,0,1");
 			SendATCmd(GSM_CMD_CNMI, GSM_CMD_TYPE_EVALUATE , "2,1,0,0,1");
 			
-			// // 0 disable +CME ERROR: <err> result code and use ERROR instead
-			// // 1 enable+CME ERROR: <err> result code and use numeric <err> values
-			// // 2 enable +CME ERROR: <err> result code and use verbose<err> values
-			// SendATCmd(GSM_CMD_CMEE, GSM_CMD_TYPE_EVALUATE , "1");
+			// 0 disable +CME ERROR: <err> result code and use ERROR instead
+			// 1 enable+CME ERROR: <err> result code and use numeric <err> values
+			// 2 enable +CME ERROR: <err> result code and use verbose<err> values
+			SendATCmd(GSM_CMD_CMEE, GSM_CMD_TYPE_EVALUATE , "1");
 			//Get IMEI
 			SendATCmd(GSM_CMD_IMEI, GSM_CMD_TYPE_EVALUATE, "1");
 			// //Get IMSI
 			// SendATCmd(GSM_CMD_IMSI, GSM_CMD_TYPE_EXECUTE, NULL);
 			// Get the version number
-			// SendATCmd(GSM_CMD_I1, GSM_CMD_TYPE_EXECUTE, NULL);	
+			SendATCmd(GSM_CMD_I1, GSM_CMD_TYPE_EXECUTE, NULL);
 			// Get network registration state
 			// SendATCmd(GSM_CMD_CEREG, GSM_CMD_TYPE_QUERY, NULL);
 			// Get the current system time

@@ -20,9 +20,9 @@ extern "C" {
 #include "usrtimer.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define MODEM_AT_INIT_DELAY_TIMEOUT 	(5*1000)
+#define MODEM_AT_INIT_DELAY_TIMEOUT 	(1*1000)
 #define MODEM_AT_INIT_LOOP_TIMEOUT (100)
-#define MODEM_WAITING_DELAY_TIMEOUT 	(10*1000)
+#define MODEM_WAITING_DELAY_TIMEOUT 	(5*1000)
 #define AIRPLANE_MODE_DELAY_TIMEOUT (15000)
 #define STRAT_BLE_SCAN_TIMEOUT (5000)
 #define INIT_CLOCK_TIMEOUT (30000)
@@ -62,6 +62,24 @@ extern void SetMcuDeepSleepModemState(uint8_t state);
 extern uint8_t GetMcuDeepSleepModemState(void);
 extern void ModemPowerEnControl(FunStates Status);
 extern void ModemRTSEnControl(FunStates Status);
+
+#ifdef MODEM_DEEPSLEEP_MODE
+#define MODEM_FIRST_WAKE_UP_DELAY_MS (50)
+#define MODEM_WAKE_UP_LOCK_DELAY_MS (50)
+
+extern uint8_t GetIsHttpOnGoingState(void);
+extern void SetIsHttpOnGoingState(uint8_t state);
+extern uint8_t GetIsFotaOnGoingState(void);
+extern void SetIsFotaOnGoingState(uint8_t state);
+extern uint8_t GetIsModemStartedState(void);
+extern void SetIsModemStartedState(uint8_t state);
+extern void ModemWakeUp(void);
+extern void ModemWakeUpTickFwpTimer(void);
+extern void ModemWakeUpResetFwpTimer(uint32_t ms);
+extern void ModemWakeUpFormISR(void);
+extern void ModemEnterSleep(void);
+#endif /* MODEM_DEEPSLEEP_MODE */
+
 extern void SystemInitialization(void);
 extern void CheckRegularTimerCallback(uint8_t Status);
 extern void CheckLEDFlashTimerCallback(uint8_t Status);

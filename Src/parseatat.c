@@ -67,6 +67,7 @@ const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] =
 	{GSM_FB_CMGR,				"+CMGR:"},
 	{GSM_FB_CPIN,				"+CPIN:"},
 	{GSM_FB_CGACT,				"+CGACT:"},
+	{GSM_FB_SQNMONI,			"+SQNMONI:"},
 	{GSM_FB_SQNSI,				"+SQNSI:"},		// Socket Information
 	{GSM_FB_SQNSS,				"+SQNSS:"},		// Socket Status
 	{GSM_FB_SQNSH,				"+SQNSH:"},		// Socket Status
@@ -77,6 +78,7 @@ const ARCA_ATCMDStruct  gsm_rsp_cmd[GSM_FB_LAST_GSM_FB] =
 	{GSM_FB_CMEERROR,			"+CME ERROR:"},
 	{GSM_FB_SQNVERS1,     			"UE"},			// UE5.0.0.0c
 	{GSM_FB_SQNVERS2,     			"LR"},			// LR5.1.1.0-32741
+	{GSM_FB_SQNSUPGRADE,	"+SQNSUPGRADE:"}, 	//  device upgrade with a firmware located either in the device filesystem or fetched from anexternal server
 	// CBP82
 	{GSM_FB_HCMGSS,     			"^HCMGSS:"},
 	{GSM_FB_PPPCONIP,			"^PPPCONIP:"},
@@ -112,6 +114,7 @@ const ATRspParmFmtT ATParmFmt[GSM_FB_LAST_GSM_FB] =
 	/*GSM_FB_CMGR*/			{4,		{STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE,STR_WITH_QUOTE_TYPE}},				
 	/*GSM_FB_CPIN*/				{1,		{STR_TYPE}},	
 	/*GSM_FB_CGACT*/				{2,		{NUM_TYPE,NUM_TYPE}},
+	/*GSM_FB_SQNMONI*/			{0, 		{NUM_TYPE}},
 	/*GSM_FB_SQNSI*/			{6,		{NUM_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE,STR_WITH_QUOTE_TYPE,NUM_TYPE}},	
 	/*GSM_FB_SQNSS*/			{6,		{NUM_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE,STR_TYPE,NUM_TYPE}},
 	/*GSM_FB_SQNSH*/			{1, 		{NUM_TYPE}},
@@ -122,6 +125,7 @@ const ATRspParmFmtT ATParmFmt[GSM_FB_LAST_GSM_FB] =
 	/*GSM_FB_CMEERROR,*/		{1, 		{NUM_TYPE}},
 	/*GSM_FB_SQNVERS1,*/		{1, 		{STR_TYPE}},
 	/*GSM_FB_SQNVERS2,*/		{1, 		{STR_TYPE}},
+	/* GSM_FB_SQNSUPGRADE */	{2, 		{STR_WITH_QUOTE_TYPE,NUM_TYPE}},
 	// CBP82
 	/*GSM_FB_HCMGSS,*/			{1, 		{NUM_TYPE}},
 	/*GSM_FB_PPPCONIP,*/			{0, 		{NUM_TYPE}},
@@ -239,6 +243,7 @@ static void MmiCMSERROR(ATRspParmT* MsgDataP);
 static void MmiCMEERROR (ATRspParmT* MsgDataP);
 static void MmiSQNVERSTR1(ATRspParmT* MsgDataP);
 static void MmiSQNVERSTR2(ATRspParmT* MsgDataP);
+static void MmiSQNSUPGRADE(ATRspParmT* MsgDataP);
 // // CBP82
 // static void MmiHCMGSS(ATRspParmT* MsgDataP);
 // static void MmiPPPCONIP(char* MsgDataP);
@@ -623,6 +628,9 @@ void ValATRspProcess(GSM_FB_CMD RspCmdType, ATRspParmT* pRspData, char *pOrigina
 		case GSM_FB_SQNVERS2:
 			MmiSQNVERSTR2(pRspData);
 			break;
+		case GSM_FB_SQNSUPGRADE:
+			MmiSQNSUPGRADE(pRspData);
+			break;
 		// CBP82
 		// case GSM_FB_HCMGSS:
 		// 	MmiHCMGSS(pRspData);
@@ -775,10 +783,12 @@ static void MmiSYSSTART (ATRspParmT* MsgDataP)
 {
 	// Module powered on indicator
 	// +IMS: START
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+SYSSTART", FmtTimeShow());
-	// #endif
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:+SYSSTART", FmtTimeShow());
+	
+	#ifdef MODEM_DEEPSLEEP_MODE
+	if (GetIsModemStartedState() == FALSE)
+	{
+	#endif /* MODEM_DEEPSLEEP_MODE */
 	// Set Sleep Flag
 	// SetSystemEventMode(SYS_EVENT_ATCOMMAND_TO_MODEM_MSK);
 	// Change Network Status
@@ -793,8 +803,9 @@ static void MmiSYSSTART (ATRspParmT* MsgDataP)
 	// Reset AT Init Timer
 	SoftwareTimerReset(&ModemATInitTimer,ModemATInitTimerCallback,MODEM_AT_INIT_DELAY_TIMEOUT);
 	SoftwareTimerStart(&ModemATInitTimer);
-	//Reset Check Modem Timeout Time
-	// ResetCheckModemTimeoutTim();
+	#ifdef MODEM_DEEPSLEEP_MODE
+	}
+	#endif /* MODEM_DEEPSLEEP_MODE */
 } 
 
 static void MmiCEREG(char *MsgDataP)
@@ -1233,6 +1244,7 @@ static void MmiCGSN (ATRspParmT* MsgDataP)
 
 static void MmiCCLK (ATRspParmT* MsgDataP)
 {
+	static uint8_t getClkCount = 0;
 	// CBP82
 	// +CCLK:2015/7/14,14:25:54+32
 
@@ -1260,39 +1272,50 @@ static void MmiCCLK (ATRspParmT* MsgDataP)
 		(MsgDataP[4].Num <= 59) && \
 		(MsgDataP[5].Num <= 59))
 	{
-		uint32_t RTCTimeBase = *((uint32_t *)WedgeSysStateGet(WEDGE_BASE_RTC_TIME));
-		// Init RTC Time
-		timeTable.year 	= MsgDataP[0].Num;
-		timeTable.month 	= MsgDataP[1].Num;
-		timeTable.day 	= MsgDataP[2].Num;
-		timeTable.hour 	= MsgDataP[3].Num;
-		timeTable.minute 	= MsgDataP[4].Num;
-		timeTable.second 	= MsgDataP[5].Num;
-
-		if (HAL_OK != HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A))
+		if ((MsgDataP[0].Num == 2070) && (MsgDataP[1].Num == 1) && (MsgDataP[2].Num == 1) && (getClkCount < 10))
 		{
-			ParseatPrint(TRUE,"\r\n--->>PAT:+CCLK HAL_RTC_DeactivateAlarm Fail");
+			getClkCount++;
+			HAL_Delay(1000);
+			SendATCmd(GSM_CMD_CCLK, GSM_CMD_TYPE_QUERY, NULL);
 		}
 		else
 		{
-			// HAL_RTC_DeInit(&hrtc);
-			// MX_RTC_Init();
-			SetRTCDatetime(&timeTable);
-			ModemTimetalbeGet = timeTable;
-			ModemTimeInSeconds = WedgeRtcCurrentSeconds();
+			uint32_t RTCTimeBase = *((uint32_t *)WedgeSysStateGet(WEDGE_BASE_RTC_TIME));
 
-			if (RTCTimeBase < ModemTimeInSeconds)
+			getClkCount = 0;
+			// Init RTC Time
+			timeTable.year = MsgDataP[0].Num;
+			timeTable.month = MsgDataP[1].Num;
+			timeTable.day = MsgDataP[2].Num;
+			timeTable.hour = MsgDataP[3].Num;
+			timeTable.minute = MsgDataP[4].Num;
+			timeTable.second = MsgDataP[5].Num;
+
+			if (HAL_OK != HAL_RTC_DeactivateAlarm(&hrtc, RTC_ALARM_A))
 			{
-				WedgeRtcTimerModifySettime((ModemTimeInSeconds - RTCTimeBase), WEDGE_RTC_TIMER_MODIFY_INCREASE);
-				WedgeRtcTimerInstanceAlarmRefresh();
+				ParseatPrint(TRUE, "\r\n--->>PAT:+CCLK HAL_RTC_DeactivateAlarm Fail");
 			}
 			else
 			{
-				WedgeRtcTimerModifySettime((RTCTimeBase - ModemTimeInSeconds), WEDGE_RTC_TIMER_MODIFY_DECREASE);
-				WedgeRtcTimerInstanceAlarmRefresh();
-			}
+				// HAL_RTC_DeInit(&hrtc);
+				// MX_RTC_Init();
+				SetRTCDatetime(&timeTable);
+				ModemTimetalbeGet = timeTable;
+				ModemTimeInSeconds = WedgeRtcCurrentSeconds();
 
-			WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &ModemTimeInSeconds);
+				if (RTCTimeBase < ModemTimeInSeconds)
+				{
+					WedgeRtcTimerModifySettime((ModemTimeInSeconds - RTCTimeBase), WEDGE_RTC_TIMER_MODIFY_INCREASE);
+					WedgeRtcTimerInstanceAlarmRefresh();
+				}
+				else
+				{
+					WedgeRtcTimerModifySettime((RTCTimeBase - ModemTimeInSeconds), WEDGE_RTC_TIMER_MODIFY_DECREASE);
+					WedgeRtcTimerInstanceAlarmRefresh();
+				}
+
+				WedgeSysStateSet(WEDGE_BASE_RTC_TIME, &ModemTimeInSeconds);
+			}
 		}
 	}
 	else
@@ -2037,22 +2060,17 @@ static void MmiCMEERROR (ATRspParmT* MsgDataP)
 
 static void MmiSQNVERSTR1(ATRspParmT* MsgDataP)
 {
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version UE(%s)", \
-			FmtTimeShow(),MsgDataP[0].Str);
-	// #endif
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version UE(%s)", \
+		FmtTimeShow(),MsgDataP[0].Str);
 }
 
 static void MmiSQNVERSTR2(ATRspParmT* MsgDataP)
 {
 	u8 length;
 	u8 *VerisonP = gModemParam.Version;
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version LR(%s)", \
-			FmtTimeShow(),MsgDataP[0].Str);
-	// #endif
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version LR(%s)", \
+		FmtTimeShow(),MsgDataP[0].Str);
+		
 	length = 0;
 	memset( (char *)VerisonP, 0, sizeof(VerisonP) );
 	// Fill head
@@ -2064,10 +2082,66 @@ static void MmiSQNVERSTR2(ATRspParmT* MsgDataP)
 		sprintf((char *)&VerisonP[length], (char *)MsgDataP[0].Str);
 		length= strlen((char *)VerisonP );
 	}
-	// #ifdef ATRSP_RESULT
-	// if(gDeviceConfig.DbgCtl.ParseatResultEn == TRUE)
-		ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version(%s)",FmtTimeShow(),VerisonP);
-	// #endif
+	
+	ParseatPrint(DbgCtl.ParseatCmdEn,"\r\n[%s] PAT:Version(%s)",FmtTimeShow(),VerisonP);
+}
+
+static void MmiSQNSUPGRADE(ATRspParmT* MsgDataP)
+{
+	ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] PAT:SQNSUPGRADE upgrade_state(%s)",
+				 FmtTimeShow(), MsgDataP[0].Str);
+
+	// "canceled" The upgrade has been canceled
+	// "downloading" Report the downloading progress. This state is followed with <percent_downloaded>. This information is displayed only if <report_progress> has been set different than 0
+	// "idle" No upgrade is on going
+	// "installed" The upgraded is installed and will be effective after the next reboot
+	// "available" A new firmware is available for download (network initiated firmware upgrade use cases only)
+	// "rebooting" This notification is sent just before the device reboot that finalizes the system upgrade.
+
+	if (0 == strcmp(MsgDataP[0].Str, "downloading"))
+	{
+		ParseatPrint(DbgCtl.ParseatCmdEn, "\r\n[%s] percent_downloaded(%d)",
+				 FmtTimeShow(), MsgDataP[1].Num);
+
+		#ifdef MODEM_DEEPSLEEP_MODE
+		SetIsFotaOnGoingState(TRUE);
+		ModemWakeUpTickFwpTimer();
+		#endif /* MODEM_DEEPSLEEP_MODE */
+		
+		if (MsgDataP[1].Num == 100)
+		{
+			
+		}
+		else if (MsgDataP[1].Num == 0)
+		{
+			
+		}
+	}
+	else if (0 == strcmp(MsgDataP[0].Str, "canceled"))
+	{
+		
+	}
+	else if (0 == strcmp(MsgDataP[0].Str, "available"))
+	{
+		#ifdef MODEM_DEEPSLEEP_MODE
+		SetIsFotaOnGoingState(TRUE);
+		ModemWakeUpTickFwpTimer();
+		#endif /* MODEM_DEEPSLEEP_MODE */
+	}
+	else if (0 == strcmp(MsgDataP[0].Str, "installed"))
+	{
+		#ifdef MODEM_DEEPSLEEP_MODE
+		SetIsModemStartedState(FALSE);
+		#endif /* MODEM_DEEPSLEEP_MODE */
+	}
+	else if (0 == strcmp(MsgDataP[0].Str, "rebooting"))
+	{
+		#ifdef MODEM_DEEPSLEEP_MODE
+		SetIsFotaOnGoingState(FALSE);
+		SetIsModemStartedState(FALSE);
+		ModemWakeUpTickFwpTimer();
+		#endif /* MODEM_DEEPSLEEP_MODE */
+	}
 }
 
 // static void MmiHCMGSS(ATRspParmT* MsgDataP)

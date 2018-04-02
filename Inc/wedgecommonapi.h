@@ -65,6 +65,7 @@ typedef enum
     WEDGE_CFG_SVRCFG,
     WEDGE_CFG_FTPCFG,
     WEDGE_CFG_APNCFG,
+    WEDGE_CFG_GPSDIAG,
 
     WEDGE_CFG_OPERATE_INVALID_MAX
 } WEDGECfgOperateTypeDef;
@@ -115,6 +116,7 @@ typedef enum
     RELAY_CFG_CHG,
     PLSRLY_CFG_CHG,
     OPSOD_CFG_CHG,/* Over Speed */
+    GPSDIAG_CFG_CHG,
     CFG_CHG_INVALIAD_MAX
 } WEDGECfgChangeTypeDef;
 
@@ -128,6 +130,9 @@ extern void WedgeCfgChgStateResetAll(void);
 extern void WedgeCfgChgStateSet(WEDGECfgChangeTypeDef CfgChg, uint8_t State);
 extern uint8_t WedgeCfgChgStateIsChanged(void);
 extern uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg);
+extern void WedgeConfigureALLThresholds(void);
+extern void WedgeResettoFactoryDefaults(void);
+extern char* WedgeGetModemVersion(void);
 extern void WedgeUpdateBinaryMsgGpsRecord(void);
 
 extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);

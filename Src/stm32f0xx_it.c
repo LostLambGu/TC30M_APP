@@ -183,6 +183,9 @@ void EXTI4_15_IRQHandler(void)
   
   if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13) != RESET)
   {
+    #ifdef MODEM_DEEPSLEEP_MODE
+    ModemWakeUpFormISR();
+    #endif /* MODEM_DEEPSLEEP_MODE */
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   }
   /* USER CODE BEGIN EXTI4_15_IRQn 1 */

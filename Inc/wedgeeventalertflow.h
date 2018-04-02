@@ -161,6 +161,8 @@ extern void WedgePeriodicHealthEvent(void);
 extern void WedgePeriodicHardwareResetReinit(void);
 extern void WedgePeriodicHardwareResetInit(void);
 
+extern void WedgeGpsRequestDataProcess(void);
+
 #ifdef __cplusplus
 }
 #endif

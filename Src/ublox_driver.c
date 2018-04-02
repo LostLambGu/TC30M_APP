@@ -105,7 +105,7 @@ void ReadUbloxData(void)
 		UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: len(%d) retry(%d)", \
 			FmtTimeShow(), MsgBuffer.DataLen, LoopCount);
 		// Read NMEA Data
-		if(MsgBuffer.DataLen > 0 && MsgBuffer.DataLen < DATA_SIZE_MAX+1)
+		if(MsgBuffer.DataLen > 0 && MsgBuffer.DataLen < GPS_DATA_SIZE_MAX+1)
 		{
 			// Get Data
 			if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
@@ -127,8 +127,8 @@ void ReadUbloxData(void)
 			// Check Ublox Data Length
 			for(LoopCount = 0;LoopCount < LENGTH_LOOP_TIME;LoopCount++)					  
 			{
-				if(MsgBuffer.DataLen >= DATA_SIZE_MAX)
-					MsgBuffer.DataLen = DATA_SIZE_MAX;
+				if(MsgBuffer.DataLen >= GPS_DATA_SIZE_MAX)
+					MsgBuffer.DataLen = GPS_DATA_SIZE_MAX;
 			        //if length is still above max size, it means the data includes 2 packet data at least.
 				if(HAL_I2C_Master_Receive_DMA(&hi2c2, (u16)UBLOX_I2C_DRV_ADDRESS, (u8 *)MsgBuffer.Data,MsgBuffer.DataLen) == HAL_OK)
 				 	UbloxPrintf(DbgCtl.UbloxDbgInfoEn, "\r\n[%s] GPS: data ok len(%d) count(%d)", FmtTimeShow(),MsgBuffer.DataLen, LoopCount);
@@ -168,7 +168,7 @@ void ReadUbloxData(void)
 #else
 void UART2_RxCpltCallback(uint8_t Data)
 {
-	if (MsgBuffer.DataLen < DATA_SIZE_MAX)
+	if (MsgBuffer.DataLen < GPS_DATA_SIZE_MAX)
 	{
 		MsgBuffer.Data[MsgBuffer.DataLen] = Data;
 		MsgBuffer.DataLen++;
@@ -1197,6 +1197,37 @@ void UBloxGetGpsPoint(double *pLatitude, double *pLongitude)
 double UbloxGetHeading(void)
 {
 	return GpsInfo.Heading;
+}
+
+void UBloxGetGpsSentence(const char *pSentence, char *pBuf, uint16_t *pLen)
+{
+	char *ptmp = NULL;
+	*pLen = 0;
+	uint16_t i = 0;
+
+	ptmp = strstr((char *)MsgBuffer.Data, pSentence);
+	if (ptmp != NULL)
+	{
+	AGAIN:
+		memcpy(pBuf, pSentence, strlen(pSentence));
+		ptmp += strlen(pSentence);
+		i += strlen(pSentence);
+		for(; ((*ptmp != '\r') && (*ptmp != '\n') && (*ptmp != '$')); i++)
+		{
+			pBuf[i] = *ptmp;
+			ptmp++;
+		}
+		i++;
+		pBuf[i] = '\r';
+		i++;
+		pBuf[i] = '\n';
+
+		ptmp = strstr((char *)ptmp, pSentence);
+		if (ptmp != NULL)
+			goto AGAIN;
+	}
+
+	*pLen = i;
 }
 
 #include <math.h>

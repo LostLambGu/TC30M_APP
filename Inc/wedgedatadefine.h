@@ -399,6 +399,23 @@ typedef struct
     uint8_t pwd[APNCFG_PWD_LEN_MAX_32_BYTES];
 } APNCFGTypeDef;
 
+typedef struct
+{
+    // <data> is a bit-field for GPS data
+    //     B0 : $GPGGA sentence
+    //     B1 : $GPGSA sentence
+    //     B2 : $GPGLL sentence
+    //     B3 : $GPGSV sentences
+    //     B4 : $GPRMC sentence
+    //     B5 : $GPVTG sentence
+    //     (valid range: 00 – 3F in ASCII format)
+    // <stream> is a flag for specifying streaming GPS data to the serial port
+    //     0 : output the data one (1) time through the requesting path
+    //     1 : stream the <data> pattern to serial port (until reset to 0)
+    char data;
+    uint8_t stream;
+} GPSDIAGTypeDef;
+
 #define WEDGE_GEOFENCES_NUM_MAX (10)
 typedef struct
 {
@@ -425,6 +442,7 @@ typedef struct
     SVRCFGTypeDef SVRCFG;
     FTPCFGTypeDef FTPCFG;
     APNCFGTypeDef APNCFG;
+    GPSDIAGTypeDef GPSDIAG;
 } WEDGECfgTypeDef;
 
 /* Wedge Spi Flash Defines -------------------------------------------------- */

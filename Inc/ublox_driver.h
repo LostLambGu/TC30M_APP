@@ -15,7 +15,7 @@
 #include "include.h"
 
 /* Exported macro ------------------------------------------------------------*/
-#define DATA_SIZE_MAX 1536
+#define GPS_DATA_SIZE_MAX 1024
 #define LENGTH_LOOP_TIME 5
 //I2C Read & Write Addr
 #define UBLOX_I2C_READ 0x01
@@ -43,7 +43,7 @@
 typedef struct
 {
     uint16 DataLen;
-    uint8 Data[DATA_SIZE_MAX];
+    uint8 Data[GPS_DATA_SIZE_MAX];
 } PswGpsNmeaStreamMsgT;
 
 typedef struct
@@ -299,6 +299,7 @@ extern double UbloxSpeedKM(void);
 extern uint8_t UbloxFixStateGet(void);
 extern void UBloxGetGpsPoint(double *pLatitude, double *pLongitude);
 extern double UbloxGetHeading(void);
+extern void UBloxGetGpsSentence(const char *pSentence, char *pBuf, uint16_t *pLen);
 extern float UBloxGpsPointDistance(double long Latitude1, double long Longitude1, double long Latitude2, double long Longitude2);
 
 #endif

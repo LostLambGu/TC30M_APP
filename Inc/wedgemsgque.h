@@ -49,6 +49,7 @@ typedef struct
 extern uint8_t WedgeMsgQueInit(void);
 extern uint8_t WedgeMsgQueInWrite(WEDGEMsgQueCellTypeDef *pQueCell);
 extern uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell);
+extern void WedgeMsgQueClearAll(void);
 
 #ifdef __cplusplus
 }

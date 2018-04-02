@@ -566,6 +566,15 @@ uint8_t WedgeMsgQueOutRead(WEDGEMsgQueCellTypeDef *pQueCell)
     }
 }
 
+extern void WedgeDeviceInfoSave(void);
+void WedgeMsgQueClearAll(void)
+{
+    MQSTATTypeDef MQSTAT = {0};
+    memset(&MQSTAT, 0, sizeof(MQSTATTypeDef));
+    WedgeSysStateSet(WEDGE_MQSTAT, &MQSTAT);
+    WedgeDeviceInfoSave();
+}
+
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File

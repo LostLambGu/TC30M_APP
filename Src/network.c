@@ -13,6 +13,7 @@
 #include "network.h"
 #include "sendatcmd.h"
 #include "ltecatm.h"
+#include "initialization.h"
 
 /* Defines -------------------------------------------------------------------*/
 #undef NRCMD
@@ -171,6 +172,34 @@ NetworkStatT GetNetworkMachineStatus(void)
 void SetNetworkMachineStatus(NetworkStatT status)
 {
 	NetStateMachine = status;
+}
+
+void SetModemApn(char *pApn, uint8_t pdpType)
+{
+	// pdpType 0/1/2 for IPv4/IPv6/IPv4IPv6
+    // FDH_MAX_CMD_LEN (128) defined in sendatcmd.h
+    // TC30M_DEFAULT_CID (3) defined in network.h
+    // cid: a particular PDP context definition
+    uint8_t cid = TC30M_DEFAULT_CID;
+    char *pdpTypeStr[3] = 
+    {
+        [0] = "IPV4V6",
+        [1] = "IPV6",
+        [2] = ""
+    };
+    char atcmdBuf[FDH_MAX_CMD_LEN];
+
+    if (strlen(pApn) > (FDH_MAX_CMD_LEN - 13))
+    {
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] Network: Set Modem Apn Too Long", FmtTimeShow());
+        return;
+    }
+
+    memset(atcmdBuf, 0, sizeof(atcmdBuf));
+
+    sprintf(atcmdBuf,"%d,\"%s\",\"%s\"", cid, pdpTypeStr[pdpType], pApn);
+    SendATCmd(GSM_CMD_CGDCONT, GSM_CMD_TYPE_EVALUATE, (uint8_t *)atcmdBuf);
+    SendATCmd(GSM_CMD_CGDCONT, GSM_CMD_TYPE_QUERY, NULL);
 }
 
 void UdpSendUnitIn(UdpSendQueueTypedef *pUdpSendQueue, UdpSendUintTypedef *pUDPIpSendUint)
@@ -449,6 +478,9 @@ static void UART3SendHexData(char *string, uint16_t slen)
 {
 	// HAL_UART_Transmit(&huart1, "\r\n--->>", 7, UART_SEND_DATA_TIMEOUT);
 	// HAL_UART_Transmit(&huart1, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
+	#ifdef MODEM_DEEPSLEEP_MODE
+	ModemWakeUpTickFwpTimer();
+	#endif /* MODEM_DEEPSLEEP_MODE */
 	HAL_UART_Transmit(&huart3, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
 	DebugPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nLTE: SEND Hex Data Len: (%d)", slen);
 }
@@ -785,6 +817,9 @@ void CheckNetlorkTimerCallback(u8 Status)
 					if (GetNetServiceStatus() == IN_SERVICE)
 					{
 						NetworkPrintf(DbgCtl.NetworkDbgInfoEn, "\r\n[%s] IN_SERVICE", FmtTimeShow());
+						#ifdef MODEM_DEEPSLEEP_MODE
+						SetIsModemStartedState(TRUE);
+						#endif /* MODEM_DEEPSLEEP_MODE */
 						// Go next
 						SetNetworkMachineStatus(NET_CONNECTED_STAT);
 						Timeout = 10;

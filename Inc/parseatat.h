@@ -14,14 +14,14 @@
 
 /* Defines */
 #define GSM_MAX_PARAM			13
-#define GSM_MAX_PARAM_LEN		32
+#define GSM_MAX_PARAM_LEN		128
 #define IPRECV_PARSE_LENGTH		50
 
 #define HEAD_LENGTH 				2
 #define TAIL_LENGTH 				2
 #define ATDHTBL_NUM_ACT 			1
 #define TAIL_LENGTH_QCMIPGETP 	1
-#define AT_MAX_AT_CMD_LEN 		(128)//UART3_RX_BUFFER_SIZE
+#define AT_MAX_AT_CMD_LEN 		(512)//UART3_RX_BUFFER_SIZE
 
 #define SQNSI_PARSE_LENGTH		64
 

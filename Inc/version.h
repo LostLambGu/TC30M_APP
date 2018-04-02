@@ -20,6 +20,7 @@ extern "C" {
 
 //Function Declare
 extern void ShowSoftVersion(void);
+extern void GetAppVersion(uint32_t *pMain, uint32_t *pSub);
 
 #ifdef __cplusplus
 }

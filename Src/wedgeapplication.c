@@ -49,6 +49,7 @@ static void WedgeGEOFENCESCfgChg(WEDGECfgChangeTypeDef CfgChg);
 static void WedgeRELAYCfgChg(void);
 static void WedgePLSRLYCfgChg(void);
 static void WedgeOSPDCfgChg(void);
+static void WedgeGPSDIAGCfgChg(void);
 
 #define TC30M_LTE_PROCESS_PERIOD_MS (10)
 void ApplicationProcess(void)
@@ -94,6 +95,8 @@ void ApplicationProcess(void)
         WedgeUdpSocketManageProcess();
         // Wedge Rtc Timer Event Process
         WedgeRTCTimerEventProcess();
+        // Wedge GPS data Request Process
+        WedgeGpsRequestDataProcess();
     }
 }
 
@@ -506,6 +509,10 @@ static void WedgeCfgChgStateProcess(void)
                     WedgeOSPDCfgChg();
                     break;
 
+                case GPSDIAG_CFG_CHG:
+                    WedgeGPSDIAGCfgChg();
+                    break;
+
                 default:
                     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s]%sDefault",
                                       FmtTimeShow(), WedgeCfgChgStateProcessStr);
@@ -563,11 +570,11 @@ static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
 
 static void WedgeAPNCfgChg(void)
 {
-
-
-
-
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE APN Cfg Chg Reserved", FmtTimeShow());
+    #define DEFAULT_PDP_TYPE (0)
+    APNCFGTypeDef *pAPNCFG = ((APNCFGTypeDef *)WedgeCfgGet(WEDGE_CFG_APNCFG));
+    extern void SetModemApn(char *pApn, uint8_t pdpType);
+    SetModemApn(pAPNCFG->apn, DEFAULT_PDP_TYPE);
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE Cfg Chg APN(%s)", FmtTimeShow(), pAPNCFG->apn);
 }
 
 static void WedgeHWRRSTCfgChg(void)
@@ -592,22 +599,17 @@ static void WedgeUSRDATCfgChg(void)
 
     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE USRDAT Cfg Chg Reserved", FmtTimeShow());
 }
+
 static void WedgeCFGALLCfgChg(void)
 {
-
-
-
-
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE CFGALL Cfg Chg Reserved", FmtTimeShow());
+    WedgeConfigureALLThresholds();
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE CFGALL Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeResetDefaultCfgChg(void)
 {
-
-
-
-
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE Reset Default Cfg Chg Reserved", FmtTimeShow());
+    WedgeResettoFactoryDefaults();
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE Reset Default Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeIGNTYPCfgChg(void)
@@ -713,7 +715,7 @@ static void WedgeSTPINTVLCfgChg(void)
     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE STPINTVL Cfg Chg", FmtTimeShow());
     if (IgnitionState == WEDGE_IGN_OFF_STATE)
     {
-        if (IGNTYPE.itype == Wired_Ignition)
+        if (IGNTYPE.itype != No_Ignition_detect)
         {
             // If at first the stop report had been sent, this will cause another report.
             WedgeStopReportOnToOffDisable();
@@ -776,6 +778,11 @@ static void WedgeOSPDCfgChg(void)
 {
     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE OSPD Cfg Chg", FmtTimeShow());
     WedgeOverSpeedAlertReset();
+}
+
+static void WedgeGPSDIAGCfgChg(void)
+{
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE GPSDIAG Cfg Chg", FmtTimeShow());
 }
 
 /*******************************************************************************

@@ -12,10 +12,17 @@
 #include "network.h"
 #include "ltecatm.h"
 
+#include "initialization.h"
+
 #undef NRCMD
 #define NRCMD (1)
 
 #define SendatPrintf DebugPrintf
+
+#ifdef MODEM_DEEPSLEEP_MODE
+#define MODEM_AT_DPSLEEP ModemEnterSleep
+#define MODEM_AT_WAKEUP ModemWakeUp
+#endif /* MODEM_DEEPSLEEP_MODE */
 
 extern DebugCtlPrarm DbgCtl;
 
@@ -55,6 +62,7 @@ const ARCA_ATCMDStruct gsm_at_cmd[GSM_CMD_LAST] =
 	{GSM_CMD_CPIN,			"+CPIN"},			// Pin Code
 	{GSM_CMD_CGACT,			"+CGACT"},		// PDP Context Activate or Deactivate
 	{GSM_CMD_IMSSTATEGET,	"+IMSSTATEGET"},	// Get IMS state information
+	{GSM_CMS_SQNMONI, "+SQNMONI"},
 	{GSM_CMD_SQNSI,			"+SQNSI"},		// Socket Information
 	{GSM_CMD_SQNSS,			"+SQNSS"},		// Socket Status
 	{GSM_CMD_SQNSCFG,		"+SQNSCFG"},		// Socket Configuration:
@@ -79,6 +87,7 @@ const ARCA_ATCMDStruct gsm_at_cmd[GSM_CMD_LAST] =
 	{GSM_CMD_SQNHTTPCFG,	"+SQNHTTPCFG"}, 	// sets the parameters needed to the HTTP connection
 	{GSM_CMD_SQNHTTPQRY,	"+SQNHTTPQRY"}, 	// performs HTTP GET, HEAD or DELETE request to server
 	{GSM_CMD_SQNHTTPRCV,	"+SQNHTTPRCV"}, 	// read the body of HTTP response
+	{GSM_CMD_SQNSUPGRADE,	"+SQNSUPGRADE"}, 	//  device upgrade with a firmware located either in the device filesystem or fetched from anexternal server
 	// CBP82
 	{GSM_CMD_GPSPDE,     		"+GPSPDE"},		// Sent PDE Addr to Modem
 	{GSM_CMD_TFTPSTART,     	"+TFTPSTART"},	// Start TFTP Process
@@ -312,15 +321,9 @@ static void FwpSendAtTimerOn(void)
 		#ifdef MODEM_DEEPSLEEP_MODE
 		// Modem Dpsleep
 		MODEM_AT_DPSLEEP();
-		
-		#endif
+		#endif /* MODEM_DEEPSLEEP_MODE */
 
-		// #ifdef DEBUG_SENT_AT
-		//if(gDeviceConfig.DbgCtl.SendToModemEn == TRUE)
-			SendatPrintf(NRCMD,"\r\n[%s] SAT: atcmd timer stop...", FmtTimeShow());
-		// #endif
-		// Clear Sleep Flag
-		// ClearSystemEventMode(SYS_EVENT_ATCOMMAND_TO_MODEM_MSK);
+		SendatPrintf(NRCMD,"\r\n[%s] SAT: atcmd timer stop...", FmtTimeShow());
 	}
 }
 

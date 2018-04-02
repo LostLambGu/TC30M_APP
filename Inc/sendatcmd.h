@@ -11,10 +11,6 @@
  /* Includes */
 #include "include.h"
 
-
-#define FDH_MAX_CMD_LEN  	64
-#define FDH_MAX_CMD_NUM 	15
-
 typedef enum
 {
 	// LTE
@@ -38,6 +34,7 @@ typedef enum
 	GSM_CMD_CPIN,
 	GSM_CMD_CGACT,
 	GSM_CMD_IMSSTATEGET,
+	GSM_CMS_SQNMONI,
 	GSM_CMD_SQNSI,
 	GSM_CMD_SQNSS,
 	GSM_CMD_SQNSCFG,
@@ -58,7 +55,8 @@ typedef enum
 	GSM_CMD_CMGD,
 	GSM_CMD_SQNHTTPCFG,
 	GSM_CMD_SQNHTTPQRY,
-	GSM_CMD_SQNHTTPRCV,	
+	GSM_CMD_SQNHTTPRCV,
+	GSM_CMD_SQNSUPGRADE,
 	// CBP82
 	GSM_CMD_GPSPDE,
 	GSM_CMD_TFTPSTART,
@@ -105,6 +103,7 @@ typedef enum
 	GSM_FB_CMGR,		
 	GSM_FB_CPIN,
 	GSM_FB_CGACT,
+	GSM_FB_SQNMONI,
 	GSM_FB_SQNSI,
 	GSM_FB_SQNSS,
 	GSM_FB_SQNSH,
@@ -115,6 +114,7 @@ typedef enum
 	GSM_FB_CMEERROR,
 	GSM_FB_SQNVERS1,
 	GSM_FB_SQNVERS2,
+	GSM_FB_SQNSUPGRADE,
 	// CBP82
 	GSM_FB_HCMGSS,
 	GSM_FB_PPPCONIP,
@@ -136,6 +136,9 @@ typedef struct
 
 // Variable declared
 extern GSM_ATCMDINDEX cmdIndex;
+
+#define FDH_MAX_CMD_LEN  	128
+#define FDH_MAX_CMD_NUM 	16
 
 // Function declaration 
 extern void aiDFdhInit(void);

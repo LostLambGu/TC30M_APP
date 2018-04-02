@@ -183,6 +183,23 @@ uint8_t WedgeGetRTCAlarmStatus(void)
     return WedgeRtcAlarmHappen;
 }
 
+void WedgeResetHardware(void)
+{
+    uint32_t LastHWRSTRTCTime = 0;
+
+    UbloxGPSStop();
+    ModemPowerEnControl(DISABLE);
+
+    LastHWRSTRTCTime = WedgeRtcCurrentSeconds();
+    WedgeSysStateSet(WEDGE_LAST_HWRST_RTC_TIME, &LastHWRSTRTCTime);
+    WedgeDeviceInfoSave();
+    // Message not sent out save.
+    // Reserved
+    WedgeSetPowerLostBeforeReset();
+    WEDGE_RTC_TIMER_PRINT(DbgCtl.WedgeRtcTimerInfoEn, "\r\n[%s] Reset Hardware", FmtTimeShow());
+    MCUReset();
+}
+
 void WedgeRtcSetBeforeDeepsleep(uint32_t seconds)
 {
     RTCTimerListCellTypeDef Instance;

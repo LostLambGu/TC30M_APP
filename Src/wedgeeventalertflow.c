@@ -1326,6 +1326,41 @@ void WedgePeriodicHardwareResetInit(void)
     }
 }
 
+void WedgeGpsRequestDataProcess(void)
+{
+    static uint32_t SystickRec = 0;
+		GPSDIAGTypeDef *pGPSDIAG = (GPSDIAGTypeDef *)WedgeCfgGet(WEDGE_CFG_GPSDIAG);
+
+    if (UbloxFixStateGet() == FALSE)
+    {
+        return;
+    }
+
+    if (WEDGE_GPS_DATA_PERIOD_MS > (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+    if (pGPSDIAG->stream == 1)
+    {
+        char GpsSentenceBuf[GPS_DATA_SIZE_MAX] = {0};
+        uint16_t dataLen = 0;
+
+        WEDGE_EVENT_ALERT_PRINT(DbgCtl.WedgeEvtAlrtFlwInfoEn, "\r\n[%s] WEDGE Gps Data Request"
+        ,FmtTimeShow());
+
+        WedgeGetGpsSentences(pGPSDIAG->data, GpsSentenceBuf, &dataLen);
+        if (dataLen != 0)
+        {
+            PutStrToUart1Dbg(GpsSentenceBuf, dataLen);
+        }
+    }
+}
+
 /*******************************************************************************
     Copyrights (C) Asiatelco Technologies Co., 2003-2018. All rights reserved
                                 End Of The File

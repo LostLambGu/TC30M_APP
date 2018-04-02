@@ -64,7 +64,8 @@ const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
     .SMS = {.sms_1 = "42818", .sms_2 = "", .sms_3 = ""},
     .SVRCFG = {.port = 14180, .prot = 1, .reg = 1, .srvr1 = "192.168.10.67", .srvr2 = "", .srvr3 = "", .srvr4 = "", .srvr5 = ""},
     .FTPCFG = {.reserved = 0},
-    .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""}
+    .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""},
+    .GPSDIAG = {.data = 0, .stream = 0}
 };
 #else
 const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
@@ -90,7 +91,8 @@ const static WEDGECfgTypeDef WEDGECfgFactoryDefaultOnChip =
     .SMS = {.sms_1 = "42818", .sms_2 = "", .sms_3 = ""},
     .SVRCFG = {.port = 14180, .prot = 1, .reg = 1, .srvr1 = "", .srvr2 = "192.168.1.67", .srvr3 = "", .srvr4 = "", .srvr5 = ""},
     .FTPCFG = {.reserved = 0},
-    .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""}
+    .APNCFG = {.apn = "mobiledata.t-mobile.com", .usr = "", .pwd = ""},
+    .GPSDIAG = {.data = 0, .stream = 0}
 };
 #endif /* TC30M_TEST_CONFIG_OFF */
 /* Function definition -------------------------------------------------------*/
@@ -237,6 +239,9 @@ void *WedgeCfgGet(WEDGECfgOperateTypeDef CfgGet)
     case WEDGE_CFG_APNCFG:
         return &(WEDGECfgRecord.APNCFG);
 
+    case WEDGE_CFG_GPSDIAG:
+        return &(WEDGECfgRecord.GPSDIAG);
+
     default:
         WEDGE_COM_API_LOG("WEDGE CFG GET: Param err");
         return NULL;
@@ -344,6 +349,10 @@ void WedgeCfgSet(WEDGECfgOperateTypeDef CfgSet, void *pvData)
         WEDGECfgRecord.APNCFG = *((APNCFGTypeDef *)pvData);
         break;
 
+    case WEDGE_CFG_GPSDIAG:
+        WEDGECfgRecord.GPSDIAG = *((GPSDIAGTypeDef *)pvData);
+        break;
+
     default:
         WEDGE_COM_API_LOG("WEDGE CFG SET: Param err");
         break;
@@ -396,6 +405,103 @@ uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg)
     }
 
 	return WEDGECfgState.CfgChgState[CfgChg];
+}
+
+void WedgeConfigureALLThresholds(void)
+{
+    WedgeCfgChgStateSet(IGNTYP_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(RPTINTVL_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(ALARM1_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(ALARM2_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(LVA_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(IDLE_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(SODO_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(DIRCHG_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(TOW_CFG_CHG, TRUE);
+    WedgeCfgChgStateSet(STPINTVL_CFG_CHG, TRUE);
+}
+
+void WedgeResettoFactoryDefaults(void)
+{
+    // This command is used to reset the device to factory defaults. This command does not affect:
+    // *SMS, *SVRCFG, *FTPCFG, *APNCFG, *HWRST, and *PWRMGT settings.
+    WEDGECfgTypeDef cfgTmp;
+    uint32_t i = 0;
+    memset(&cfgTmp, 0, sizeof(WEDGECfgTypeDef));
+
+    memcpy(&cfgTmp, &WEDGECfgRecord, sizeof(WEDGECfgTypeDef));
+    memcpy(&WEDGECfgRecord, &WEDGECfgFactoryDefaultOnChip, sizeof(WEDGECfgTypeDef));
+    memcpy(&(WEDGECfgRecord.SMS), &(cfgTmp.SMS), sizeof(SMSTypeDef));
+    memcpy(&(WEDGECfgRecord.SVRCFG), &(cfgTmp.SVRCFG), sizeof(SVRCFGTypeDef));
+    memcpy(&(WEDGECfgRecord.FTPCFG), &(cfgTmp.FTPCFG), sizeof(FTPCFGTypeDef));
+    memcpy(&(WEDGECfgRecord.APNCFG), &(cfgTmp.APNCFG), sizeof(APNCFGTypeDef));
+    memcpy(&(WEDGECfgRecord.HWRST), &(cfgTmp.HWRST), sizeof(HWRSTTypeDef));
+    memcpy(&(WEDGECfgRecord.PWRMGT), &(cfgTmp.PWRMGT), sizeof(PWRMGTTypeDef));
+
+    for (i = 0; i < CFG_CHG_INVALIAD_MAX; i++)
+    {
+        if ((i == SMS_ADDR_CFG_CHG) || ((i >= SVRCFG_CFG_CHG_ALL) && (i <= SVRCFG_CFG_CHG_5))
+            || (i == FTPCFG_CFG_CHG) || (i == APNCFG_CFG_CHG) || (i == HWRST_CFG_CHG) || (i == PWRMGT_CFG_CHG)
+            || (i == CFGALL_CFG_CHG) || (i == RESET_DEFAULT_CFG_CHG) || (i == GPSDIAG_CFG_CHG))
+        {
+            // Do nothing.
+        }
+        else
+        {
+            WedgeCfgChgStateSet((WEDGECfgChangeTypeDef)i, TRUE);
+        }
+    }
+}
+
+char* WedgeGetModemVersion(void)
+{
+    return (char *)gModemParam.Version;
+}
+
+void WedgeGetGpsSentences(uint8_t bitMap, char *pBuf, uint16_t *pLen)
+{
+    const static char *GPSSentenceTypeStr[] =
+        {
+            "$GPGGA",
+            "$GPGSA",
+            "$GPGLL",
+            "$GPGSV",
+            "$GPRMC",
+            "$GPVTG",
+        };
+    uint8_t i = 0;
+    uint16_t len = 0;
+    uint16_t totalLen = 0;
+
+    if ((pBuf == NULL) || (pLen == NULL))
+    {
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WedgeGetGpsSentences Param Err", FmtTimeShow());
+        return;
+    }
+
+    if (UbloxFixStateGet() != TRUE)
+    {
+        WEDGE_COM_API_PRINT(DbgCtl.WedgeCommonLogInfo, "\r\n[%s] WedgeGetGpsSentences Gps Not Fixed", FmtTimeShow());
+        return;
+    }
+
+    // B0 : $GPGGA sentence
+    // B1 : $GPGSA sentence
+    // B2 : $GPGLL sentence
+    // B3 : $GPGSV sentences
+    // B4 : $GPRMC sentence
+    // B5 : $GPVTG sentence
+    for (i = 0; i < (sizeof(GPSSentenceTypeStr) / sizeof(GPSSentenceTypeStr[0])); i++)
+    {
+        len = 0;
+        if ((bitMap >> i) & 0x01)
+        {
+            UBloxGetGpsSentence(GPSSentenceTypeStr[i], &(pBuf[totalLen]), &len);
+        }
+        totalLen += len;
+    }
+
+    *pLen = totalLen;
 }
 
 static void BytesOrderSwap(uint8_t *pBuf, uint16_t num)

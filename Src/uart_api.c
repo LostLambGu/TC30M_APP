@@ -15,6 +15,8 @@
 #include "uart_api.h"
 #include "rtcclock.h"
 
+#include "initialization.h"
+
 /* Private define ------------------------------------------------------------*/
 #ifndef FALSE
 #define FALSE 0
@@ -230,6 +232,9 @@ void PutStrToUart3Modem(char *string, uint16_t slen)
 
 	// HAL_UART_Transmit(&huart1, "\r\n--->>", 7, UART_SEND_DATA_TIMEOUT);
 	// HAL_UART_Transmit(&huart1, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
+	#ifdef MODEM_DEEPSLEEP_MODE
+	ModemWakeUpTickFwpTimer();
+	#endif /* MODEM_DEEPSLEEP_MODE */
 	HAL_UART_Transmit(&huart3, (uint8_t *)string, slen, UART_SEND_DATA_TIMEOUT);
 
 	// Print Out

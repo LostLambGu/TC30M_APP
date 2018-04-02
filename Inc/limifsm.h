@@ -25,9 +25,9 @@ extern "C" {
 /* Constants */
 /* <TBD: Due to a GNU compiler-bug, the MAX_PARM_STRUCT_SIZE must be set
           to: ((a multiple of 4) - 1).> */
-#define MAX_PARM_STRUCT_SIZE 39
+#define MAX_PARM_STRUCT_SIZE 511
 
-#define EVENTQ_SIZE 5
+#define EVENTQ_SIZE 1
 
 #define UNEXPECTED_EVENT_AC 0xFE
 #define NO_EVENT 0xFF

@@ -140,6 +140,8 @@
 
 #define TC30M_UDP_SEND_USE_SQNSSENDEXT (1)
 
+#define MODEM_DEEPSLEEP_MODE
+
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
