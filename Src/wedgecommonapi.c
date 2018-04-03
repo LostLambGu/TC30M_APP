@@ -458,6 +458,11 @@ char* WedgeGetModemVersion(void)
     return (char *)gModemParam.Version;
 }
 
+uint8_t WedgeGetRegistrationStatus(void)
+{
+    return gModemParam.stat;
+}
+
 void WedgeGetGpsSentences(uint8_t bitMap, char *pBuf, uint16_t *pLen)
 {
     const static char *GPSSentenceTypeStr[] =

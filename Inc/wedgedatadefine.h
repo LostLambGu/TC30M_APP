@@ -321,6 +321,11 @@ typedef struct
                         (range: 0 – 9999) */
 } PLSRLYTypeDef;
 
+#define TC30M_POWER_MODE_ALWAYS_RUN (0)
+#define TC30M_POWER_MODE_TIMER_METHOD (1)
+#define TC30M_POWER_MODE_VIBRATION_DETECT2 (2)
+#define TC30M_POWER_MODE_VIBRATION_DETECT3 (3)
+#define TC30M_POWER_MODE_VIBRATION_DETECT4 (4)
 typedef struct
 {
     /* No Power Mgt: AT*PWRMGT=<mode=0>
@@ -394,9 +399,9 @@ typedef struct
 #define APNCFG_PWD_LEN_MAX_32_BYTES (32)
 typedef struct
 {
-    uint8_t apn[APNCFG_APN_LEN_MAX_64_BYTES];
-    uint8_t usr[APNCFG_USR_LEN_MAX_32_BYTES];
-    uint8_t pwd[APNCFG_PWD_LEN_MAX_32_BYTES];
+    char apn[APNCFG_APN_LEN_MAX_64_BYTES];
+    char usr[APNCFG_USR_LEN_MAX_32_BYTES];
+    char pwd[APNCFG_PWD_LEN_MAX_32_BYTES];
 } APNCFGTypeDef;
 
 typedef struct

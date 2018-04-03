@@ -10,6 +10,21 @@
 /* Includes ------------------------------------------------------------------*/
 #include "wedgeapplication.h"
 
+#include "initialization.h"
+#include "iocontrol.h"
+#include "uart_api.h"
+#include "atcmd.h"
+#include "limifsm.h"
+#include "lis3dh_driver.h"
+#include "rtcclock.h"
+#include "iqmgr.h"
+#include "usrtimer.h"
+#include "sendatcmd.h"
+#include "ltecatm.h"
+#include "network.h"
+#include "parseatat.h"
+#include "deepsleep.h"
+
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -26,6 +41,7 @@ static void WedgeIgnitionStateProcess(void);
 static void WedgeIGNOnStateReset(void);
 static void WedgeIGNOffStateReset(void);
 static void WedgeMsgQueProcess(void);
+static void WedgePowerModeProcess(void);
 
 static void WedgeCfgChgStateProcess(void);
 static void WedgeSMSAddrCfgChg(void);
@@ -56,7 +72,7 @@ void ApplicationProcess(void)
 {
     static uint32_t LteProcSystickRec = 0;
 
-    DebugPrintf(TRUE, "\r\n########Code Date: 201803022########\r\n");
+    DebugPrintf(TRUE, "\r\n########Code Date: 20180403########\r\n");
 
     WedgeInit();
 
@@ -97,6 +113,8 @@ void ApplicationProcess(void)
         WedgeRTCTimerEventProcess();
         // Wedge GPS data Request Process
         WedgeGpsRequestDataProcess();
+        // Wedge Power Mode Process
+        WedgePowerModeProcess();
     }
 }
 
@@ -384,6 +402,143 @@ static void WedgeMsgQueProcess(void)
     }
 }
 
+static uint8_t isNotFirstEnterPowerMode = FALSE;
+static void WedgeUpdateTickValue(uint8_t *pIsNotFirstEnter, uint32_t *pSysTick)
+{
+    if (*pIsNotFirstEnter == FALSE)
+    {
+        *pSysTick = HAL_GetTick();
+        *pIsNotFirstEnter = TRUE;
+    }
+}
+
+static void WedgeUpdateRtcTimeValue(uint8_t IsNotFirstEnter, uint32_t *pRtcTime)
+{
+    if (IsNotFirstEnter == FALSE)
+    {
+        *pRtcTime = WedgeRtcCurrentSeconds();
+    }
+}
+
+static uint8_t WedgeIsSystickOutTime(uint32_t SysTickVal, uint32_t timeInterval)
+{
+    if ((HAL_GetTick() - SysTickVal) > timeInterval)
+    {
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+static uint8_t WedgeIsRtcTimeSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
+{
+    uint32_t RtcIntervalTmp = 0;
+
+    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
+    if (RtcIntervalTmp < timeInterval)
+    {
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE IsRtcTimeSleepOutTime(%d)", FmtTimeShow(), timeInterval - RtcIntervalTmp);
+        MCUDeepSleep(timeInterval - RtcIntervalTmp);
+    }
+
+    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
+
+    if (RtcIntervalTmp >= timeInterval)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+static void WedgePowerModeProcess(void)
+{
+    static uint32_t SysTickVal = 0;
+    PWRMGTTypeDef *pPWRMGT = (PWRMGTTypeDef *)(WedgeCfgGet(WEDGE_CFG_PWRMGT));
+    #define TC30M_POWER_MODE_ON (0)
+    #define TC30M_POWER_MODE_OFF (1)
+    static __IO uint8_t onOffState = TC30M_POWER_MODE_ON;
+    static uint32_t RtcTime = 0;
+
+    #define WEDGE_POWER_MODE_PROCESS_PERIOD_MS (1000)
+    static uint32_t SystickRec = 0;
+    if (WEDGE_POWER_MODE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
+    {
+        return;
+    }
+    else
+    {
+        SystickRec = HAL_GetTick();
+    }
+
+
+
+    WedgeUpdateRtcTimeValue(isNotFirstEnterPowerMode, &RtcTime);
+    WedgeUpdateTickValue(&isNotFirstEnterPowerMode, &SysTickVal);
+
+    switch (pPWRMGT->mode)
+    {
+        case TC30M_POWER_MODE_ALWAYS_RUN:
+        {
+            APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess ALWAYS_RUN", FmtTimeShow());
+            return;
+        }
+        // break;
+
+        case TC30M_POWER_MODE_TIMER_METHOD:
+        {
+            if (onOffState == TC30M_POWER_MODE_ON)
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess TIMER_METHOD MODE_ON", FmtTimeShow());
+                if (TRUE == WedgeIsSystickOutTime(SysTickVal, pPWRMGT->ontime * WEDGE_SECOND_TO_MS_FACTOR))
+                {
+                    isNotFirstEnterPowerMode = FALSE;
+                    onOffState = TC30M_POWER_MODE_OFF;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess TIMER_METHOD MODE_OFF", FmtTimeShow());
+                if (FALSE == WedgeIsRtcTimeSleepOutTime(RtcTime, pPWRMGT->dbcslp.sleeptime))
+                {
+                    return;
+                }
+                else
+                {
+                    isNotFirstEnterPowerMode = FALSE;
+                    onOffState = TC30M_POWER_MODE_ON;
+                }
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess TIMER_METHOD MODE_OFF WAKE", FmtTimeShow());
+            }
+        }
+        break;
+
+        case TC30M_POWER_MODE_VIBRATION_DETECT2:
+        {
+
+        }
+        break;
+
+        case TC30M_POWER_MODE_VIBRATION_DETECT3:
+        {
+
+        }
+        break;
+
+        case TC30M_POWER_MODE_VIBRATION_DETECT4:
+        {
+
+        }
+        break;
+    }
+}
+
 static void WedgeCfgChgStateProcess(void)
 {
     uint8_t i = 0;
@@ -573,7 +728,7 @@ static void WedgeAPNCfgChg(void)
     #define DEFAULT_PDP_TYPE (0)
     APNCFGTypeDef *pAPNCFG = ((APNCFGTypeDef *)WedgeCfgGet(WEDGE_CFG_APNCFG));
     extern void SetModemApn(char *pApn, uint8_t pdpType);
-    SetModemApn(pAPNCFG->apn, DEFAULT_PDP_TYPE);
+    SetModemApn((char *)pAPNCFG->apn, DEFAULT_PDP_TYPE);
     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE Cfg Chg APN(%s)", FmtTimeShow(), pAPNCFG->apn);
 }
 
@@ -585,10 +740,8 @@ static void WedgeHWRRSTCfgChg(void)
 
 static void WedgePWRMGTCfgChg(void)
 {
-
-
-
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Reserved", FmtTimeShow());
+    isNotFirstEnterPowerMode = FALSE;
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeUSRDATCfgChg(void)

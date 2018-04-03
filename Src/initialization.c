@@ -491,6 +491,7 @@ void ModemATInitTimerCallback(uint8_t Status)
 				{
 					CheckSimCardCount = 0;
 					SetIsModemStartedState(TRUE);
+					SoftwareTimerStop(&ModemATInitTimer);
 				}
 				#endif /* MODEM_DEEPSLEEP_MODE */
 				// Print Out

@@ -18,20 +18,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
 
-#include "initialization.h"
-#include "iocontrol.h"
-#include "uart_api.h"
-#include "atcmd.h"
-#include "limifsm.h"
-#include "lis3dh_driver.h"
-#include "rtcclock.h"
-#include "iqmgr.h"
-#include "usrtimer.h"
-#include "sendatcmd.h"
-#include "ltecatm.h"
-#include "network.h"
-#include "parseatat.h"
-
 #include "wedgedatadefine.h"
 #include "wedgecommonapi.h"
 #include "wedgeeventalertflow.h"

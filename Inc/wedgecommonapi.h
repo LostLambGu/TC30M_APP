@@ -133,6 +133,7 @@ extern uint8_t WedgeCfgChgStateGet(WEDGECfgChangeTypeDef CfgChg);
 extern void WedgeConfigureALLThresholds(void);
 extern void WedgeResettoFactoryDefaults(void);
 extern char* WedgeGetModemVersion(void);
+extern uint8_t WedgeGetRegistrationStatus(void);
 extern void WedgeUpdateBinaryMsgGpsRecord(void);
 
 extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);
