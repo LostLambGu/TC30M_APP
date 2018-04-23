@@ -245,14 +245,14 @@ void RestorePowerConsumption(void)
   MX_USART3_UART_Init();
   MX_USART2_UART_Init();
 
-  // Modem
-  // if (GetMcuDeepSleepModemState() != MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
-  {
-    // Enable RTS
-    ModemRTSEnControl(ENABLE);
-    // Module ensable
-    ModemPowerEnControl(ENABLE);
-  }
+  // // Modem
+  // // if (GetMcuDeepSleepModemState() != MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
+  // {
+  //   // Enable RTS
+  //   ModemRTSEnControl(ENABLE);
+  //   // Module ensable
+  //   ModemPowerEnControl(ENABLE);
+  // }
 
   // Gps
   UbloxGPSStart();

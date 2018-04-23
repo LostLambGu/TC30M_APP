@@ -33,6 +33,7 @@ LIS3DH_POSITION_6D_t gsensordirection = LIS3DH_UNKOWN;
 LIS3DH_POSITION_6D_t old_gsensordirection = LIS3DH_UNKOWN;
 /* Private variables ---------------------------------------------------------*/
 static u8 Lis3dhAlarmHappenFlag = FALSE;
+__IO uint8_t Lis3dhAlarmIndicate = FALSE;
 /* Private function prototypes -----------------------------------------------*/
 
 void SetLis3dhAlarmStatus(u8 Status)

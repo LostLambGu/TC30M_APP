@@ -78,6 +78,7 @@ extern void ModemWakeUpTickFwpTimer(void);
 extern void ModemWakeUpResetFwpTimer(uint32_t ms);
 extern void ModemWakeUpFormISR(void);
 extern void ModemEnterSleep(void);
+extern uint8_t ModemCanEnterLowPowerMode(void);
 #endif /* MODEM_DEEPSLEEP_MODE */
 
 extern void SystemInitialization(void);

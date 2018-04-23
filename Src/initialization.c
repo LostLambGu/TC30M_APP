@@ -155,6 +155,7 @@ void ModemPowerEnControl(FunStates Status)
 		ModemPowerOnFlag = FALSE;
 		// resetFSM
 		resetFSM = TRUE;
+		modemRingCome = FALSE;
 		#ifdef MODEM_DEEPSLEEP_MODE
 		SetIsModemStartedState(FALSE);
 		#endif /* MODEM_DEEPSLEEP_MODE */
@@ -304,6 +305,18 @@ void ModemEnterSleep(void)
 		ModemWakeEdUp = FALSE;
 	}
 }
+
+uint8_t ModemCanEnterLowPowerMode(void)
+{
+	if ((GetIsHttpOnGoingState() == FALSE) && (GetIsFotaOnGoingState() == FALSE) && (GetIsModemStartedState() != FALSE) && (modemRingCome == FALSE))
+	{
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
 #endif /* MODEM_DEEPSLEEP_MODE */
 
 static const char *monthstr[] = {
@@ -388,7 +401,7 @@ void SystemInitialization(void)
 
 	// Sensor init
     // GSensorI2cInit();
-	// LIS3DH_SetMode(LIS3DH_POWER_DOWN);
+	LIS3DH_SetMode(LIS3DH_POWER_DOWN);
 }
 
 extern uint8_t ATUbloxTestFlag;

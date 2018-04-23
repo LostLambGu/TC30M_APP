@@ -68,12 +68,19 @@ static void WedgePLSRLYCfgChg(void);
 static void WedgeOSPDCfgChg(void);
 static void WedgeGPSDIAGCfgChg(void);
 
+static void WedgeUpdateTickValue(uint8_t *pIsNotFirstEnter, uint32_t *pSysTick);
+static void WedgeUpdateRtcTimeValue(uint8_t IsNotFirstEnter, uint32_t *pRtcTime);
+static uint8_t WedgeIsSystickOutTime(uint32_t SysTickVal, uint32_t timeInterval);
+static uint8_t WedgeIsRtcSleepOutTime(uint32_t RtcTime, uint32_t timeInterval);
+static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce);
+static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce);
+
 #define TC30M_LTE_PROCESS_PERIOD_MS (10)
 void ApplicationProcess(void)
 {
     static uint32_t LteProcSystickRec = 0;
 
-    DebugPrintf(TRUE, "\r\n########Code Date: 20180403########\r\n");
+    DebugPrintf(TRUE, "\r\n########Code Date: 20180423########\r\n");
 
     WedgeInit();
 
@@ -406,55 +413,6 @@ static void WedgeMsgQueProcess(void)
 }
 
 static uint8_t isNotFirstEnterPowerMode = FALSE;
-static void WedgeUpdateTickValue(uint8_t *pIsNotFirstEnter, uint32_t *pSysTick)
-{
-    if (*pIsNotFirstEnter == FALSE)
-    {
-        *pSysTick = HAL_GetTick();
-        *pIsNotFirstEnter = TRUE;
-    }
-}
-
-static void WedgeUpdateRtcTimeValue(uint8_t IsNotFirstEnter, uint32_t *pRtcTime)
-{
-    if (IsNotFirstEnter == FALSE)
-    {
-        *pRtcTime = WedgeRtcCurrentSeconds();
-    }
-}
-
-static uint8_t WedgeIsSystickOutTime(uint32_t SysTickVal, uint32_t timeInterval)
-{
-    if ((HAL_GetTick() - SysTickVal) > timeInterval)
-    {
-        return TRUE;
-    }
-    
-    return FALSE;
-}
-
-static uint8_t WedgeIsRtcTimeSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
-{
-    uint32_t RtcIntervalTmp = 0;
-
-    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
-    if (RtcIntervalTmp < timeInterval)
-    {
-        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE IsRtcTimeSleepOutTime(%d)", FmtTimeShow(), timeInterval - RtcIntervalTmp);
-        MCUDeepSleep(timeInterval - RtcIntervalTmp);
-    }
-
-    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
-
-    if (RtcIntervalTmp >= timeInterval)
-    {
-        return TRUE;
-    }
-    else
-    {
-        return FALSE;
-    }
-}
 
 static void WedgePowerModeInit(void)
 {
@@ -483,6 +441,12 @@ static void WedgePowerModeProcess(void)
 
     #define WEDGE_POWER_MODE_PROCESS_PERIOD_MS (1000)
     static uint32_t SystickRec = 0;
+
+    if (ModemCanEnterLowPowerMode() == FALSE)
+    {
+        return;
+    }
+
     if (WEDGE_POWER_MODE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
         return;
@@ -491,8 +455,6 @@ static void WedgePowerModeProcess(void)
     {
         SystickRec = HAL_GetTick();
     }
-
-
 
     WedgeUpdateRtcTimeValue(isNotFirstEnterPowerMode, &RtcTime);
     WedgeUpdateTickValue(&isNotFirstEnterPowerMode, &SysTickVal);
@@ -524,7 +486,7 @@ static void WedgePowerModeProcess(void)
             else
             {
                 APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess TIMER_METHOD MODE_OFF", FmtTimeShow());
-                if (FALSE == WedgeIsRtcTimeSleepOutTime(RtcTime, pPWRMGT->dbcslp.sleeptime))
+                if (FALSE == WedgeIsRtcSleepOutTime(RtcTime, pPWRMGT->dbcslp.sleeptime))
                 {
                     return;
                 }
@@ -546,7 +508,7 @@ static void WedgePowerModeProcess(void)
 
         case TC30M_POWER_MODE_VIBRATION_DETECT3:
         {
-
+            
         }
         break;
 
@@ -759,8 +721,26 @@ static void WedgeHWRRSTCfgChg(void)
 
 static void WedgePWRMGTCfgChg(void)
 {
+    PWRMGTTypeDef *pPWRMGT = (PWRMGTTypeDef *)(WedgeCfgGet(WEDGE_CFG_PWRMGT));
+
     isNotFirstEnterPowerMode = FALSE;
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg", FmtTimeShow());
+
+    if ((pPWRMGT->mode == TC30M_POWER_MODE_ALWAYS_RUN) || (pPWRMGT->mode == TC30M_POWER_MODE_TIMER_METHOD))
+    {
+        LIS3DH_SetMode(LIS3DH_POWER_DOWN);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Gsensor Stop", FmtTimeShow());
+    }
+    else if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2) || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT3) 
+    || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
+    {
+        GSensorI2cInit();
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Gsensor Start", FmtTimeShow());
+    }
+    else
+    {
+        LIS3DH_SetMode(LIS3DH_POWER_DOWN);
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PWRMGT Cfg Chg Err", FmtTimeShow());
+    }
 }
 
 static void WedgeUSRDATCfgChg(void)
@@ -955,6 +935,130 @@ static void WedgeOSPDCfgChg(void)
 static void WedgeGPSDIAGCfgChg(void)
 {
     APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE GPSDIAG Cfg Chg", FmtTimeShow());
+}
+
+static void WedgeUpdateTickValue(uint8_t *pIsNotFirstEnter, uint32_t *pSysTick)
+{
+    if (*pIsNotFirstEnter == FALSE)
+    {
+        *pSysTick = HAL_GetTick();
+        *pIsNotFirstEnter = TRUE;
+    }
+}
+
+static void WedgeUpdateRtcTimeValue(uint8_t IsNotFirstEnter, uint32_t *pRtcTime)
+{
+    if (IsNotFirstEnter == FALSE)
+    {
+        *pRtcTime = WedgeRtcCurrentSeconds();
+    }
+}
+
+static uint8_t WedgeIsSystickOutTime(uint32_t SysTickVal, uint32_t timeInterval)
+{
+    if ((HAL_GetTick() - SysTickVal) > timeInterval)
+    {
+        return TRUE;
+    }
+    
+    return FALSE;
+}
+
+static uint8_t WedgeIsRtcSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
+{
+    uint32_t RtcIntervalTmp = 0;
+
+    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
+    if (RtcIntervalTmp < timeInterval)
+    {
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE WedgeIsRtcSleepOutTime(%d)", FmtTimeShow(), timeInterval - RtcIntervalTmp);
+        MCUDeepSleep(timeInterval - RtcIntervalTmp);
+    }
+
+    RtcIntervalTmp = (WedgeRtcCurrentSeconds() - RtcTime);
+
+    if (RtcIntervalTmp >= timeInterval)
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+#define WEDGE_VIBRATION_DETECT_FIRST (0)
+#define WEDGE_VIBRATION_DETECT_DEBOUNCE (1)
+extern __IO uint8_t Lis3dhAlarmIndicate;
+static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
+{
+    static uint8_t state;
+    uint8_t ret = FALSE;
+    static uint32_t firstVibRtcRec, lastVibRtcRec;
+
+    if (needInit == TRUE)
+    {
+        state = WEDGE_VIBRATION_DETECT_FIRST;
+    }
+
+    switch(state)
+    {
+        case WEDGE_VIBRATION_DETECT_FIRST:
+        if (Lis3dhAlarmIndicate == TRUE)
+        {
+            firstVibRtcRec = WedgeRtcCurrentSeconds();
+            state = WEDGE_VIBRATION_DETECT_DEBOUNCE;
+        }
+        break;
+
+        case WEDGE_VIBRATION_DETECT_DEBOUNCE:
+        if (Lis3dhAlarmIndicate == TRUE)
+        {
+            lastVibRtcRec = WedgeRtcCurrentSeconds();
+
+            if ((lastVibRtcRec - firstVibRtcRec) >= debounce))
+            {
+                state = WEDGE_VIBRATION_DETECT_FIRST;
+                ret = TRUE;
+            }
+        }
+        else
+        {
+            if ((WedgeRtcCurrentSeconds() - lastVibRtcRec) > debounce)
+            {
+                state = WEDGE_VIBRATION_DETECT_FIRST;
+            }
+        }
+        break;
+
+        default:
+        break;
+    }
+
+    Lis3dhAlarmIndicate = FALSE;
+    return ret;
+}
+
+static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
+{
+    static uint8_t state;
+    uint8_t ret = FALSE;
+    static uint32_t lastVibRtcRec;
+
+    if (Lis3dhAlarmIndicate == TRUE)
+    {
+        lastVibRtcRec = WedgeRtcCurrentSeconds();
+    }
+    else
+    {
+        if ((WedgeRtcCurrentSeconds() - lastVibRtcRec) >= debounce)
+        {
+            ret = TRUE;
+        }
+    }
+
+    Lis3dhAlarmIndicate = FALSE;
+    return ret;
 }
 
 /*******************************************************************************
