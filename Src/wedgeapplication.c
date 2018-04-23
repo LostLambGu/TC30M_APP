@@ -42,6 +42,7 @@ static void WedgeIGNOnStateReset(void);
 static void WedgeIGNOffStateReset(void);
 static void WedgeMsgQueProcess(void);
 static void WedgePowerModeProcess(void);
+static void WedgePowerModeInit(void);
 
 static void WedgeCfgChgStateProcess(void);
 static void WedgeSMSAddrCfgChg(void);
@@ -307,6 +308,8 @@ static void WedgeInit(void)
     WedgePeriodicHardwareResetInit();
 
     WedgePeriodicMovingEventInit();
+
+    WedgePowerModeInit();
 }
 
 static void WedgeMsgQueProcess(void)
@@ -450,6 +453,22 @@ static uint8_t WedgeIsRtcTimeSleepOutTime(uint32_t RtcTime, uint32_t timeInterva
     else
     {
         return FALSE;
+    }
+}
+
+static void WedgePowerModeInit(void)
+{
+    PWRMGTTypeDef *pPWRMGT = (PWRMGTTypeDef *)(WedgeCfgGet(WEDGE_CFG_PWRMGT));
+
+    if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2) || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT3) 
+    || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
+    {
+        GSensorI2cInit();
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeInit Gsensor Start", FmtTimeShow());
+    }
+    else
+    {
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeInit", FmtTimeShow());
     }
 }
 

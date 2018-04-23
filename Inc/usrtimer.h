@@ -29,6 +29,7 @@ extern "C" {
 #define CHECK_LED_FLASH_STAT_TIMEOUT 500
 #define CHECK_UART3RevCDMATimer_STAT_TIMEOUT 10
 #define CHECK_UART1_REC_TIMEOUT (1 * 5000)
+#define CHECK_MODEM_RING_TIMEOUT (5 * 1000)
 
 // define softtimer structure.
 typedef struct _TIMER
@@ -54,6 +55,7 @@ extern TIMER WedgeIDLETimer;
 extern TIMER WedgeOSPDTimer;
 extern TIMER WedgeOffToOnTimer;
 extern TIMER WedgeOnToOffTimer;
+extern TIMER ModemRingTimer;
 
 //Function Declare
 extern void InitSoftwareTimers(void);

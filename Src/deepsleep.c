@@ -100,19 +100,19 @@ void HaltPowerConsumption(void)
     ModemPowerEnControl(DISABLE);
   }
 
-  // AccGyro
-  if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER)
-  {
-    LIS3DH_SetMode(LIS3DH_LOW_POWER);
-  }
-  else if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
-  {
-    LIS3DH_SetMode(LIS3DH_NORMAL);
-  }
-  else
-  {
-    LIS3DH_SetMode(LIS3DH_POWER_DOWN);
-  }
+  // // AccGyro
+  // if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER)
+  // {
+  //   LIS3DH_SetMode(LIS3DH_LOW_POWER);
+  // }
+  // else if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
+  // {
+  //   LIS3DH_SetMode(LIS3DH_NORMAL);
+  // }
+  // else
+  // {
+  //   LIS3DH_SetMode(LIS3DH_POWER_DOWN);
+  // }
 
   // i2c
   HAL_I2C_DeInit(&hi2c1);
@@ -257,11 +257,11 @@ void RestorePowerConsumption(void)
   // Gps
   UbloxGPSStart();
 
-  // AccGyro
-  // if (GetMcuDeepSleepAccState() != MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
-  {
-    LIS3DH_SetMode(LIS3DH_NORMAL);
-  }
+  // // AccGyro
+  // // if (GetMcuDeepSleepAccState() != MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
+  // {
+  //   LIS3DH_SetMode(LIS3DH_NORMAL);
+  // }
 }
 
 #define portSY_FULL_READ_WRITE (15)
@@ -273,9 +273,9 @@ void MCUDeepSleep(uint32_t seconds)
   // __dsb(portSY_FULL_READ_WRITE);
   // __isb(portSY_FULL_READ_WRITE);
 
-  HaltPowerConsumption();
-
   WedgeRtcSetBeforeDeepsleep(seconds);
+
+  HaltPowerConsumption();
 
   /* enter stop mode */
 	HAL_SuspendTick();

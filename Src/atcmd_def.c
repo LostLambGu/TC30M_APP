@@ -533,6 +533,7 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		case 6:
 		{
 			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER);
+			LIS3DH_SetMode(LIS3DH_LOW_POWER);
 			DebugLog("*PWR: ACC LOW POWER WHEN MCU DEEPSLEEP\r\n");
 		}
 		break;
@@ -540,6 +541,7 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		case 7:
 		{
 			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_NORMAL);
+			LIS3DH_SetMode(LIS3DH_NORMAL);
 			DebugLog("*PWR: ACC NORMAL POWER WHEN MCU DEEPSLEEP\r\n");
 		}
 		break;
@@ -547,6 +549,7 @@ static void ATCmdDefPwrCtl(u8 Len, int Param, u8 *dataBuf)
 		case 8:
 		{
 			SetMcuDeepSleepAccState(MCU_DEEPSLEEP_ACC_STATUS_POWER_DOWN);
+			LIS3DH_SetMode(LIS3DH_POWER_DOWN);
 			DebugLog("*PWR: ACC POWER DOWN WHEN MCU DEEPSLEEP\r\n");
 		}
 		break;

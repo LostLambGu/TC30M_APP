@@ -318,6 +318,14 @@ static void FwpSendAtTimerOn(void)
 	{
 		// Set flag
 		SetFwpIsTimerStatus(FALSE);
+		extern __IO uint8_t modemRingCome;
+		if (modemRingCome == TRUE)
+		{
+			// Reset timer
+			SoftwareTimerReset(&AtSentToUart3Timer, AtSendtoUart3TimerCallback, AT_WAIT_RING_TIMEOUT);
+			SoftwareTimerStart(&AtSentToUart3Timer);
+			return;
+		}
 		#ifdef MODEM_DEEPSLEEP_MODE
 		// Modem Dpsleep
 		MODEM_AT_DPSLEEP();

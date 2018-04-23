@@ -85,10 +85,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, PB14_MCU_RTS3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = PC13_MCU_WAKUP_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(PC13_MCU_WAKUP_GPIO_Port, &GPIO_InitStruct);
+  // GPIO_InitStruct.Pin = PC13_MCU_WAKUP_Pin;
+  // GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  // GPIO_InitStruct.Pull = GPIO_NOPULL;
+  // HAL_GPIO_Init(PC13_MCU_WAKUP_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PF0 PF1 PF11 */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_11;

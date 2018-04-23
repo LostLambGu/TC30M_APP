@@ -52,6 +52,8 @@ extern uint8_t ModemPowerOnFlag;
 static uint8_t AccDeepSleepState = MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER;
 static uint8_t ModemDeepSleepState = MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER;
 
+__IO uint8_t modemRingCome = FALSE;
+
 /* Public functions ----------------------------------------------------------*/
 // DelayUsTime
 void DelayUsTime(uint16_t time) //delay 5+2*time (machine time)
@@ -170,15 +172,26 @@ void ModemPowerEnControl(FunStates Status)
 
 void ModemRTSEnControl(FunStates Status)
 {
+	GPIO_InitTypeDef GPIO_InitStruct;
+
 	if (Status == ENABLE)
 	{
 		// Active
 		HAL_GPIO_WritePin(PB14_MCU_RTS3_GPIO_Port, PB14_MCU_RTS3_Pin, GPIO_PIN_RESET);
+		GPIO_InitStruct.Pin = PC13_MCU_WAKUP_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		HAL_GPIO_Init(PC13_MCU_WAKUP_GPIO_Port, &GPIO_InitStruct);
 	}
 	else if (Status == DISABLE)
 	{
 		// Inactivation
 		HAL_GPIO_WritePin(PB14_MCU_RTS3_GPIO_Port, PB14_MCU_RTS3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+		GPIO_InitStruct.Pin = PC13_MCU_WAKUP_Pin;
+		GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		HAL_GPIO_Init(PC13_MCU_WAKUP_GPIO_Port, &GPIO_InitStruct);
 	}
 }
 
@@ -276,7 +289,7 @@ void ModemWakeUpFormISR(void)
 	if (GetFwpIsTimerStatus() == FALSE)
 	{
 		// Set flag
-		SetFwpIsTimerStatus(TRUE);
+		// SetFwpIsTimerStatus(TRUE);
 		// Reset timer
 		SoftwareTimerReset(&AtSentToUart3Timer, AtSendtoUart3TimerCallback, AT_SENDTO_RETRY_TIMEOUT);
 		SoftwareTimerStart(&AtSentToUart3Timer);
@@ -285,7 +298,7 @@ void ModemWakeUpFormISR(void)
 
 void ModemEnterSleep(void)
 {
-	if ((GetIsHttpOnGoingState() == FALSE) && (GetIsFotaOnGoingState() == FALSE) && (GetIsModemStartedState() != FALSE))
+	if ((GetIsHttpOnGoingState() == FALSE) && (GetIsFotaOnGoingState() == FALSE) && (GetIsModemStartedState() != FALSE) && (modemRingCome == FALSE))
 	{
 		ModemRTSEnControl(DISABLE);
 		ModemWakeEdUp = FALSE;
@@ -374,7 +387,8 @@ void SystemInitialization(void)
 	UbloxGPSStart();
 
 	// Sensor init
-    GSensorI2cInit();
+    // GSensorI2cInit();
+	// LIS3DH_SetMode(LIS3DH_POWER_DOWN);
 }
 
 extern uint8_t ATUbloxTestFlag;
@@ -429,6 +443,13 @@ void CheckRegularTimerCallback(uint8_t Status)
 		SoftwareTimerStart(&RegularTimer);
 	}
 #endif /* TC30M_TEST_CONFIG_OFF */
+}
+
+void ModemRingTimerCallback(uint8_t Status)
+{
+	InitPrintf(NRCMD, "[%s] MODEM Ring Timer Stop", FmtTimeShow());
+	modemRingCome = FALSE;
+	SoftwareTimerStop(&ModemRingTimer);
 }
 
 void CheckLEDFlashTimerCallback(uint8_t Status)

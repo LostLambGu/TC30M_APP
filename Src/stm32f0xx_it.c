@@ -183,6 +183,10 @@ void EXTI4_15_IRQHandler(void)
   
   if (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_13) != RESET)
   {
+    extern __IO uint8_t modemRingCome;
+    modemRingCome = TRUE;
+    SoftwareTimerReset(&ModemRingTimer, ModemRingTimerCallback, CHECK_MODEM_RING_TIMEOUT);
+    SoftwareTimerStart(&ModemRingTimer);
     #ifdef MODEM_DEEPSLEEP_MODE
     ModemWakeUpFormISR();
     #endif /* MODEM_DEEPSLEEP_MODE */

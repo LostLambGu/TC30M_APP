@@ -43,6 +43,7 @@ TIMER WedgeIDLETimer;
 TIMER WedgeOSPDTimer;
 TIMER WedgeOffToOnTimer;
 TIMER WedgeOnToOffTimer;
+TIMER ModemRingTimer;
 
 void CheckUARTRecTimerCallback(uint8_t Status)
 {
@@ -81,6 +82,10 @@ void InitSoftwareTimers(void)
 	// UARTRecTimer
 	SoftwareTimerCreate(&UARTRecTimer, 1, CheckUARTRecTimerCallback, CHECK_UART1_REC_TIMEOUT);
 	// SoftwareTimerStart(&UARTRecTimer);
+
+	// Modem Ring Timer
+	SoftwareTimerCreate(&ModemRingTimer, 1, ModemRingTimerCallback, CHECK_MODEM_RING_TIMEOUT);
+	SoftwareTimerStart(&ModemRingTimer);
 }
 
 void SoftwareTimerCounter(void)
@@ -132,6 +137,10 @@ void SoftwareTimerCounter(void)
 	// Wedge OnToOff Timer
 	if (WedgeOnToOffTimer.TimerStartCounter == TRUE)
 		WedgeOnToOffTimer.TimeOutVal++;
+
+	// Modem Ring Timer
+	if (ModemRingTimer.TimerStartCounter == TRUE)
+		ModemRingTimer.TimeOutVal++;
 }
 
 void SoftwareCheckTimerStatus(void)
@@ -168,6 +177,11 @@ void SoftwareCheckTimerStatus(void)
 
 	//Check RSSI
 	if (IsSoftwareTimeOut(&CheckRssiTimer) == TRUE)
+	{
+	}
+
+	// Modem Ring Timer
+	if (IsSoftwareTimeOut(&ModemRingTimer) == TRUE)
 	{
 	}
 }

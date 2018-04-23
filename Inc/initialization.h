@@ -82,6 +82,7 @@ extern void ModemEnterSleep(void);
 
 extern void SystemInitialization(void);
 extern void CheckRegularTimerCallback(uint8_t Status);
+extern void ModemRingTimerCallback(uint8_t Status);
 extern void CheckLEDFlashTimerCallback(uint8_t Status);
 extern void CheckUART3RevCDMATimerCallback(uint8_t Status);
 extern void ModemATInitTimerCallback(uint8_t Status);

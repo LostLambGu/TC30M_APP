@@ -134,6 +134,7 @@ extern void WedgeConfigureALLThresholds(void);
 extern void WedgeResettoFactoryDefaults(void);
 extern char* WedgeGetModemVersion(void);
 extern uint8_t WedgeGetRegistrationStatus(void);
+extern void WedgeGetGpsSentences(uint8_t bitMap, char *pBuf, uint16_t *pLen);
 extern void WedgeUpdateBinaryMsgGpsRecord(void);
 
 extern void SmsReceivedHandle(void *MsgBufferP, uint32_t size);

@@ -87,6 +87,7 @@ extern uint8_t Uart3RxBuffer[UART3_RX_BUFFER_SIZE];
 #define AT_SENDTO_RETRY_TIMEOUT (5 * 1000)
 #define AT_SENDTO_DELAYT_TIMEOUT (1000)
 #define AT_SENTTO_QUICKLY_TIMEOUT (5)
+#define AT_WAIT_RING_TIMEOUT (1 * 1000)
 
 /* at handle return status */
 #define STATUS_ERR -1
