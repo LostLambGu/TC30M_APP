@@ -35,6 +35,10 @@ typedef struct
 extern void ApplicationProcess(void);
 extern void WedgeDeviceInfoSave(void);
 
+#define WEDGE_VIBRATION_INVALID (0)
+#define WEDGE_VIBRATION_DETECTED (1)
+#define WEDGE_VIBRATION_TIMEOUT (2)
+
 #ifdef __cplusplus
 }
 #endif

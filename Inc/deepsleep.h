@@ -23,6 +23,8 @@ extern "C" {
 
 /* Exported functions --------------------------------------------------------*/
 extern void MCUDeepSleep(uint32_t seconds);
+extern void MCUEnterDeepSleep(void);
+extern void MCUExitDeepSleep(void);
 
 extern void SoftwareJumping(uint32_t Address);
 extern void MCUReset(void);

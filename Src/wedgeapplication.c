@@ -36,6 +36,8 @@
 #define APP_LOG DebugLog
 #define APP_PRINT DebugPrintf
 
+static uint8_t isNotFirstEnterPowerMode = FALSE;
+
 static void WedgeInit(void);
 static void WedgeIgnitionStateProcess(void);
 static void WedgeIGNOnStateReset(void);
@@ -80,7 +82,7 @@ void ApplicationProcess(void)
 {
     static uint32_t LteProcSystickRec = 0;
 
-    DebugPrintf(TRUE, "\r\n########Code Date: 20180423########\r\n");
+    DebugPrintf(TRUE, "\r\n########Code Date: 20180424########\r\n");
 
     WedgeInit();
 
@@ -412,8 +414,6 @@ static void WedgeMsgQueProcess(void)
     }
 }
 
-static uint8_t isNotFirstEnterPowerMode = FALSE;
-
 static void WedgePowerModeInit(void)
 {
     PWRMGTTypeDef *pPWRMGT = (PWRMGTTypeDef *)(WedgeCfgGet(WEDGE_CFG_PWRMGT));
@@ -434,9 +434,13 @@ static void WedgePowerModeProcess(void)
 {
     static uint32_t SysTickVal = 0;
     PWRMGTTypeDef *pPWRMGT = (PWRMGTTypeDef *)(WedgeCfgGet(WEDGE_CFG_PWRMGT));
+    #define TC30M_POWER_MODE_PRINT_COUNT (10)
+    static uint8_t printCount = 0;
     #define TC30M_POWER_MODE_ON (0)
     #define TC30M_POWER_MODE_OFF (1)
-    static __IO uint8_t onOffState = TC30M_POWER_MODE_ON;
+    #define TC30M_POWER_MODE_WAITE_VIB_DETECT (0)
+    #define TC30M_POWER_MODE_WAITE_VIB_ON (1)
+    static __IO uint8_t onOffState = 0;
     static uint32_t RtcTime = 0;
 
     #define WEDGE_POWER_MODE_PROCESS_PERIOD_MS (1000)
@@ -453,7 +457,18 @@ static void WedgePowerModeProcess(void)
     }
     else
     {
+        printCount++;
         SystickRec = HAL_GetTick();
+    }
+
+    if (RtcTime > WedgeRtcCurrentSeconds())
+    {
+        isNotFirstEnterPowerMode = FALSE;
+    }
+
+    if (isNotFirstEnterPowerMode == FALSE)
+    {
+        onOffState = 0;
     }
 
     WedgeUpdateRtcTimeValue(isNotFirstEnterPowerMode, &RtcTime);
@@ -463,7 +478,11 @@ static void WedgePowerModeProcess(void)
     {
         case TC30M_POWER_MODE_ALWAYS_RUN:
         {
-            APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess ALWAYS_RUN", FmtTimeShow());
+            if ((printCount % TC30M_POWER_MODE_PRINT_COUNT) == 0)
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess ALWAYS_RUN Period(%d)"
+                , FmtTimeShow(), WEDGE_POWER_MODE_PROCESS_PERIOD_MS * TC30M_POWER_MODE_PRINT_COUNT);
+            }
             return;
         }
         // break;
@@ -492,6 +511,7 @@ static void WedgePowerModeProcess(void)
                 }
                 else
                 {
+                    MCUExitDeepSleep();
                     isNotFirstEnterPowerMode = FALSE;
                     onOffState = TC30M_POWER_MODE_ON;
                 }
@@ -501,21 +521,68 @@ static void WedgePowerModeProcess(void)
         break;
 
         case TC30M_POWER_MODE_VIBRATION_DETECT2:
-        {
-
-        }
-        break;
-
         case TC30M_POWER_MODE_VIBRATION_DETECT3:
-        {
-            
-        }
-        break;
-
         case TC30M_POWER_MODE_VIBRATION_DETECT4:
         {
+            if (onOffState == TC30M_POWER_MODE_WAITE_VIB_DETECT)
+            {
+                if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2)
+                 || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
+                {
+                    if (TRUE == WedgeVibrationStartDetect(FALSE, pPWRMGT->dbcslp.debounce))
+                    {
+                        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Start Detected", FmtTimeShow());
+                        onOffState = TC30M_POWER_MODE_WAITE_VIB_ON;
+                        MCUExitDeepSleep();
+                        RtcTime = WedgeRtcCurrentSeconds();
+                    }
+                }
 
+                if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT3)
+                 || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
+                {
+                    if (TRUE == WedgeVibrationStopDetect(FALSE, pPWRMGT->dbcslp.debounce))
+                    {
+                        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Stop Detected", FmtTimeShow());
+                        onOffState = TC30M_POWER_MODE_WAITE_VIB_ON;
+                        MCUExitDeepSleep();
+                        RtcTime = WedgeRtcCurrentSeconds();
+                    }
+                }
+                
+                if (onOffState == TC30M_POWER_MODE_WAITE_VIB_DETECT)
+                {
+                    if ((WedgeRtcCurrentSeconds() - RtcTime) > pPWRMGT->dbcslp.debounce)
+                    {
+                        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Detect TimeOut", FmtTimeShow());
+                        onOffState = TC30M_POWER_MODE_WAITE_VIB_DETECT;
+                        isNotFirstEnterPowerMode = FALSE;
+                        MCUEnterDeepSleep();
+                    }
+                }
+            }
+            else if (onOffState == TC30M_POWER_MODE_WAITE_VIB_ON)
+            {
+                if ((WedgeRtcCurrentSeconds() - RtcTime) > pPWRMGT->ontime)
+                {
+                    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB On TimeOver", FmtTimeShow());
+                    isNotFirstEnterPowerMode = FALSE;
+                    onOffState = TC30M_POWER_MODE_WAITE_VIB_DETECT;
+                    MCUEnterDeepSleep();
+                }
+            }
+            else
+            {
+                APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB State Err", FmtTimeShow());
+                isNotFirstEnterPowerMode = FALSE;
+                onOffState = TC30M_POWER_MODE_WAITE_VIB_DETECT;
+            }
         }
+        break;
+
+        default:
+        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess State Err", FmtTimeShow());
+        isNotFirstEnterPowerMode = FALSE;
         break;
     }
 }
@@ -992,8 +1059,8 @@ static uint8_t WedgeIsRtcSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
 extern __IO uint8_t Lis3dhAlarmIndicate;
 static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
 {
-    static uint8_t state;
-    uint8_t ret = FALSE;
+    static uint8_t state = WEDGE_VIBRATION_DETECT_FIRST;
+    uint8_t ret = WEDGE_VIBRATION_INVALID;
     static uint32_t firstVibRtcRec, lastVibRtcRec;
 
     if (needInit == TRUE)
@@ -1016,10 +1083,10 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
         {
             lastVibRtcRec = WedgeRtcCurrentSeconds();
 
-            if ((lastVibRtcRec - firstVibRtcRec) >= debounce))
+            if ((lastVibRtcRec - firstVibRtcRec) >= debounce)
             {
                 state = WEDGE_VIBRATION_DETECT_FIRST;
-                ret = TRUE;
+                ret = WEDGE_VIBRATION_DETECTED;
             }
         }
         else
@@ -1027,11 +1094,13 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
             if ((WedgeRtcCurrentSeconds() - lastVibRtcRec) > debounce)
             {
                 state = WEDGE_VIBRATION_DETECT_FIRST;
+                ret = WEDGE_VIBRATION_TIMEOUT;
             }
         }
         break;
 
         default:
+        state = WEDGE_VIBRATION_DETECT_FIRST;
         break;
     }
 
@@ -1041,8 +1110,7 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
 
 static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
 {
-    static uint8_t state;
-    uint8_t ret = FALSE;
+    uint8_t ret = WEDGE_VIBRATION_INVALID;
     static uint32_t lastVibRtcRec;
 
     if (Lis3dhAlarmIndicate == TRUE)
@@ -1053,7 +1121,7 @@ static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
     {
         if ((WedgeRtcCurrentSeconds() - lastVibRtcRec) >= debounce)
         {
-            ret = TRUE;
+            ret = WEDGE_VIBRATION_DETECTED;
         }
     }
 

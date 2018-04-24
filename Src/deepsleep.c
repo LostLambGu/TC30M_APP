@@ -84,21 +84,22 @@ void HaltPowerConsumption(void)
   // spi flash powerdown
 
   // Modem
-  if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER)
-  {
-    // Disable RTS
-    ModemRTSEnControl(DISABLE);
-  }
-  else if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
-  {
-  }
-  else
-  {
-    // Disable RTS
-    ModemRTSEnControl(DISABLE);
-    // //module disable
-    ModemPowerEnControl(DISABLE);
-  }
+  ModemRTSEnControl(DISABLE);
+  // if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_LOW_POWER)
+  // {
+  //   // Disable RTS
+  //   ModemRTSEnControl(DISABLE);
+  // }
+  // else if (GetMcuDeepSleepModemState() == MCU_DEEPSLEEP_MODEM_STATUS_NORMAL)
+  // {
+  // }
+  // else
+  // {
+  //   // Disable RTS
+  //   ModemRTSEnControl(DISABLE);
+  //   // //module disable
+  //   ModemPowerEnControl(DISABLE);
+  // }
 
   // // AccGyro
   // if (GetMcuDeepSleepAccState() == MCU_DEEPSLEEP_ACC_STATUS_LOW_POWER)
@@ -254,8 +255,8 @@ void RestorePowerConsumption(void)
   //   ModemPowerEnControl(ENABLE);
   // }
 
-  // Gps
-  UbloxGPSStart();
+  // // Gps
+  // UbloxGPSStart();
 
   // // AccGyro
   // // if (GetMcuDeepSleepAccState() != MCU_DEEPSLEEP_ACC_STATUS_NORMAL)
@@ -288,6 +289,26 @@ void MCUDeepSleep(uint32_t seconds)
   /* Re-enable interrupts - see comments above __disable_irq() call
 			above. */
   // __enable_irq();
+}
+
+void MCUEnterDeepSleep(void)
+{
+  HaltPowerConsumption();
+
+  /* enter stop mode */
+	HAL_SuspendTick();
+  HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+
+  RestorePowerConsumption();
+}
+
+void MCUExitDeepSleep(void)
+{
+  // Enable RTS
+  ModemRTSEnControl(ENABLE);
+
+  // Gps
+  UbloxGPSStart();
 }
 
 void MCUReset(void)
