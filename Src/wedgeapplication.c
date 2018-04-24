@@ -446,10 +446,12 @@ static void WedgePowerModeProcess(void)
     #define WEDGE_POWER_MODE_PROCESS_PERIOD_MS (1000)
     static uint32_t SystickRec = 0;
 
+    #ifdef MODEM_DEEPSLEEP_MODE
     if (ModemCanEnterLowPowerMode() == FALSE)
     {
         return;
     }
+    #endif /* MODEM_DEEPSLEEP_MODE */
 
     if (WEDGE_POWER_MODE_PROCESS_PERIOD_MS > (HAL_GetTick() - SystickRec))
     {
@@ -529,7 +531,7 @@ static void WedgePowerModeProcess(void)
                 if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2)
                  || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
                 {
-                    if (TRUE == WedgeVibrationStartDetect(FALSE, pPWRMGT->dbcslp.debounce))
+                    if (WEDGE_VIBRATION_DETECTED == WedgeVibrationStartDetect(FALSE, pPWRMGT->dbcslp.debounce))
                     {
                         APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Start Detected", FmtTimeShow());
                         onOffState = TC30M_POWER_MODE_WAITE_VIB_ON;
@@ -541,7 +543,7 @@ static void WedgePowerModeProcess(void)
                 if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT3)
                  || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
                 {
-                    if (TRUE == WedgeVibrationStopDetect(FALSE, pPWRMGT->dbcslp.debounce))
+                    if (WEDGE_VIBRATION_DETECTED == WedgeVibrationStopDetect(FALSE, pPWRMGT->dbcslp.debounce))
                     {
                         APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Stop Detected", FmtTimeShow());
                         onOffState = TC30M_POWER_MODE_WAITE_VIB_ON;
@@ -554,7 +556,8 @@ static void WedgePowerModeProcess(void)
                 {
                     if ((WedgeRtcCurrentSeconds() - RtcTime) > pPWRMGT->dbcslp.debounce)
                     {
-                        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Detect TimeOut", FmtTimeShow());
+                        APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE PowerModeProcess VIB Detect TimeOut(%dS)"
+                        , FmtTimeShow(), pPWRMGT->dbcslp.debounce);
                         onOffState = TC30M_POWER_MODE_WAITE_VIB_DETECT;
                         isNotFirstEnterPowerMode = FALSE;
                         MCUEnterDeepSleep();
@@ -1056,7 +1059,7 @@ static uint8_t WedgeIsRtcSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
 
 #define WEDGE_VIBRATION_DETECT_FIRST (0)
 #define WEDGE_VIBRATION_DETECT_DEBOUNCE (1)
-extern __IO uint8_t Lis3dhAlarmIndicate;
+extern uint8_t Lis3dhAlarmIndicateGet(void);
 static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
 {
     static uint8_t state = WEDGE_VIBRATION_DETECT_FIRST;
@@ -1071,7 +1074,7 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
     switch(state)
     {
         case WEDGE_VIBRATION_DETECT_FIRST:
-        if (Lis3dhAlarmIndicate == TRUE)
+        if (Lis3dhAlarmIndicateGet() == TRUE)
         {
             firstVibRtcRec = WedgeRtcCurrentSeconds();
             state = WEDGE_VIBRATION_DETECT_DEBOUNCE;
@@ -1079,7 +1082,7 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
         break;
 
         case WEDGE_VIBRATION_DETECT_DEBOUNCE:
-        if (Lis3dhAlarmIndicate == TRUE)
+        if (Lis3dhAlarmIndicateGet() == TRUE)
         {
             lastVibRtcRec = WedgeRtcCurrentSeconds();
 
@@ -1104,7 +1107,6 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
         break;
     }
 
-    Lis3dhAlarmIndicate = FALSE;
     return ret;
 }
 
@@ -1113,7 +1115,7 @@ static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
     uint8_t ret = WEDGE_VIBRATION_INVALID;
     static uint32_t lastVibRtcRec;
 
-    if (Lis3dhAlarmIndicate == TRUE)
+    if (Lis3dhAlarmIndicateGet() == TRUE)
     {
         lastVibRtcRec = WedgeRtcCurrentSeconds();
     }
@@ -1125,7 +1127,6 @@ static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
         }
     }
 
-    Lis3dhAlarmIndicate = FALSE;
     return ret;
 }
 

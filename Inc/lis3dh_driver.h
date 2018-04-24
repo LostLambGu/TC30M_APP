@@ -528,6 +528,7 @@ status_t LIS3DH_Get6DPosition(u8_t* val);
 
 extern void GSensorI2cInit(void);
 extern void GsensorIntProcess(void);
+extern uint8_t Lis3dhAlarmIndicateGet(void);
 
 //Generic
 // i.e. u8_t LIS3DH_ReadReg(u8_t Reg, u8_t* Data);

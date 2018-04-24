@@ -34,6 +34,7 @@ LIS3DH_POSITION_6D_t old_gsensordirection = LIS3DH_UNKOWN;
 /* Private variables ---------------------------------------------------------*/
 static u8 Lis3dhAlarmHappenFlag = FALSE;
 __IO uint8_t Lis3dhAlarmIndicate = FALSE;
+__IO uint16_t Lis3dhAlarmCount = 0;
 /* Private function prototypes -----------------------------------------------*/
 
 void SetLis3dhAlarmStatus(u8 Status)
@@ -701,6 +702,23 @@ void GsensorIntProcess(void)
 
     SerialDbgPrintf(DbgCtl.Lis3dhDbgInfoEn,"\r\n[%s] GSENSOR: Int Happen",FmtTimeShow());
 	}
+}
+
+uint8_t Lis3dhAlarmIndicateGet(void)
+{
+  static __IO uint8_t AlarmCountRec = 0;
+  __IO uint8_t CountRecTmp = Lis3dhAlarmCount;
+  #define GSENSOR_VIBRATION_HAPPEN_COUNT (2)
+  if ((CountRecTmp - AlarmCountRec) >= GSENSOR_VIBRATION_HAPPEN_COUNT)
+  {
+    AlarmCountRec = CountRecTmp;
+    return TRUE;
+  }
+  else
+  {
+    AlarmCountRec = CountRecTmp;
+    return FALSE;
+  }
 }
 
 /******************* (C) COPYRIGHT 2012 STMicroelectronics *****END OF FILE****/
