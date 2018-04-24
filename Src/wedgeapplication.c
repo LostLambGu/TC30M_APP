@@ -37,6 +37,7 @@
 #define APP_PRINT DebugPrintf
 
 static uint8_t isNotFirstEnterPowerMode = FALSE;
+static __IO uint8_t Lis3dhAlarmIndicate = FALSE;
 
 static void WedgeInit(void);
 static void WedgeIgnitionStateProcess(void);
@@ -430,6 +431,7 @@ static void WedgePowerModeInit(void)
     }
 }
 
+extern uint8_t Lis3dhAlarmIndicateGet(void);
 static void WedgePowerModeProcess(void)
 {
     static uint32_t SysTickVal = 0;
@@ -528,6 +530,8 @@ static void WedgePowerModeProcess(void)
         {
             if (onOffState == TC30M_POWER_MODE_WAITE_VIB_DETECT)
             {
+                Lis3dhAlarmIndicate = Lis3dhAlarmIndicateGet();
+                
                 if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2)
                  || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
                 {
@@ -539,7 +543,7 @@ static void WedgePowerModeProcess(void)
                         RtcTime = WedgeRtcCurrentSeconds();
                     }
                 }
-
+                
                 if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT3)
                  || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
                 {
@@ -1059,7 +1063,6 @@ static uint8_t WedgeIsRtcSleepOutTime(uint32_t RtcTime, uint32_t timeInterval)
 
 #define WEDGE_VIBRATION_DETECT_FIRST (0)
 #define WEDGE_VIBRATION_DETECT_DEBOUNCE (1)
-extern uint8_t Lis3dhAlarmIndicateGet(void);
 static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
 {
     static uint8_t state = WEDGE_VIBRATION_DETECT_FIRST;
@@ -1074,7 +1077,7 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
     switch(state)
     {
         case WEDGE_VIBRATION_DETECT_FIRST:
-        if (Lis3dhAlarmIndicateGet() == TRUE)
+        if (Lis3dhAlarmIndicate == TRUE)
         {
             firstVibRtcRec = WedgeRtcCurrentSeconds();
             state = WEDGE_VIBRATION_DETECT_DEBOUNCE;
@@ -1082,7 +1085,7 @@ static uint8_t WedgeVibrationStartDetect(uint8_t needInit, uint32_t debounce)
         break;
 
         case WEDGE_VIBRATION_DETECT_DEBOUNCE:
-        if (Lis3dhAlarmIndicateGet() == TRUE)
+        if (Lis3dhAlarmIndicate == TRUE)
         {
             lastVibRtcRec = WedgeRtcCurrentSeconds();
 
@@ -1115,7 +1118,7 @@ static uint8_t WedgeVibrationStopDetect(uint8_t needInit, uint32_t debounce)
     uint8_t ret = WEDGE_VIBRATION_INVALID;
     static uint32_t lastVibRtcRec;
 
-    if (Lis3dhAlarmIndicateGet() == TRUE)
+    if (Lis3dhAlarmIndicate == TRUE)
     {
         lastVibRtcRec = WedgeRtcCurrentSeconds();
     }
