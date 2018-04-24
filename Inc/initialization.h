@@ -87,7 +87,6 @@ extern void ModemRingTimerCallback(uint8_t Status);
 extern void CheckLEDFlashTimerCallback(uint8_t Status);
 extern void CheckUART3RevCDMATimerCallback(uint8_t Status);
 extern void ModemATInitTimerCallback(uint8_t Status);
-extern void UpdateSystemSignalStatus(uint8_t Type);
 extern void CheckRssiTimerCallback(uint8_t status);
 
 #ifdef __cplusplus

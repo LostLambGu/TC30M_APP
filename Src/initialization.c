@@ -594,32 +594,6 @@ void ModemATInitTimerCallback(uint8_t Status)
 	}
 }
 
-void UpdateSystemSignalStatus(uint8_t Type)
-{
-	if(GetModemPoweronStat() == TRUE && \
-		GetSimCardReadyStat() == TRUE)
-	{
-		// get network register state
-		SendATCmd(GSM_CMD_CEREG, GSM_CMD_TYPE_QUERY, NULL);
-	        // Check vser
-//		SendATCmd(GSM_CMD_VSER, GSM_CMD_TYPE_QUERY, NULL);
-		// Get the signal
-		SendATCmd(GSM_CMD_CSQ, GSM_CMD_TYPE_EXECUTE, NULL);
-		// Extended signal quality
-//		SendATCmd(GSM_CMD_CESQ, GSM_CMD_TYPE_EXECUTE, NULL);
-		// Print Out
-		InitPrintf(NRCMD,"\r\n[%s] INIT: Update Net Service Valid(%d)", FmtTimeShow(),Type);
-	}
-	else
-	{
-		// Print Out
-		InitPrintf(NRCMD,"\r\n[%s] INIT: Update Net Service Forbid(%d %d %d)", \
-			FmtTimeShow(),Type, \
-			GetModemPoweronStat(), \
-			GetSimCardReadyStat());
-	}
-}
-
 void CheckRssiTimerCallback(uint8_t status)
 {
 	UpdateSystemSignalStatus(1);

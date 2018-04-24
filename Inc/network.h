@@ -151,6 +151,8 @@ extern ServiceStatus GetNetServiceStatus(void);
 extern NetworkStatT GetNetworkMachineStatus(void);
 extern void SetNetworkMachineStatus(NetworkStatT status);
 extern void SendMessage(char *Num, char *buf);
+extern void UpdateSystemSignalStatus(uint8_t Type);
+extern uint8_t NetCloseAllSocketsDirectly(void);
 extern void CheckNetlorkTimerCallback(u8 Status);
 
 extern u32_t ipaddr_addr(const char *cp);

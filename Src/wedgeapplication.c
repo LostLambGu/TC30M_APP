@@ -531,7 +531,7 @@ static void WedgePowerModeProcess(void)
             if (onOffState == TC30M_POWER_MODE_WAITE_VIB_DETECT)
             {
                 Lis3dhAlarmIndicate = Lis3dhAlarmIndicateGet();
-                
+
                 if ((pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT2)
                  || (pPWRMGT->mode == TC30M_POWER_MODE_VIBRATION_DETECT4))
                 {
@@ -772,10 +772,9 @@ static void WedgeSMSAddrCfgChg(void)
 
 static void WedgeSVRCFGCfgChg(WEDGECfgChangeTypeDef CfgChg)
 {
-
-
-
-    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE SVRCFG Cfg Chg Reserved", FmtTimeShow());
+    WedgeUdpSocketManageStatSet(WEDGE_UDP_FREE_IDLE_STAT);
+    NetCloseAllSocketsDirectly();
+    APP_PRINT(DbgCtl.WedgeAppLogInfoEn, "\r\n[%s] WEDGE SVRCFG Cfg Chg", FmtTimeShow());
 }
 
 static void WedgeAPNCfgChg(void)

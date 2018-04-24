@@ -485,6 +485,78 @@ static void UART3SendHexData(char *string, uint16_t slen)
 	DebugPrintf(DbgCtl.NetworkDbgInfoEn, "\r\nLTE: SEND Hex Data Len: (%d)", slen);
 }
 
+extern uint8_t GetModemPoweronStat(void);
+extern uint8_t GetSimCardReadyStat(void);
+void UpdateSystemSignalStatus(uint8_t Type)
+{
+	PutStrToUart3Modem("AT\r", 3);
+
+	if(GetModemPoweronStat() == TRUE && \
+		GetSimCardReadyStat() == TRUE)
+	{
+		// get network register state
+		// SendATCmd(GSM_CMD_CEREG, GSM_CMD_TYPE_QUERY, NULL);
+	        // Check vser
+//		SendATCmd(GSM_CMD_VSER, GSM_CMD_TYPE_QUERY, NULL);
+		// Get the signal
+		SendATCmd(GSM_CMD_CSQ, GSM_CMD_TYPE_EXECUTE, NULL);
+		// Extended signal quality
+//		SendATCmd(GSM_CMD_CESQ, GSM_CMD_TYPE_EXECUTE, NULL);
+		// Print Out
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn ,"\r\n[%s] INIT: Update Net Service Valid(%d)", FmtTimeShow(),Type);
+	}
+	else
+	{
+		// Print Out
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn ,"\r\n[%s] INIT: Update Net Service Forbid(%d %d %d)", \
+			FmtTimeShow(),Type, \
+			GetModemPoweronStat(), \
+			GetSimCardReadyStat());
+	}
+}
+
+uint8_t NetCloseAllSocketsDirectly(void)
+{
+	NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] NET Close ALL Sockets Directly", FmtTimeShow());
+	if (GetNetServiceStatus() != IN_SERVICE)
+	{
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] NET Close Socket Network Down", FmtTimeShow());
+		return 1;
+	}
+
+	if ((GetModemPoweronStat() == TRUE) && (GetModemATPortStat() == TRUE) 
+	&& (LTE_AT_PORT_READY() == TRUE))
+	{
+		if (UdpSocketListenIndicateFlag)
+		{
+			uint8_t j = 0;
+			for (j = 0; j < UDPIP_SOCKET_MAX_NUM; j++)
+			{
+				if (UdpSocketListenIndicateFlag & (0x01 << j))
+				{
+					char SocSting[64];
+					memset(SocSting, 0, sizeof(SocSting));
+
+					sprintf((char *)SocSting, "AT+SQNSH=%d\r", j + 1);
+
+					PutStrToUart3Modem(SocSting, strlen(SocSting));
+
+					UdpSocketCloseIndicateFlag &= ~(0x01 << j);
+					UdpSocketListenIndicateFlag &= ~(0x01 << j);
+					UDPIPSocket[j].status = SOCKET_CLOSE;
+				}
+			}
+		}
+
+		return 0;
+	}
+	else
+	{
+		NetworkPrintf(DbgCtl.NetworkDbgInfoEn,"\r\n[%s] NET Close Socket Modem Status Err", FmtTimeShow());
+		return 2;
+	}
+}
+
 #define SMS_SEND_OVER_TIME_MS (60000)
 #define UDP_SEND_OVER_TIME_MS (10000)
 
@@ -851,6 +923,9 @@ void CheckNetlorkTimerCallback(u8 Status)
 					// Check Status
 					if(GetNetServiceStatus() == NO_SERVICE)
 					{
+						#ifdef MODEM_DEEPSLEEP_MODE
+						ModemRTSEnControl(ENABLE);
+						#endif /* MODEM_DEEPSLEEP_MODE */
 						noservicecount++;
 						if (noservicecount >= 10)
 						{
@@ -928,6 +1003,10 @@ void CheckNetlorkTimerCallback(u8 Status)
 
 				case NET_DISCONNECTED_STAT:
 				{
+					#ifdef MODEM_DEEPSLEEP_MODE
+					ModemRTSEnControl(ENABLE);
+					#endif /* MODEM_DEEPSLEEP_MODE */
+
 					if (GetNetworkReadyStat() != FALSE)
 					{
 						SetNetworkMachineStatus(NET_FREE_IDLE_STAT);

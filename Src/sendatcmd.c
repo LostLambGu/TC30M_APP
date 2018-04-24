@@ -377,7 +377,7 @@ static void FwpSendData(GSM_ATCMDINDEX CmdIndex, char* cmdsring, u16 slen)
 	// Put AT Data In Queue
 	// #ifdef DEBUG_SENT_AT
 	// if(gDeviceConfig.DbgCtl.SendToModemEn == TRUE)
-		SendatPrintf(NRCMD,"\r\n[%s: %s] SAT: Put AT Data in Que", FmtTimeShow(),cmdsring);
+		SendatPrintf(NRCMD,"\r\n[%s] SAT: Put in Que(%d) >>%.200s\r\n", FmtTimeShow(), GetFwpIsTimerStatus(), cmdsring);
 	// #endif
 	// Go into queue
 	FwpPutData(&buf, CmdIndex, (u8*)cmdsring, slen);

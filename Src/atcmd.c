@@ -297,7 +297,23 @@ void ATCmdDetection(void)
 
 		if (DataLen >= 4)
 		{
-			if ((strstr((char *)UartData, "AT*ATEL") == NULL) && (strstr((char *)UartData, "at*atel") == NULL))
+			if (UartData[2] == '*' && (UartData[3] == 't' || UartData[3] == 'T') && (UartData[4] == 'o' || UartData[4] == 'O'))
+			{
+				// ATCmdPrintf(DbgCtl.ATCmdInfoEn, "\r\n%s", UartData);
+				char Sendbuf[TBUFFER_MAX + 4] = {'\0'};
+
+				#ifdef MODEM_DEEPSLEEP_MODE
+				extern void ModemWakeUpTickFwpTimer(void);
+				ModemWakeUpTickFwpTimer();
+				#endif /* MODEM_DEEPSLEEP_MODE */
+
+				// AT TO LTE
+				sprintf((char *)Sendbuf, "%s\r", &UartData[6]);
+
+				PutStrToUart3Modem(Sendbuf, strlen((char *)Sendbuf));
+				return;
+			}
+			else if ((strstr((char *)UartData, "AT*ATEL") == NULL) && (strstr((char *)UartData, "at*atel") == NULL))
 			{
 				extern void AppUartAtProcess(uint8_t * UartData, uint8_t DataLen);
 				AppUartAtProcess(UartData, DataLen);
