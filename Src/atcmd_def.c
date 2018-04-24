@@ -43,6 +43,7 @@ extern PswGpsNmeaStreamMsgT MsgBuffer;
 
 __IO uint8_t factorymodeindicatefalg = FALSE;
 __IO uint8_t factorymodembypassfalg = FALSE;
+__IO uint8_t factorymodemupdatefalg = FALSE;
 
 extern char ICCIDBuf[32];
 extern char IMEIBuf[32];
@@ -52,6 +53,7 @@ extern void RefreshImei(void);
 /* Static function declarations ----------------------------------------------*/
 static void ATCmdDefGPSFactoryTest(void);
 static void ATCmdModemFactoryTest(void);
+static void ATCmdModemUpdateFactoryMode(void);
 static void ATCmdGsensorFactoryTest(void);
 static void ATCmdDefAdcFactoryTest(void);
 static void ATCmdDefFlashFactoryTest(void);
@@ -107,6 +109,10 @@ void ATCmdProcessing(uint8_t Type, uint8_t FactoryMode, uint8_t Len, int32_t Par
 
 		case AT_CMD_DEF_MODEM:
 			ATCmdModemFactoryTest();
+			break;
+
+		case AT_CMD_DEF_MODEMUPDATE:
+			ATCmdModemUpdateFactoryMode();
 			break;
 
 		case AT_CMD_DEF_GSENSOR:
@@ -312,6 +318,35 @@ static void ATCmdModemFactoryTest(void)
 		ModemRTSEnControl(DISABLE);
 		ModemPowerEnControl(DISABLE);
 	}	
+}
+
+static void ATCmdModemUpdateFactoryMode(void)
+{
+	// uint8_t DataLen = 0;
+	// uint8_t UartData[UART_BUF_MAX_LENGTH] = {'\0'};
+	extern uint8_t ModemPowerOnFlag;
+	uint8_t powermode = ModemPowerOnFlag;
+
+	factorymodemupdatefalg = TRUE;
+	
+	if (powermode == FALSE)
+	{
+		ModemPowerEnControl(ENABLE);
+		ModemRTSEnControl(ENABLE);
+	}
+
+	HAL_Delay(1000);
+
+	while (factorymodemupdatefalg == TRUE)
+	{
+		HAL_Delay(50);
+	}
+
+	if (powermode == FALSE)
+	{
+		ModemRTSEnControl(DISABLE);
+		ModemPowerEnControl(DISABLE);
+	}
 }
 
 static void ATCmdGsensorFactoryTest(void)
