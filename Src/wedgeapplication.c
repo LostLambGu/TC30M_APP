@@ -470,7 +470,7 @@ static void WedgePowerModeProcess(void)
         isNotFirstEnterPowerMode = FALSE;
     }
 
-    if (isNotFirstEnterPowerMode == FALSE)
+    if ((isNotFirstEnterPowerMode == FALSE) && (pPWRMGT->mode != TC30M_POWER_MODE_TIMER_METHOD))
     {
         onOffState = 0;
     }
