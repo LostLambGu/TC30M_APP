@@ -80,9 +80,10 @@ void MX_GPIO_Init(void)
                           |PA8_FLASH_WP_N_Pin|PA15_MCU_RELAY_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, PB0_BAT_ROUTE_EN_Pin|PB1_SW_LOAD_EN_Pin|PB2_PB2_RADIO_WAKE0_Pin/*|PB14_MCU_RTS3_Pin */
+  HAL_GPIO_WritePin(GPIOB, /*PB0_BAT_ROUTE_EN_Pin|*/PB1_SW_LOAD_EN_Pin|PB2_PB2_RADIO_WAKE0_Pin/*|PB14_MCU_RTS3_Pin */
                           |PB5_GPS_PWR_EN_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(GPIOB, PB14_MCU_RTS3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, PB0_BAT_ROUTE_EN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : PtPin */
   // GPIO_InitStruct.Pin = PC13_MCU_WAKUP_Pin;
